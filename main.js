@@ -3,14 +3,13 @@
 // =========================================================
 const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
-// Danh sách ưu tiên hiển thị quận
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận", "Bình Thạnh", "Gò Vấp", "Quận 3", "Quận 10"];
-
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
-const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy"];
+const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy", "Full nội thất", "Giờ giấc tự do"];
 
 let allRooms = [];
 let expandedDistricts = new Set();
+let map = null; // Biến Map toàn cục
 
 // =========================================================
 // 2. KHỞI TẠO
@@ -36,13 +35,9 @@ async function fetchData() {
 function processData(csvText) {
     const rows = parseCSV(csvText);
     
-    // Map dữ liệu (Lưu ý: Index bắt đầu từ 0)
-    // Col C (2): Quận | Col D (3): Địa chỉ | Col E (4): ID | Col F (5): Tiện ích
-    // Col G (6): Giá | Col H (7): Mô tả | Col Q (16): Loại | Col T (19): Ảnh | Col X (23): Khuyến Mại
-    
+    // MAP DỮ LIỆU TỪ CSV (Index bắt đầu từ 0)
     allRooms = rows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
-        // Chuẩn hóa tên Quận
         if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
             districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
         }
@@ -51,12 +46,15 @@ function processData(csvText) {
             id: row[4] || "", 
             district: districtRaw,
             address: (row[3] || "").trim(),
-            keypoint: (row[5] || ""), 
-            price: parsePrice(row[6]), // Xử lý giá kỹ càng hơn
+            keypoint: (row[5] || ""), // Cột F: Keypoint
+            price: parsePrice(row[6]),
             desc: row[7] || "",
             type: (row[16] || "").trim(),
             images: row[19] ? row[19].split('|') : [],
-            promotion: (row[23] || "").trim(), // Cột X - Khuyến mại
+            promotion: (row[23] || "").trim(), // Cột X: Khuyến mại
+            lat: parseFloat(row[26]) || 10.801646, // Cột AA: Latitude (Mặc định sân bay nếu lỗi)
+            lng: parseFloat(row[27]) || 106.663158, // Cột AB: Longitude
+            video: (row[28] || "").trim(), // Cột AC: Video
             amenities_search: (row[5] || "").toLowerCase()
         };
     }).filter(item => item.id && item.price > 0); 
@@ -75,37 +73,27 @@ function processData(csvText) {
 }
 
 // =========================================================
-// 3. LOGIC BỘ LỌC & TRANG CHỦ
+// 3. LOGIC TRANG CHỦ
 // =========================================================
-
 function initFilters() {
-    // 1. TẠO BỘ LỌC QUẬN (Quét sạch dữ liệu)
     const districtSelect = document.getElementById('district-filter');
     if (districtSelect) {
-        // Lấy danh sách quận, loại bỏ rỗng
         const districts = allRooms.map(r => r.district).filter(d => d && d !== "");
         const uniqueDistricts = [...new Set(districts)].sort();
-        
         let html = '<option value="all">Tất cả Khu vực</option>';
-        uniqueDistricts.forEach(d => {
-            html += `<option value="${d}">${d}</option>`;
-        });
+        uniqueDistricts.forEach(d => html += `<option value="${d}">${d}</option>`);
         districtSelect.innerHTML = html;
         districtSelect.addEventListener('change', applyFilters);
     }
 
-    // 2. TẠO BỘ LỌC LOẠI PHÒNG
     const typeSelect = document.getElementById('type-filter'); 
     if (typeSelect) {
         let html = '<option value="all">Tất cả Loại phòng</option>';
-        ROOM_TYPES.forEach(t => {
-            html += `<option value="${t}">${t}</option>`;
-        });
+        ROOM_TYPES.forEach(t => html += `<option value="${t}">${t}</option>`);
         typeSelect.innerHTML = html;
         typeSelect.addEventListener('change', applyFilters);
     }
 
-    // 3. CHECKBOX TIỆN ÍCH
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
     if (amenityContainer) {
         let html = '';
@@ -113,9 +101,8 @@ function initFilters() {
             html += `
                 <div class="form-check">
                     <input class="form-check-input amenity-check" type="checkbox" value="${am.toLowerCase()}" id="am-${index}" onchange="applyFilters()">
-                    <label class="form-check-label" for="am-${index}">${am}</label>
-                </div>
-            `;
+                    <label class="form-check-label small" for="am-${index}">${am}</label>
+                </div>`;
         });
         amenityContainer.innerHTML = html;
     }
@@ -126,7 +113,6 @@ function applyFilters() {
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
-    // Filter Logic
     let filtered = allRooms.filter(room => {
         if (districtVal !== 'all' && room.district !== districtVal) return false;
         if (typeVal !== 'all' && !room.type.toLowerCase().includes(typeVal.toLowerCase())) return false;
@@ -137,17 +123,8 @@ function applyFilters() {
         return true;
     });
 
-    // === LOGIC SẮP XẾP ƯU TIÊN ===
-    // 1. Căn có Khuyến Mại (Cột X) lên đầu
-    // 2. Sau đó mới đến các căn thường
-    filtered.sort((a, b) => {
-        const hasPromoA = a.promotion.length > 0;
-        const hasPromoB = b.promotion.length > 0;
-        
-        if (hasPromoA && !hasPromoB) return -1; // A lên trước
-        if (!hasPromoA && hasPromoB) return 1;  // B lên trước
-        return 0;
-    });
+    // Ưu tiên Khuyến Mại lên đầu
+    filtered.sort((a, b) => (b.promotion.length > 0) - (a.promotion.length > 0));
 
     renderGroupedByDistrict(filtered);
 }
@@ -192,11 +169,7 @@ function renderGroupedByDistrict(rooms) {
             </h3>
             <div class="row g-3">
         `;
-
-        displayRooms.forEach(room => {
-            html += createCardHTML(room);
-        });
-
+        displayRooms.forEach(room => html += createCardHTML(room));
         html += `</div>`;
 
         if (!isExpanded && districtRooms.length > 6) {
@@ -218,45 +191,27 @@ function expandDistrict(districtName) {
     applyFilters(); 
 }
 
-// === HÀM TẠO CARD (ĐÃ SỬA UI) ===
 function createCardHTML(room) {
-    const imgUrl = (room.images.length > 0 && room.images[0].length > 5) 
-        ? room.images[0] 
-        : "https://placehold.co/600x400?text=Phong+Tro";
-        
+    const imgUrl = (room.images.length > 0 && room.images[0].length > 5) ? room.images[0] : "https://placehold.co/600x400?text=Phong+Tro";
     const cleanAddr = cleanAddress(room.address);
     const title = `${room.id} - ${cleanAddr}`;
-    
-    // Keypoint (Cột F)
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small text-truncate"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
-    
-    // Badge Khuyến mại (Nếu có) - Hiển thị góc ảnh
-    const promoBadge = room.promotion 
-        ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i>Ưu đãi</span>` 
-        : '';
-
-    const detailLink = `detail.html?id=${encodeURIComponent(room.id)}`;
+    const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
     return `
         <div class="col-6 col-md-4 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='${detailLink}'" style="cursor:pointer;">
+            <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
                 <div class="position-relative">
                     <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" style="height: 205px;">
                     ${promoBadge}
                 </div>
-                
                 <div class="card-body p-3 d-flex flex-column">
-                    <h6 class="card-title fw-bold text-primary mb-1 line-clamp-2" style="min-height: 2.5em;">
-                        ${title}
-                    </h6>
-
+                    <h6 class="card-title fw-bold text-primary mb-1 line-clamp-2" style="min-height: 2.5em;">${title}</h6>
                     <div class="mb-2">
                         <span class="text-danger fw-bold fs-6">${formatMoney(room.price)}/tháng</span>
-                        <span class="text-muted small ms-1">- Có thương lượng</span>
+                        <span class="text-muted small ms-1">- Có TL</span>
                     </div>
-                    
                     ${keypointHTML}
-                    
                     <div class="mt-auto pt-2 border-top">
                         <div class="d-flex justify-content-between align-items-center small text-muted">
                             <span><i class="fas fa-map-marker-alt me-1"></i> ${room.district}</span>
@@ -270,9 +225,8 @@ function createCardHTML(room) {
 }
 
 // =========================================================
-// 4. LOGIC TRANG CHI TIẾT
+// 4. LOGIC TRANG CHI TIẾT (ĐÃ CẬP NHẬT GIAO DIỆN MỚI)
 // =========================================================
-
 function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
     const room = allRooms.find(r => r.id === roomId);
@@ -282,42 +236,99 @@ function renderDetailPage(id) {
         return;
     }
 
-    const titleEl = document.querySelector('h1') || document.getElementById('detail-title');
-    if (titleEl) titleEl.textContent = `${room.id} - ${cleanAddress(room.address)}`;
+    // 1. INFO CƠ BẢN
+    const titleEl = document.getElementById('detail-title'); if (titleEl) titleEl.textContent = `${room.id} - ${cleanAddress(room.address)}`;
+    const addrEl = document.getElementById('detail-address'); if (addrEl) addrEl.textContent = room.address;
+    const priceEl = document.getElementById('detail-price'); if (priceEl) priceEl.textContent = formatMoney(room.price);
+    const typeEl = document.getElementById('d-type'); if (typeEl) typeEl.textContent = room.type || "Căn hộ";
 
-    const priceEl = document.getElementById('detail-price');
-    if (priceEl) priceEl.textContent = formatMoney(room.price);
+    // 2. KHUYẾN MẠI (Cột X - Hiển thị Nổi bật)
+    const promoBox = document.getElementById('promo-box-container');
+    const promoText = document.getElementById('detail-promo');
+    if (room.promotion && promoBox && promoText) {
+        promoBox.style.display = 'block';
+        promoText.textContent = room.promotion;
+    }
 
-    const addrEl = document.getElementById('detail-address');
-    if (addrEl) addrEl.textContent = room.address; 
-
+    // 3. MÔ TẢ (Cột H)
     const descEl = document.getElementById('detail-desc');
-    // Nếu có khuyến mại thì hiện thêm dòng khuyến mại trong mô tả
-    let promoHtml = room.promotion ? `<div class="alert alert-warning mt-3"><i class="fas fa-gift me-2"></i><strong>Ưu đãi:</strong> ${room.promotion}</div>` : '';
-    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>') + promoHtml;
+    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>');
 
+    // 4. TIỆN ÍCH (Cột F - Keypoint)
+    const featureContainer = document.getElementById('detail-features');
+    if (featureContainer && room.keypoint) {
+        const items = room.keypoint.split(',').filter(i => i.trim());
+        featureContainer.innerHTML = items.map(i => `
+            <div class="col-6 col-md-4">
+                <div class="amenity-item"><i class="fas fa-check-circle text-success"></i> ${i.trim()}</div>
+            </div>`).join('');
+    }
+
+    // 5. GALLERY (Ảnh Lớn + Thumbnails)
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer && room.images.length > 0) {
-        let html = `<div class="col-12 mb-2"><img src="${room.images[0]}" class="img-fluid rounded shadow-sm w-100" style="max-height:450px; object-fit:cover;"></div>`;
-        html += '<div class="d-flex gap-2 overflow-auto pb-2">';
-        for (let i = 1; i < room.images.length; i++) {
-            html += `<img src="${room.images[i]}" class="rounded border" style="width:100px; height:80px; object-fit:cover; cursor:pointer;" onclick="window.open('${room.images[i]}', '_blank')">`;
-        }
+        // Ảnh chính
+        let html = `<img src="${room.images[0]}" class="gallery-main-img mb-3 shadow-sm" id="main-img" onclick="window.open('${room.images[0]}', '_blank')">`;
+        // Thumbnails
+        html += '<div class="row g-2">';
+        room.images.forEach((img, idx) => {
+            if(idx < 4) { // Chỉ hiện 4 ảnh nhỏ dưới
+                html += `<div class="col-3"><img src="${img}" class="gallery-thumb" onclick="changeMainImage('${img}')"></div>`;
+            }
+        });
         html += '</div>';
         galleryContainer.innerHTML = html;
     }
 
-    const featureContainer = document.getElementById('detail-features');
-    if (featureContainer) {
-        const items = room.keypoint.split(',').filter(i => i.trim());
-        featureContainer.innerHTML = items.map(i => `<span class="badge bg-success bg-opacity-75 me-2 mb-2 p-2 fw-normal"><i class="fas fa-check me-1"></i>${i.trim()}</span>`).join('');
+    // 6. VIDEO (Cột AC)
+    const videoSection = document.getElementById('video-section');
+    const videoEmbed = document.getElementById('video-embed');
+    if (room.video && room.video.length > 5 && videoSection) {
+        videoSection.style.display = 'block';
+        if (room.video.includes('youtube.com') || room.video.includes('youtu.be')) {
+            // Nhúng Youtube
+            const videoId = room.video.split('v=')[1]?.split('&')[0] || room.video.split('/').pop();
+            videoEmbed.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+        } else {
+            // Link Drive hoặc link khác -> Hiện nút bấm
+            videoEmbed.style.height = 'auto';
+            videoEmbed.style.padding = '40px';
+            videoEmbed.style.background = '#000';
+            videoEmbed.className = 'text-center rounded-3';
+            videoEmbed.innerHTML = `<a href="${room.video}" target="_blank" class="btn btn-danger btn-lg rounded-pill"><i class="fas fa-play-circle me-2"></i> Xem Video Tại Đây</a>`;
+        }
     }
+
+    // 7. BẢN ĐỒ (Cột AA, AB)
+    initMap(room.lat, room.lng, room.address);
+}
+
+// Hàm đổi ảnh chính khi click thumb
+window.changeMainImage = function(src) {
+    const mainImg = document.getElementById('main-img');
+    if(mainImg) mainImg.src = src;
+}
+
+function initMap(lat, lng, label) {
+    const mapContainer = document.getElementById('detail-map');
+    if (!mapContainer) return;
+    
+    // Xóa map cũ nếu có
+    if (map) { map.remove(); map = null; }
+
+    map = L.map('detail-map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup(`<b>${label}</b>`)
+        .openPopup();
 }
 
 // =========================================================
 // 5. HELPER FUNCTIONS
 // =========================================================
-
 function cleanAddress(fullAddr) {
     if (!fullAddr) return "";
     return fullAddr.replace(/^[\d\/a-zA-Z]+\s+(?:đường\s+)?/i, '').trim();
@@ -348,12 +359,8 @@ function parseCSV(text) {
     return result;
 }
 
-// Hàm xử lý giá mạnh mẽ hơn
 function parsePrice(str) {
     if (!str) return 0;
-    // Chuyển về string, xóa hết ký tự không phải số
-    // VD: "5.500.000" -> "5500000", "5,5 tr" -> "55" (cần cẩn thận logic này)
-    // Nhưng vì file excel của bạn là số nguyên 5500000, nên xóa hết ký tự lạ là OK
     const clean = String(str).replace(/\D/g, '');
     return parseInt(clean) || 0;
 }
