@@ -12,26 +12,34 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* CSS Riêng cho trang Detail phong cách HomiRX */
-        .property-header { background: #fff; padding: 30px 0; border-bottom: 1px solid #eee; }
+        /* CSS Riêng cho trang Detail */
+        .property-header { background: #fff; padding: 20px 0; border-bottom: 1px solid #eee; }
         .gallery-main-img { height: 450px; object-fit: cover; width: 100%; border-radius: 12px; cursor: pointer; }
-        .gallery-thumb { height: 100px; object-fit: cover; width: 100%; border-radius: 8px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
-        .gallery-thumb:hover { opacity: 1; }
+        .gallery-thumb { height: 90px; object-fit: cover; width: 100%; border-radius: 8px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
+        .gallery-thumb:hover { opacity: 1; border: 2px solid var(--primary); }
         
         .section-title { font-weight: 700; font-size: 1.25rem; margin-bottom: 20px; color: var(--text-dark); position: relative; padding-left: 15px; }
         .section-title::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 4px; background: var(--primary); border-radius: 2px; }
         
-        .amenity-item { background: #f8f9fa; padding: 10px 15px; border-radius: 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; border: 1px solid #eee; }
-        .amenity-item i { color: var(--primary-dark); }
-        
-        /* Video Frame */
+        /* Khối Thông tin nổi bật (Dưới ảnh) */
+        .highlight-box { background: #fdfdfd; border: 1px solid #e0e0e0; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .price-tag-large { color: #dc3545; font-size: 1.8rem; font-weight: 800; }
+        .promo-badge-inline { background: #fff3cd; color: #856404; border: 1px dashed #ffeeba; padding: 8px 15px; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .keypoint-list li { margin-bottom: 8px; color: #555; }
+        .keypoint-list i { color: #28a745; margin-right: 8px; }
+
+        /* Sidebar & Social */
+        .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .social-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: 0.3s; color: #fff; text-decoration: none; }
+        .social-btn:hover { transform: translateY(-3px); opacity: 0.9; color: #fff; }
+        .bg-fb { background: #1877F2; }
+        .bg-tiktok { background: #000; }
+        .bg-youtube { background: #FF0000; }
+        .bg-zalo { background: #0068FF; }
+
+        /* Video & Map */
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-        
-        /* Sidebar Sticky */
-        .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .promo-box { background: linear-gradient(135deg, #fff3cd 0%, #fff 100%); border: 2px dashed #ffc107; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
-        
         .map-frame { height: 350px; width: 100%; border-radius: 12px; z-index: 1; }
     </style>
 </head>
@@ -53,17 +61,9 @@
 
     <div class="property-header mt-5 pt-5">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <span class="badge bg-primary text-white mb-2 px-3 py-2 rounded-pill" id="d-type">Căn hộ</span>
-                    <h1 class="fw-bold mb-2" id="detail-title">Đang tải tên phòng...</h1>
-                    <p class="text-muted mb-0"><i class="fas fa-map-marker-alt text-danger me-2"></i><span id="detail-address">...</span></p>
-                </div>
-                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <div class="fs-2 fw-bold text-danger" id="detail-price">...</div>
-                    <div class="text-muted small">Giá thuê hàng tháng (Có thương lượng)</div>
-                </div>
-            </div>
+            <span class="badge bg-primary text-white mb-2 px-3 py-2 rounded-pill" id="d-type">Căn hộ</span>
+            <h1 class="fw-bold mb-2 h2" id="detail-title">Đang tải tên phòng...</h1>
+            <p class="text-muted mb-0"><i class="fas fa-map-marker-alt text-danger me-2"></i><span id="detail-address">...</span></p>
         </div>
     </div>
 
@@ -72,60 +72,84 @@
             
             <div class="col-lg-8">
                 
-                <div class="mb-5" id="detail-gallery">
+                <div class="mb-4" id="detail-gallery">
                     <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center" style="height: 450px;">Đang tải ảnh...</div>
                 </div>
 
+                <div class="highlight-box mb-4">
+                    <div class="d-flex align-items-end mb-3 flex-wrap gap-3">
+                        <div class="price-tag-large" id="detail-price">...</div>
+                        <div class="text-muted pb-2 fst-italic">/tháng (Có thương lượng)</div>
+                    </div>
+                    
+                    <div id="promo-section" style="display:none;" class="mb-3">
+                        <div class="promo-badge-inline">
+                            <i class="fas fa-gift me-2"></i> <span id="detail-promo">...</span>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="row g-2 keypoint-list" id="detail-keypoints">
+                        </div>
+                </div>
+
                 <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
-                    <h4 class="section-title">Mô tả căn hộ</h4>
+                    <h4 class="section-title">Mô tả chi tiết</h4>
                     <div class="text-secondary lh-lg" id="detail-desc">
                         Đang tải mô tả...
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
-                    <h4 class="section-title">Tiện nghi & Nội thất</h4>
-                    <div class="row g-3" id="detail-features">
-                        </div>
-                </div>
-
                 <div class="bg-white p-4 rounded-4 shadow-sm border mb-4" id="video-section" style="display:none;">
                     <h4 class="section-title">Video tham quan</h4>
-                    <div class="video-container" id="video-embed">
-                        </div>
+                    <div class="video-container" id="video-embed"></div>
                 </div>
 
                 <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
-                    <h4 class="section-title">Vị trí trên bản đồ</h4>
+                    <h4 class="section-title">Vị trí</h4>
                     <div id="detail-map" class="map-frame"></div>
-                    <p class="text-muted small mt-2 mb-0 fst-italic"><i class="fas fa-info-circle me-1"></i>Vị trí hiển thị dựa trên tọa độ chính xác của tòa nhà.</p>
+                </div>
+
+                <div class="mt-5 pt-3 border-top">
+                    <h3 class="fw-bold mb-4">Căn hộ tương tự</h3>
+                    <div class="row g-3" id="related-grid">
+                        <div class="col-12 text-center text-muted">Đang tìm căn phù hợp...</div>
+                    </div>
                 </div>
 
             </div>
 
             <div class="col-lg-4">
                 <div class="agent-card">
-                    <div id="promo-box-container" style="display: none;">
-                        <div class="promo-box text-center">
-                            <div class="fs-1 mb-2">🎁</div>
-                            <h5 class="fw-bold text-danger text-uppercase">Ưu đãi đặc biệt</h5>
-                            <p class="mb-0 text-dark" id="detail-promo">...</p>
-                        </div>
-                    </div>
-
                     <div class="text-center mb-4">
                         <img src="https://ui-avatars.com/api/?name=Tho+Admin&background=f1c40f&color=fff&size=128" class="rounded-circle mb-3 shadow-sm border border-4 border-white" width="100">
                         <h5 class="fw-bold">Thọ Cho Thuê Trọ</h5>
                         <p class="text-muted small">Quản lý vận hành</p>
                     </div>
 
-                    <div class="d-grid gap-2">
+                    <div class="d-grid gap-2 mb-4">
                         <a href="tel:0925996992" class="btn btn-danger py-3 rounded-3 fw-bold shadow-sm">
                             <i class="fas fa-phone-alt me-2"></i> GỌI 0925 996 992
                         </a>
                         <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary py-3 rounded-3 fw-bold shadow-sm">
-                            <i class="fas fa-comment-dots me-2"></i> CHAT ZALO NGAY
+                            <i class="fas fa-comment-dots me-2"></i> CHAT ZALO
                         </a>
+                    </div>
+
+                    <div class="border-top pt-4 text-center">
+                        <p class="fw-bold small text-uppercase text-muted mb-3">Kết nối với tôi</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" class="social-btn bg-fb" title="Fanpage Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" class="social-btn bg-tiktok" title="Tiktok Channel">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                            <a href="https://www.youtube.com/@thochothuetro" target="_blank" class="social-btn bg-youtube" title="Youtube Channel">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
