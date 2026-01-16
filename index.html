@@ -211,7 +211,7 @@
 
     <script>
         // =========================================================
-        // 🔴 THAY LINK CSV CỦA BẠN VÀO ĐÂY
+        // 🔴 CẤU HÌNH LINK CSV (Đã điền sẵn link của bạn)
         // =========================================================
         const SHEET_NGUONHANG = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
         const SHEET_TIENICH   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv';
@@ -220,11 +220,19 @@
         let allRooms = [];
         let allAmenities = [];
         let map = null;
-        let markersLayer = L.layerGroup();
 
-        // 1. KHỞI CHẠY
+        // Tự động chạy khi web tải xong
         window.onload = () => {
-            loadAmenities(); // Tải tiện ích trước
+            console.log("Website bắt đầu tải...");
+            loadAmenities(); 
+            
+            // 🛡️ AN TOÀN: Nếu sau 3 giây mà vẫn xoay, ép tắt Loading để hiện nội dung
+            setTimeout(() => {
+                if(document.getElementById('loading').style.display !== 'none') {
+                    console.log("Hết thời gian chờ, ép hiển thị!");
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 3000);
         };
 
         function loadAmenities() {
@@ -232,9 +240,13 @@
                 download: true, header: true,
                 complete: (results) => {
                     allAmenities = results.data;
-                    loadRooms(); // Xong thì tải nguồn hàng
+                    console.log(`Đã tải ${allAmenities.length} tiện ích.`);
+                    loadRooms(); 
                 },
-                error: () => loadRooms() // Lỗi cũng cứ tải nguồn hàng
+                error: (err) => {
+                    console.warn("Lỗi tải tiện ích, vẫn tiếp tục tải nguồn hàng...");
+                    loadRooms();
+                }
             });
         }
 
@@ -242,17 +254,23 @@
             Papa.parse(SHEET_NGUONHANG, {
                 download: true, header: true,
                 complete: (results) => {
+                    console.log(`Đã tải ${results.data.length} phòng.`);
                     allRooms = results.data;
                     initApp();
+                },
+                error: (err) => {
+                    alert("Không tải được danh sách phòng. Kiểm tra lại Link CSV!");
+                    document.getElementById('loading').style.display = 'none';
                 }
             });
         }
 
         function initApp() {
+            // Tắt màn hình chờ ngay lập tức
             document.getElementById('loading').style.display = 'none';
+            
             populateDistricts();
             
-            // Kiểm tra URL xem có đang share phòng nào không
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('id');
             if(roomId) {
@@ -262,38 +280,47 @@
             }
         }
 
-        // 2. HIỂN THỊ DANH SÁCH (GRID VIEW)
         function renderGrid(data) {
             const container = document.getElementById('products-grid');
             const countLabel = document.getElementById('count-result');
             container.innerHTML = '';
             countLabel.innerText = `${data.length} tin đăng`;
 
-            if(data.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center py-5"><h5 class="text-muted">Không tìm thấy phòng nào phù hợp!</h5></div>';
+            if(!data || data.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Không có dữ liệu hiển thị.</div>';
                 return;
             }
 
             data.forEach(room => {
-                // Xử lý dữ liệu an toàn
+                // Lấy ID an toàn
                 let id = room['ID'] || Object.values(room)[0];
-                let priceRaw = parseInt(room['Giá tiền']);
-                if(isNaN(priceRaw)) return;
+                if (!id || id.trim() === '') return; // Bỏ qua dòng trống
 
-                let priceText = (priceRaw / 1000000).toFixed(1) + " Tr";
-                let img = room['Hình ảnh'] || 'https://via.placeholder.com/400x300?text=No+Image';
-                let title = room['Phòng (P+Mã - Giá)'] || 'Phòng trọ tiện nghi';
+                // Xử lý giá tiền
+                let priceRaw = parseInt(room['Giá tiền']);
+                let priceText = priceRaw ? (priceRaw / 1000000).toFixed(1) + " Tr" : "Liên hệ";
+                
+                // Xử lý ảnh: Ưu tiên ảnh cột Hình ảnh, nếu lỗi thì dùng ảnh placeholder chuẩn
+                let imgUrl = room['Hình ảnh'];
+                if(!imgUrl || imgUrl.trim() === '') {
+                    imgUrl = 'https://via.placeholder.com/400x300?text=Chua+co+hinh';
+                }
+
+                // Xử lý thông tin khác
+                let title = room['Phòng (P+Mã - Giá)'] || 'Phòng trọ';
                 let address = room['Địa chỉ'] || 'Đang cập nhật';
                 let district = room['Quận'] || '';
                 let type = room['Loại Phòng'] || 'Phòng trọ';
 
-                // HTML Card Bootstrap
                 let col = document.createElement('div');
                 col.className = 'col-12 col-md-6 col-lg-4';
+                
+                // 🛠️ SỬA LỖI QUAN TRỌNG: Sửa lại đường dẫn ảnh dự phòng trong onerror
                 col.innerHTML = `
                     <div class="room-card shadow-sm" onclick="showDetail('${id}')">
                         <div class="position-relative">
-                            <img src="${img}" class="card-img-top" onerror="this.src='https://via.placeholder.com/400x300?text=Anh+Loi'">
+                            <img src="${imgUrl}" class="card-img-top" 
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Chua+co+hinh';">
                             <span class="price-badge">${priceText}</span>
                         </div>
                         <div class="card-body">
@@ -308,10 +335,10 @@
             });
         }
 
-        // 3. XỬ LÝ LỌC (FILTER)
         function populateDistricts() {
-            let districts = [...new Set(allRooms.map(r => r['Quận']).filter(Boolean))];
+            let districts = [...new Set(allRooms.map(r => r['Quận']).filter(d => d && d.trim() !== ''))];
             let select = document.getElementById('filter-district');
+            select.innerHTML = '<option value="all">📍 Tất cả Quận</option>';
             districts.sort().forEach(d => {
                 let opt = document.createElement('option');
                 opt.value = d;
@@ -326,8 +353,7 @@
 
             let filtered = allRooms.filter(room => {
                 let matchD = (district === 'all' || room['Quận'] === district);
-                
-                let p = parseInt(room['Giá tiền']);
+                let p = parseInt(room['Giá tiền']) || 0;
                 let matchP = true;
                 if (priceVal !== 'all') {
                     let [min, max] = priceVal.split('-').map(Number);
@@ -335,113 +361,91 @@
                 }
                 return matchD && matchP;
             });
-
             renderGrid(filtered);
-            // Scroll lên đầu mượt mà
             document.getElementById('listing-view').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 4. HIỂN THỊ CHI TIẾT (DETAIL VIEW)
         function showDetail(id) {
             let room = allRooms.find(r => (r['ID'] || Object.values(r)[0]) == id);
-            if(!room) return;
+            if(!room) { alert("Không tìm thấy phòng!"); return; }
 
-            // Đổi URL
             const newUrl = `${window.location.pathname}?id=${id}`;
             window.history.pushState({path:newUrl}, '', newUrl);
 
-            // Ẩn Listing, Hiện Detail
             document.getElementById('listing-view').style.display = 'none';
-            document.querySelector('.navbar').style.display = 'none'; // Ẩn menu cho tập trung
+            document.querySelector('.navbar').style.display = 'none';
             document.getElementById('detail-view').style.display = 'block';
             window.scrollTo(0,0);
 
-            // Fill dữ liệu
-            document.title = room['Phòng (P+Mã - Giá)']; // Update SEO title tạm thời
-            document.getElementById('d-img').src = room['Hình ảnh'] || '';
-            document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'];
-            document.getElementById('d-price').innerText = (parseInt(room['Giá tiền'])/1000000).toFixed(1) + " Triệu/tháng";
-            document.getElementById('d-address').innerText = room['Địa chỉ'];
-            document.getElementById('d-date').innerText = room['Ngày Cập Nhật'] || 'Hôm nay';
-            document.getElementById('d-type').innerText = room['Loại Phòng'] || 'Căn hộ';
-            document.getElementById('d-desc').innerText = room['Đặc điểm'] || room['Điểm Nổi Bật'] || 'Đang cập nhật mô tả...';
+            let imgUrl = room['Hình ảnh'] || 'https://via.placeholder.com/800x400?text=Chua+co+hinh';
+            let imgEl = document.getElementById('d-img');
+            imgEl.src = imgUrl;
+            imgEl.onerror = function() { this.src = 'https://via.placeholder.com/800x400?text=Chua+co+hinh'; };
+
+            document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'] || '';
+            let p = parseInt(room['Giá tiền']);
+            document.getElementById('d-price').innerText = p ? (p/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
+            document.getElementById('d-address').innerText = room['Địa chỉ'] || '';
+            document.getElementById('d-date').innerText = room['Ngày Cập Nhật'] || '';
+            document.getElementById('d-type').innerText = room['Loại Phòng'] || '';
+            document.getElementById('d-desc').innerText = room['Đặc điểm'] || room['Điểm Nổi Bật'] || '';
             
             let linkFolder = room['Folder'] || '#';
             document.getElementById('d-link-pc').href = linkFolder;
             document.getElementById('d-link-mobile').href = linkFolder;
 
-            // Render Map
-            setTimeout(() => {
-                initMap(room);
-            }, 500); // Delay xíu để div hiện ra thì map mới render đúng
+            setTimeout(() => { initMap(room); }, 500);
         }
 
         function goBack() {
             const newUrl = window.location.pathname;
             window.history.pushState({path:newUrl}, '', newUrl);
-            document.title = "Săn Phòng Trọ Giá Tốt";
-
             document.getElementById('detail-view').style.display = 'none';
             document.querySelector('.navbar').style.display = 'flex';
             document.getElementById('listing-view').style.display = 'block';
         }
 
-        function goHome() {
-            window.location.href = window.location.pathname;
-        }
+        function goHome() { window.location.href = window.location.pathname; }
 
-        // 5. MAP LOGIC
         function initMap(room) {
-            // Lấy cột Lat/Lng (Cột 29, 30 hoặc tên cột)
+            // Tự động dò tìm cột Lat/Lng
             let lat = parseFloat(room['Lat'] || room['Latitude'] || Object.values(room)[28]);
             let lng = parseFloat(room['Lng'] || room['Longitude'] || Object.values(room)[29]);
 
-            if (isNaN(lat) || isNaN(lng)) {
+            if (isNaN(lat) || isNaN(lng) || lat === 0) {
                 document.getElementById('map-detail').innerHTML = '<div class="text-center p-5 text-muted">Chưa có toạ độ bản đồ</div>';
                 return;
             }
 
-            // Reset Map nếu đã có
             if (map) { map.remove(); }
-            
             map = L.map('map-detail').setView([lat, lng], 16);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
-            // Marker Nhà (Màu Đỏ)
-            let homeIcon = L.divIcon({
-                html: '<div style="background:#d63031; width:25px; height:25px; border-radius:50%; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.4);"></div>',
-                className: 'marker-home',
-                iconSize: [25, 25]
-            });
-            L.marker([lat, lng], {icon: homeIcon}).addTo(map)
-                .bindPopup("<b>Vị trí phòng trọ</b>").openPopup();
+            // Marker Nhà
+            L.marker([lat, lng], {
+                icon: L.divIcon({
+                    html: '<div style="background:#d63031; width:25px; height:25px; border-radius:50%; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.4);"></div>',
+                    className: 'dummy', iconSize: [25, 25]
+                })
+            }).addTo(map).bindPopup("<b>Vị trí phòng</b>").openPopup();
 
-            // Marker Tiện ích xung quanh (Màu Xanh/Cam)
-            // Lọc tiện ích bán kính 1.5km (~0.015 độ)
+            // Marker Tiện ích
             allAmenities.forEach(am => {
                 let aLat = parseFloat(am['Lat'] || Object.values(am)[7]);
                 let aLng = parseFloat(am['Lng'] || Object.values(am)[8]);
-
                 if(!isNaN(aLat) && !isNaN(aLng)) {
                     let dist = Math.sqrt(Math.pow(aLat-lat, 2) + Math.pow(aLng-lng, 2));
                     if(dist < 0.015) {
                         let type = am['Loại dữ liệu'] || '';
-                        let isSchool = type.includes('Trường');
-                        let color = isSchool ? '#0984e3' : '#e17055'; // Xanh hoặc Cam
-                        let iconClass = isSchool ? 'fa-graduation-cap' : 'fa-shopping-cart';
-                        
+                        let color = type.includes('Trường') ? '#0984e3' : '#e17055';
+                        let iconClass = type.includes('Trường') ? 'fa-graduation-cap' : 'fa-shopping-cart';
                         let iconHtml = `<div style="background:${color}; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; border:1px solid white;"><i class="fas ${iconClass}"></i></div>`;
-                        
-                        L.marker([aLat, aLng], {
-                            icon: L.divIcon({html: iconHtml, className: 'marker-am', iconSize:[24,24]})
-                        }).addTo(map).bindPopup(`<b>${am['Tên địa điểm']}</b><br>${type}`);
+                        L.marker([aLat, aLng], {icon: L.divIcon({html: iconHtml, className: 'dummy', iconSize:[24,24]})}).addTo(map).bindPopup(`<b>${am['Tên địa điểm']}</b><br>${type}`);
                     }
                 }
             });
         }
     </script>
 </body>
+
 </html>
