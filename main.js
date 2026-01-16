@@ -9,7 +9,7 @@ const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "
 
 let allRooms = [];
 let expandedDistricts = new Set();
-let map = null; // Biến Map toàn cục
+let map = null; 
 
 // =========================================================
 // 2. KHỞI TẠO
@@ -35,7 +35,7 @@ async function fetchData() {
 function processData(csvText) {
     const rows = parseCSV(csvText);
     
-    // MAP DỮ LIỆU TỪ CSV (Index bắt đầu từ 0)
+    // Map dữ liệu
     allRooms = rows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
         if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
@@ -46,15 +46,15 @@ function processData(csvText) {
             id: row[4] || "", 
             district: districtRaw,
             address: (row[3] || "").trim(),
-            keypoint: (row[5] || ""), // Cột F: Keypoint
+            keypoint: (row[5] || ""), // Cột F
             price: parsePrice(row[6]),
             desc: row[7] || "",
             type: (row[16] || "").trim(),
             images: row[19] ? row[19].split('|') : [],
-            promotion: (row[23] || "").trim(), // Cột X: Khuyến mại
-            lat: parseFloat(row[26]) || 10.801646, // Cột AA: Latitude (Mặc định sân bay nếu lỗi)
-            lng: parseFloat(row[27]) || 106.663158, // Cột AB: Longitude
-            video: (row[28] || "").trim(), // Cột AC: Video
+            promotion: (row[23] || "").trim(),
+            lat: parseFloat(row[26]) || 10.801646,
+            lng: parseFloat(row[27]) || 106.663158,
+            video: (row[28] || "").trim(),
             amenities_search: (row[5] || "").toLowerCase()
         };
     }).filter(item => item.id && item.price > 0); 
@@ -123,9 +123,8 @@ function applyFilters() {
         return true;
     });
 
-    // Ưu tiên Khuyến Mại lên đầu
+    // Sắp xếp: Ưu tiên Khuyến Mại -> Mới nhất (giả định theo ID hoặc thứ tự gốc)
     filtered.sort((a, b) => (b.promotion.length > 0) - (a.promotion.length > 0));
-
     renderGroupedByDistrict(filtered);
 }
 
@@ -225,7 +224,7 @@ function createCardHTML(room) {
 }
 
 // =========================================================
-// 4. LOGIC TRANG CHI TIẾT (ĐÃ CẬP NHẬT GIAO DIỆN MỚI)
+// 4. LOGIC TRANG CHI TIẾT
 // =========================================================
 function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
@@ -236,74 +235,92 @@ function renderDetailPage(id) {
         return;
     }
 
-    // 1. INFO CƠ BẢN
+    // 1. HEADER INFO
     const titleEl = document.getElementById('detail-title'); if (titleEl) titleEl.textContent = `${room.id} - ${cleanAddress(room.address)}`;
     const addrEl = document.getElementById('detail-address'); if (addrEl) addrEl.textContent = room.address;
-    const priceEl = document.getElementById('detail-price'); if (priceEl) priceEl.textContent = formatMoney(room.price);
     const typeEl = document.getElementById('d-type'); if (typeEl) typeEl.textContent = room.type || "Căn hộ";
-
-    // 2. KHUYẾN MẠI (Cột X - Hiển thị Nổi bật)
-    const promoBox = document.getElementById('promo-box-container');
+    
+    // 2. GIÁ & KHUYẾN MẠI (Ở Khối Nổi Bật dưới ảnh)
+    const priceEl = document.getElementById('detail-price'); if (priceEl) priceEl.textContent = formatMoney(room.price);
+    
+    const promoSection = document.getElementById('promo-section');
     const promoText = document.getElementById('detail-promo');
-    if (room.promotion && promoBox && promoText) {
-        promoBox.style.display = 'block';
+    if (room.promotion && promoSection && promoText) {
+        promoSection.style.display = 'block';
         promoText.textContent = room.promotion;
     }
 
-    // 3. MÔ TẢ (Cột H)
-    const descEl = document.getElementById('detail-desc');
-    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>');
-
-    // 4. TIỆN ÍCH (Cột F - Keypoint)
-    const featureContainer = document.getElementById('detail-features');
-    if (featureContainer && room.keypoint) {
+    // 3. KEYPOINTS (Checklist cột F)
+    const keypointContainer = document.getElementById('detail-keypoints');
+    if (keypointContainer && room.keypoint) {
         const items = room.keypoint.split(',').filter(i => i.trim());
-        featureContainer.innerHTML = items.map(i => `
-            <div class="col-6 col-md-4">
-                <div class="amenity-item"><i class="fas fa-check-circle text-success"></i> ${i.trim()}</div>
+        keypointContainer.innerHTML = items.map(i => `
+            <div class="col-6 col-md-6">
+                <i class="fas fa-check-circle"></i> ${i.trim()}
             </div>`).join('');
     }
 
-    // 5. GALLERY (Ảnh Lớn + Thumbnails)
+    // 4. MÔ TẢ
+    const descEl = document.getElementById('detail-desc');
+    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>');
+
+    // 5. GALLERY
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer && room.images.length > 0) {
-        // Ảnh chính
-        let html = `<img src="${room.images[0]}" class="gallery-main-img mb-3 shadow-sm" id="main-img" onclick="window.open('${room.images[0]}', '_blank')">`;
-        // Thumbnails
+        let html = `<img src="${room.images[0]}" class="gallery-main-img mb-2 shadow-sm" id="main-img" onclick="window.open('${room.images[0]}', '_blank')">`;
         html += '<div class="row g-2">';
         room.images.forEach((img, idx) => {
-            if(idx < 4) { // Chỉ hiện 4 ảnh nhỏ dưới
-                html += `<div class="col-3"><img src="${img}" class="gallery-thumb" onclick="changeMainImage('${img}')"></div>`;
+            if(idx < 5) { // Show 5 ảnh thumb
+                html += `<div class="col"><img src="${img}" class="gallery-thumb" onclick="changeMainImage('${img}')"></div>`;
             }
         });
         html += '</div>';
         galleryContainer.innerHTML = html;
     }
 
-    // 6. VIDEO (Cột AC)
+    // 6. VIDEO
     const videoSection = document.getElementById('video-section');
     const videoEmbed = document.getElementById('video-embed');
     if (room.video && room.video.length > 5 && videoSection) {
         videoSection.style.display = 'block';
         if (room.video.includes('youtube.com') || room.video.includes('youtu.be')) {
-            // Nhúng Youtube
             const videoId = room.video.split('v=')[1]?.split('&')[0] || room.video.split('/').pop();
             videoEmbed.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
         } else {
-            // Link Drive hoặc link khác -> Hiện nút bấm
             videoEmbed.style.height = 'auto';
             videoEmbed.style.padding = '40px';
-            videoEmbed.style.background = '#000';
-            videoEmbed.className = 'text-center rounded-3';
+            videoEmbed.className = 'text-center bg-dark rounded-3';
             videoEmbed.innerHTML = `<a href="${room.video}" target="_blank" class="btn btn-danger btn-lg rounded-pill"><i class="fas fa-play-circle me-2"></i> Xem Video Tại Đây</a>`;
         }
     }
 
-    // 7. BẢN ĐỒ (Cột AA, AB)
+    // 7. MAP
     initMap(room.lat, room.lng, room.address);
+
+    // 8. RENDER CĂN HỘ TƯƠNG TỰ
+    renderRelatedApartments(room);
 }
 
-// Hàm đổi ảnh chính khi click thumb
+// Logic tìm căn tương tự: Cùng Quận + Giá chênh lệch không quá 1 triệu
+function renderRelatedApartments(currentRoom) {
+    const grid = document.getElementById('related-grid');
+    if (!grid) return;
+
+    // Lọc: Cùng Quận, Khác ID hiện tại, Giá chênh lệch <= 1.500.000
+    const related = allRooms.filter(r => 
+        r.district === currentRoom.district && 
+        r.id !== currentRoom.id &&
+        Math.abs(r.price - currentRoom.price) <= 1500000 
+    ).slice(0, 3); // Lấy tối đa 3 căn
+
+    if (related.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự cùng khu vực.</div>';
+        return;
+    }
+
+    grid.innerHTML = related.map(room => createCardHTML(room)).join('');
+}
+
 window.changeMainImage = function(src) {
     const mainImg = document.getElementById('main-img');
     if(mainImg) mainImg.src = src;
@@ -313,7 +330,6 @@ function initMap(lat, lng, label) {
     const mapContainer = document.getElementById('detail-map');
     if (!mapContainer) return;
     
-    // Xóa map cũ nếu có
     if (map) { map.remove(); map = null; }
 
     map = L.map('detail-map').setView([lat, lng], 15);
@@ -321,9 +337,7 @@ function initMap(lat, lng, label) {
         attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    L.marker([lat, lng]).addTo(map)
-        .bindPopup(`<b>${label}</b>`)
-        .openPopup();
+    L.marker([lat, lng]).addTo(map).bindPopup(`<b>${label}</b>`).openPopup();
 }
 
 // =========================================================
