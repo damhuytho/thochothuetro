@@ -7,13 +7,15 @@ let allRooms = [];
 let allAmenities = [];
 let map = null;
 
-// TỰ ĐỘNG CHẠY KHI TRANG WEB TẢI XONG
+// TỰ ĐỘNG CHẠY
 window.onload = () => {
-    // Tắt loading sau 2s đề phòng mạng chậm
+    // 1. Tắt loading sau 2s
     setTimeout(() => { 
         const loading = document.getElementById('loading');
         if(loading) loading.style.display = 'none'; 
     }, 2000);
+
+    // 2. Tải dữ liệu
     loadData();
 };
 
@@ -25,18 +27,46 @@ function loadData() {
         allAmenities = amenities;
         allRooms = rooms;
         
-        // Kiểm tra xem đang ở trang nào để chạy code tương ứng
+        // 3. Điều hướng: Đang ở trang nào chạy code trang đó
         if(document.getElementById('home-page-container')) {
             initHomePage();
-        } else if(document.getElementById('detail-page-container')) {
+        } 
+        // Kiểm tra xem có phải trang chi tiết không (dựa vào ID container)
+        else if(document.getElementById('detail-page-container')) {
             initDetailPage();
         }
     });
 }
 
-// --- LOGIC TRANG CHỦ ---
+// =======================================================
+// XỬ LÝ DỮ LIỆU AN TOÀN (Dùng vị trí cột Excel)
+// =======================================================
+function getData(room, field) {
+    // Chuyển row thành mảng giá trị để lấy theo index (A=0, B=1, F=5, G=6...)
+    const values = Object.values(room);
+    
+    switch(field) {
+        case 'ID': return values[0] || ''; // Cột A
+        case 'District': return values[3] || ''; // Cột D (Quận)
+        case 'Type': return values[2] || ''; // Cột C (Loại phòng)
+        case 'Address': return values[4] || ''; // Cột E (Địa chỉ)
+        case 'Features': return values[5] || ''; // Cột F (Điểm nổi bật/Tiện ích) -> Dùng cho Filter
+        case 'Price': return parseInt(values[6]) || 0; // Cột G (Giá tiền) -> Dùng cho Filter
+        case 'Desc': return values[7] || ''; // Cột H (Đặc điểm/Mô tả)
+        case 'Image': return values[11] || ''; // Cột L (Hình ảnh) - Kiểm tra lại file của bạn nếu lệch
+        case 'Promo': return values[23] || ''; // Cột X (Khuyến mại) - Index 23
+        case 'Video': return values[28] || ''; // Cột AC (Video) - Index 28 (khoảng đó)
+        case 'Lat': return parseFloat(values[26]) || 0; // Cột AA
+        case 'Lng': return parseFloat(values[27]) || 0; // Cột AB
+        case 'Title': return room['Phòng (P+Mã - Giá)'] || values[1] || 'Phòng Trọ'; 
+        default: return '';
+    }
+}
+
+// =======================================================
+// TRANG CHỦ
+// =======================================================
 function initHomePage() {
-    document.getElementById('loading').style.display = 'none';
     setupMenusAndFilters();
     renderHomeGroups();
 }
@@ -44,17 +74,26 @@ function initHomePage() {
 function setupMenusAndFilters() {
     let districts = new Set();
     let types = new Set();
-    let amenities = new Set();
+    let featureSet = new Set();
 
     allRooms.forEach(r => {
-        if(r['Quận']) districts.add(r['Quận'].trim());
-        if(r['Loại Phòng']) types.add(r['Loại Phòng'].trim());
-        if(r['Điểm Nổi Bật']) {
-            r['Điểm Nổi Bật'].split(',').forEach(tag => amenities.add(tag.trim()));
+        let d = getData(r, 'District');
+        let t = getData(r, 'Type');
+        let f = getData(r, 'Features'); // Cột F
+
+        if(d) districts.add(d.trim());
+        if(t) types.add(t.trim());
+        
+        // Tách tiện ích từ Cột F (ví dụ: "Ban công, Thang máy" -> ["Ban công", "Thang máy"])
+        if(f) {
+            f.split(',').forEach(tag => {
+                let cleanTag = tag.trim();
+                if(cleanTag.length > 2) featureSet.add(cleanTag);
+            });
         }
     });
 
-    // Render Menu & Select
+    // Render Menu & Select Box
     const render = (set, menuId, selectId) => {
         const menu = document.getElementById(menuId);
         const select = document.getElementById(selectId);
@@ -65,14 +104,14 @@ function setupMenusAndFilters() {
             select.innerHTML += `<option value="${item}">${item}</option>`;
         });
     };
-
     render(districts, 'menu-districts', 'f-district');
     render(types, 'menu-types', 'f-type');
 
-    // Render Checkbox Tiện ích
+    // Render Checkbox Tiện ích (Cột F)
     const amContainer = document.getElementById('f-amenities-checkboxes');
     if(amContainer) {
-        [...amenities].sort().forEach((am, idx) => {
+        amContainer.innerHTML = ''; // Clear cũ
+        [...featureSet].sort().forEach((am, idx) => {
             amContainer.innerHTML += `
                 <div class="form-check">
                     <input class="form-check-input f-am-check" type="checkbox" value="${am}" id="chk-${idx}">
@@ -91,32 +130,38 @@ function renderHomeGroups() {
     document.getElementById('search-results').style.display = 'none';
     document.getElementById('home-content').style.display = 'block';
 
-    // 1. Lấy tất cả quận
-    let allDistricts = [...new Set(allRooms.map(r => r['Quận']).filter(d => d))];
-    
-    // 2. Sắp xếp thứ tự ưu tiên: Tân Bình -> Phú Nhuận -> Còn lại (A-Z)
-    let priority = ['Quận Tân Bình', 'Quận Phú Nhuận'];
+    // 1. Lấy danh sách quận
+    let allDistricts = [...new Set(allRooms.map(r => getData(r, 'District')).filter(d => d))];
+
+    // 2. SẮP XẾP ƯU TIÊN: Tân Bình -> Phú Nhuận -> Còn lại
+    let priority = ["Quận Tân Bình", "Quận Phú Nhuận"];
     let others = allDistricts.filter(d => !priority.includes(d)).sort();
     let sortedDistricts = [...priority.filter(d => allDistricts.includes(d)), ...others];
 
     sortedDistricts.forEach(d => {
-        let rooms = allRooms.filter(r => r['Quận'] === d);
+        let rooms = allRooms.filter(r => getData(r, 'District') === d);
         // Ưu tiên Khuyến mại lên đầu
-        rooms.sort((a,b) => (b['Khuyến Mại']?.length || 0) - (a['Khuyến Mại']?.length || 0));
-        
-        if(rooms.length > 0) {
+        rooms.sort((a,b) => {
+            let pA = getData(a, 'Promo').length > 2 ? 1 : 0;
+            let pB = getData(b, 'Promo').length > 2 ? 1 : 0;
+            return pB - pA;
+        });
+
+        // Lấy 6 phòng
+        let displayRooms = rooms.slice(0, 6);
+
+        if(displayRooms.length > 0) {
             let section = document.createElement('div');
-            // Giao diện Section Header kiểu Housa
             section.innerHTML = `
                 <div class="d-flex justify-content-between align-items-end mb-4 mt-5">
                     <div>
                         <span class="text-primary fw-bold text-uppercase small">Khu vực</span>
-                        <h2 class="fw-bold mb-0">${d}</h2>
+                        <h2 class="fw-bold mb-0 text-dark">${d}</h2>
                     </div>
-                    <a href="#" onclick="quickFilter('f-district', '${d}')" class="btn btn-outline-dark rounded-pill px-4 btn-sm fw-bold">Xem tất cả</a>
+                    <a href="#" onclick="quickFilter('f-district', '${d}')" class="btn btn-outline-dark rounded-pill px-4 btn-sm fw-bold">Xem thêm</a>
                 </div>
                 <div class="row g-4">
-                    ${rooms.slice(0, 6).map(r => createCardHTML(r)).join('')}
+                    ${displayRooms.map(r => createCardHTML(r)).join('')}
                 </div>
             `;
             container.appendChild(section);
@@ -128,23 +173,31 @@ function applyFilters() {
     const sDistrict = document.getElementById('f-district').value;
     const sType = document.getElementById('f-type').value;
     const sPrice = document.getElementById('f-price').value;
-    const checkedAms = Array.from(document.querySelectorAll('.f-am-check:checked')).map(c => c.value);
+    
+    // Lấy danh sách tiện ích đã check
+    const checkedAms = Array.from(document.querySelectorAll('.f-am-check:checked')).map(c => c.value.toLowerCase());
 
     let filtered = allRooms.filter(r => {
-        if(sDistrict !== 'all' && r['Quận'] !== sDistrict) return false;
-        if(sType !== 'all' && r['Loại Phòng'] !== sType) return false;
+        // Lọc Quận
+        if(sDistrict !== 'all' && getData(r, 'District') !== sDistrict) return false;
+        // Lọc Loại
+        if(sType !== 'all' && getData(r, 'Type') !== sType) return false;
         
-        let p = parseInt(r['Giá tiền']) || 0;
+        // Lọc Giá (Cột G)
+        let p = getData(r, 'Price');
         if(sPrice !== 'all') {
             let [min, max] = sPrice.split('-').map(Number);
             if(p < min || p > max) return false;
         }
 
+        // Lọc Tiện ích (Cột F)
         if(checkedAms.length > 0) {
-            let roomAms = (r['Điểm Nổi Bật'] || '');
-            let hasAll = checkedAms.every(am => roomAms.includes(am));
+            let roomFeatures = getData(r, 'Features').toLowerCase();
+            // Phòng phải có TẤT CẢ tiện ích đã chọn
+            let hasAll = checkedAms.every(am => roomFeatures.includes(am));
             if(!hasAll) return false;
         }
+
         return true;
     });
 
@@ -152,14 +205,19 @@ function applyFilters() {
     document.getElementById('search-results').style.display = 'block';
     
     const grid = document.getElementById('products-grid');
-    grid.innerHTML = filtered.length ? filtered.map(r => createCardHTML(r)).join('') : '<div class="col-12 text-center py-5 text-muted">Không tìm thấy phòng nào.</div>';
+    grid.innerHTML = filtered.length ? filtered.map(r => createCardHTML(r)).join('') 
+        : '<div class="col-12 text-center py-5 text-muted">Không tìm thấy phòng nào phù hợp.</div>';
+    
     document.getElementById('search-title').innerText = `Tìm thấy ${filtered.length} kết quả`;
 }
 
 function quickFilter(elementId, value) {
-    document.getElementById(elementId).value = value;
-    applyFilters();
-    document.getElementById('listing-view').scrollIntoView({behavior:'smooth'});
+    let el = document.getElementById(elementId);
+    if(el) {
+        el.value = value;
+        applyFilters();
+        window.scrollTo({ top: 100, behavior: 'smooth' });
+    }
 }
 
 function resetFilters() {
@@ -170,85 +228,109 @@ function resetFilters() {
     renderHomeGroups();
 }
 
-// --- LOGIC TRANG CHI TIẾT ---
+// =======================================================
+// TRANG CHI TIẾT
+// =======================================================
 function initDetailPage() {
     document.getElementById('loading').style.display = 'none';
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
-    if(!id) return;
 
-    let room = allRooms.find(r => (r['ID'] || Object.values(r)[0]) == id);
-    if(!room) return;
+    if(!id) {
+        alert("Thiếu mã phòng!");
+        return;
+    }
 
-    // 1. Fill ảnh chính (Cover)
-    let img = room['Hình ảnh'];
+    // Tìm phòng theo ID
+    let room = allRooms.find(r => getData(r, 'ID') == id);
+    if(!room) {
+        document.getElementById('detail-page-container').innerHTML = '<div class="text-center p-5"><h3>Không tìm thấy phòng này!</h3><a href="index.html">Về trang chủ</a></div>';
+        return;
+    }
+
+    // 1. Fill Ảnh Cover
+    let img = getData(room, 'Image');
     if(!img || !img.startsWith('http')) img = NO_IMAGE_URL;
     document.getElementById('d-img').src = img;
 
-    // 2. Fill thông tin cơ bản
-    document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'];
-    document.getElementById('d-address').innerText = hideHouseNumber(room['Địa chỉ']);
+    // 2. Thông tin cơ bản
+    document.getElementById('d-title').innerText = getData(room, 'Title');
+    document.getElementById('d-address').innerText = hideHouseNumber(getData(room, 'Address'));
     
-    // 3. SIDEBAR: Giá tiền & Bộ lọc mini
-    let price = parseInt(room['Giá tiền']) || 0;
+    // Sidebar Giá
+    let price = getData(room, 'Price');
     let priceText = price ? (price/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
-    document.getElementById('d-price-sidebar').innerText = priceText; // Hiển thị giá ở sidebar
+    document.getElementById('d-price-sidebar').innerText = priceText;
 
-    // 4. VIDEO (Cột AC)
-    let videoUrl = room['Video'] || room['video']; // Cột AC
-    const videoBox = document.getElementById('video-section');
-    if(videoUrl && videoUrl.includes('http')) {
-        videoBox.style.display = 'block';
-        // Chuyển link Youtube thường thành link Embed nếu cần
-        let embedUrl = videoUrl.replace("watch?v=", "embed/"); 
-        document.getElementById('d-video').src = embedUrl;
-    } else {
-        videoBox.style.display = 'none';
+    // 3. Khuyến mại (Cột X)
+    let promo = getData(room, 'Promo');
+    if(promo && promo.length > 2) {
+        document.getElementById('d-promo-box').style.display = 'block';
+        document.getElementById('d-promo-label').style.display = 'block';
+        document.getElementById('d-promo-content').innerText = promo;
     }
 
-    // 5. Nội dung & Tiện ích
-    document.getElementById('d-desc').innerText = room['Đặc điểm'] || 'Đang cập nhật...';
+    // 4. Mô tả & Tiện ích
+    document.getElementById('d-desc').innerText = getData(room, 'Desc') || 'Đang cập nhật...';
     
-    // Render Tiện ích (Tags)
-    if(room['Điểm Nổi Bật']) {
-        let tagsHtml = room['Điểm Nổi Bật'].split(',').map(tag => 
-            `<div class="col-6 col-md-4"><div class="feature-item"><i class="fas fa-check-circle"></i> ${tag.trim()}</div></div>`
+    // Render Tags Tiện ích (Cột F)
+    let features = getData(room, 'Features');
+    if(features) {
+        let tagsHtml = features.split(',').map(tag => 
+            `<div class="col-6 col-md-4"><div class="feature-item"><i class="fas fa-check-circle text-success"></i> ${tag.trim()}</div></div>`
         ).join('');
         document.getElementById('d-features').innerHTML = tagsHtml;
     }
 
-    // 6. Căn hộ tương tự (Cùng Quận, Giá +- 20%)
-    renderRelatedHousa(room, price);
+    // 5. VIDEO (Cột AC - Video)
+    let videoUrl = getData(room, 'Video'); // Hàm getData đã trỏ đúng cột
+    const videoBox = document.getElementById('video-section');
+    if(videoUrl && videoUrl.includes('http')) {
+        videoBox.style.display = 'block';
+        // Convert Youtube watch link -> embed link
+        if(videoUrl.includes("watch?v=")) {
+            videoUrl = videoUrl.replace("watch?v=", "embed/");
+        } else if(videoUrl.includes("youtu.be/")) {
+            videoUrl = videoUrl.replace("youtu.be/", "youtube.com/embed/");
+        }
+        document.getElementById('d-video').src = videoUrl;
+    } else {
+        videoBox.style.display = 'none';
+    }
+
+    // 6. Gợi ý phòng
+    renderRelated(room, price);
 
     // 7. Map
     setTimeout(() => initMap(room), 500);
 }
 
-function renderRelatedHousa(currentRoom, currentPrice) {
+function renderRelated(currentRoom, currentPrice) {
     const grid = document.getElementById('related-grid');
+    let currentDist = getData(currentRoom, 'District');
+    let currentId = getData(currentRoom, 'ID');
+
     let related = allRooms.filter(r => 
-        r['Quận'] === currentRoom['Quận'] && 
-        (r['ID'] || Object.values(r)[0]) !== (currentRoom['ID'] || Object.values(currentRoom)[0])
+        getData(r, 'District') === currentDist && 
+        getData(r, 'ID') !== currentId
     );
     
-    // Lọc giá biên độ 20%
+    // Lọc giá +- 20%
     if(currentPrice > 0) {
         related = related.filter(r => {
-            let p = parseInt(r['Giá tiền']) || 0;
+            let p = getData(r, 'Price');
             return p >= currentPrice * 0.8 && p <= currentPrice * 1.2;
         });
     }
 
-    // Lấy 4 căn
     let display = related.sort(() => 0.5 - Math.random()).slice(0, 4);
     grid.innerHTML = display.map(r => createCardHTML(r)).join('');
 }
 
-
-
+// --- MAP & UTILS ---
 function initMap(room) {
-    let lat = parseFloat(room['Latitude'] || room['Lat'] || Object.values(room)[26]);
-    let lng = parseFloat(room['Longitude'] || room['Lng'] || Object.values(room)[27]);
+    let lat = getData(room, 'Lat');
+    let lng = getData(room, 'Lng');
 
     if (isNaN(lat) || isNaN(lng) || lat === 0) {
         document.getElementById('map-detail').innerHTML = '<div class="d-flex h-100 justify-content-center align-items-center bg-light text-muted">Chưa có tọa độ chính xác</div>';
@@ -277,18 +359,15 @@ function initMap(room) {
     });
 }
 
-// --- TIỆN ÍCH CHUNG ---
 function createCardHTML(room) {
-    let id = room['ID'] || Object.values(room)[0];
-    let price = parseInt(room['Giá tiền']) || 0;
+    let id = getData(room, 'ID');
+    let price = getData(room, 'Price');
     let priceText = price ? (price/1000000).toFixed(1) + " Tr" : "Thỏa thuận";
-    let img = room['Hình ảnh'];
+    let img = getData(room, 'Image');
     if(!img || !img.startsWith('http')) img = NO_IMAGE_URL;
-    let safeAddr = hideHouseNumber(room['Địa chỉ']);
-    
-    let promoTag = (room['Khuyến Mại'] && room['Khuyến Mại'].length > 2) 
-        ? `<span class="housa-tag"><i class="fas fa-gift"></i> KM</span>` 
-        : `<span class="housa-tag" style="background:#2c3e50">${room['Loại Phòng']}</span>`;
+    let safeAddr = hideHouseNumber(getData(room, 'Address'));
+    let promo = getData(room, 'Promo');
+    let promoTag = (promo && promo.length > 2) ? `<span class="housa-tag"><i class="fas fa-gift"></i> KM</span>` : '';
 
     return `
         <div class="col-12 col-md-6 col-lg-4">
@@ -299,10 +378,10 @@ function createCardHTML(room) {
                     <div class="housa-price">${priceText}</div>
                 </div>
                 <div class="p-3">
-                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt text-warning me-1"></i> ${room['Quận']}</div>
-                    <h6 class="fw-bold text-dark text-truncate mb-2" style="font-size:1.1rem">${room['Phòng (P+Mã - Giá)']}</h6>
+                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt text-warning me-1"></i> ${getData(room, 'District')}</div>
+                    <h6 class="fw-bold text-dark text-truncate mb-2" style="font-size:1.1rem">${getData(room, 'Title')}</h6>
                     <div class="d-flex align-items-center text-secondary small border-top pt-2 mt-2">
-                        <span class="me-3"><i class="fas fa-bed me-1"></i> ${room['Loại Phòng']}</span>
+                        <span class="me-3"><i class="fas fa-bed me-1"></i> ${getData(room, 'Type')}</span>
                         <span><i class="fas fa-road me-1"></i> ${safeAddr}</span>
                     </div>
                 </div>
@@ -319,5 +398,4 @@ function hideHouseNumber(fullAddress) {
         return "Đường " + streetPart + ", " + parts.slice(1).join(', ');
     }
     return fullAddress;
-
 }
