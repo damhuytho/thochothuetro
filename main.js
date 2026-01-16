@@ -88,27 +88,35 @@ function renderHomeGroups() {
     if(!container) return;
     container.innerHTML = '';
     
-    // Ẩn kết quả tìm kiếm
     document.getElementById('search-results').style.display = 'none';
     document.getElementById('home-content').style.display = 'block';
 
-    let districts = [...new Set(allRooms.map(r => r['Quận']).filter(d => d))].sort();
+    // 1. Lấy tất cả quận
+    let allDistricts = [...new Set(allRooms.map(r => r['Quận']).filter(d => d))];
+    
+    // 2. Sắp xếp thứ tự ưu tiên: Tân Bình -> Phú Nhuận -> Còn lại (A-Z)
+    let priority = ['Quận Tân Bình', 'Quận Phú Nhuận'];
+    let others = allDistricts.filter(d => !priority.includes(d)).sort();
+    let sortedDistricts = [...priority.filter(d => allDistricts.includes(d)), ...others];
 
-    districts.forEach(d => {
+    sortedDistricts.forEach(d => {
         let rooms = allRooms.filter(r => r['Quận'] === d);
-        // Ưu tiên khuyến mại lên đầu
+        // Ưu tiên Khuyến mại lên đầu
         rooms.sort((a,b) => (b['Khuyến Mại']?.length || 0) - (a['Khuyến Mại']?.length || 0));
-        let displayRooms = rooms.slice(0, 6); // Lấy 6 phòng
-
-        if(displayRooms.length > 0) {
+        
+        if(rooms.length > 0) {
             let section = document.createElement('div');
+            // Giao diện Section Header kiểu Housa
             section.innerHTML = `
-                <div class="section-header">
-                    <h3 class="section-title">${d}</h3>
-                    <span class="view-more-btn" onclick="quickFilter('f-district', '${d}')">Xem tất cả ${rooms.length} phòng <i class="fas fa-arrow-right small"></i></span>
+                <div class="d-flex justify-content-between align-items-end mb-4 mt-5">
+                    <div>
+                        <span class="text-primary fw-bold text-uppercase small">Khu vực</span>
+                        <h2 class="fw-bold mb-0">${d}</h2>
+                    </div>
+                    <a href="#" onclick="quickFilter('f-district', '${d}')" class="btn btn-outline-dark rounded-pill px-4 btn-sm fw-bold">Xem tất cả</a>
                 </div>
-                <div class="row g-3">
-                    ${displayRooms.map(r => createCardHTML(r)).join('')}
+                <div class="row g-4">
+                    ${rooms.slice(0, 6).map(r => createCardHTML(r)).join('')}
                 </div>
             `;
             container.appendChild(section);
@@ -167,60 +175,76 @@ function initDetailPage() {
     document.getElementById('loading').style.display = 'none';
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
-
-    if(!id) {
-        alert("Không tìm thấy mã phòng!");
-        window.location.href = 'index.html';
-        return;
-    }
+    if(!id) return;
 
     let room = allRooms.find(r => (r['ID'] || Object.values(r)[0]) == id);
     if(!room) return;
 
-    // Fill thông tin
+    // 1. Fill ảnh chính (Cover)
     let img = room['Hình ảnh'];
     if(!img || !img.startsWith('http')) img = NO_IMAGE_URL;
     document.getElementById('d-img').src = img;
 
+    // 2. Fill thông tin cơ bản
     document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'];
-    document.getElementById('d-type').innerText = room['Loại Phòng'];
-    document.getElementById('d-district').innerText = room['Quận'];
-    
-    let price = parseInt(room['Giá tiền']) || 0;
-    document.getElementById('d-price').innerText = price ? (price/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
     document.getElementById('d-address').innerText = hideHouseNumber(room['Địa chỉ']);
     
-    // Khuyến mại
-    let promo = room['Khuyến Mại'];
-    if(promo && promo.length > 2) {
-        document.getElementById('d-promo-box').style.display = 'block';
-        document.getElementById('d-promo-label').style.display = 'block';
-        document.getElementById('d-promo-content').innerText = promo;
+    // 3. SIDEBAR: Giá tiền & Bộ lọc mini
+    let price = parseInt(room['Giá tiền']) || 0;
+    let priceText = price ? (price/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
+    document.getElementById('d-price-sidebar').innerText = priceText; // Hiển thị giá ở sidebar
+
+    // 4. VIDEO (Cột AC)
+    let videoUrl = room['Video'] || room['video']; // Cột AC
+    const videoBox = document.getElementById('video-section');
+    if(videoUrl && videoUrl.includes('http')) {
+        videoBox.style.display = 'block';
+        // Chuyển link Youtube thường thành link Embed nếu cần
+        let embedUrl = videoUrl.replace("watch?v=", "embed/"); 
+        document.getElementById('d-video').src = embedUrl;
+    } else {
+        videoBox.style.display = 'none';
     }
 
-    document.getElementById('d-desc').innerText = room['Đặc điểm'] || 'Liên hệ để biết thêm chi tiết.';
-
-    // Gợi ý phòng
-    renderRelated(room, price);
+    // 5. Nội dung & Tiện ích
+    document.getElementById('d-desc').innerText = room['Đặc điểm'] || 'Đang cập nhật...';
     
-    // Map
-    setTimeout(() => initMap(room), 300);
+    // Render Tiện ích (Tags)
+    if(room['Điểm Nổi Bật']) {
+        let tagsHtml = room['Điểm Nổi Bật'].split(',').map(tag => 
+            `<div class="col-6 col-md-4"><div class="feature-item"><i class="fas fa-check-circle"></i> ${tag.trim()}</div></div>`
+        ).join('');
+        document.getElementById('d-features').innerHTML = tagsHtml;
+    }
+
+    // 6. Căn hộ tương tự (Cùng Quận, Giá +- 20%)
+    renderRelatedHousa(room, price);
+
+    // 7. Map
+    setTimeout(() => initMap(room), 500);
 }
 
-function renderRelated(currentRoom, currentPrice) {
+function renderRelatedHousa(currentRoom, currentPrice) {
     const grid = document.getElementById('related-grid');
     let related = allRooms.filter(r => 
         r['Quận'] === currentRoom['Quận'] && 
         (r['ID'] || Object.values(r)[0]) !== (currentRoom['ID'] || Object.values(currentRoom)[0])
     );
     
+    // Lọc giá biên độ 20%
     if(currentPrice > 0) {
-        related = related.filter(r => Math.abs((parseInt(r['Giá tiền'])||0) - currentPrice) <= 2000000);
+        related = related.filter(r => {
+            let p = parseInt(r['Giá tiền']) || 0;
+            return p >= currentPrice * 0.8 && p <= currentPrice * 1.2;
+        });
     }
-    
-    let display = related.sort(() => 0.5 - Math.random()).slice(0, 3);
-    grid.innerHTML = display.map(r => createCardHTML(r, true)).join('');
+
+    // Lấy 4 căn
+    let display = related.sort(() => 0.5 - Math.random()).slice(0, 4);
+    grid.innerHTML = display.map(r => createCardHTML(r)).join('');
 }
+
+
 
 function initMap(room) {
     let lat = parseFloat(room['Latitude'] || room['Lat'] || Object.values(room)[26]);
@@ -254,28 +278,33 @@ function initMap(room) {
 }
 
 // --- TIỆN ÍCH CHUNG ---
-function createCardHTML(room, isRelated = false) {
+function createCardHTML(room) {
     let id = room['ID'] || Object.values(room)[0];
     let price = parseInt(room['Giá tiền']) || 0;
-    let priceText = price ? (price/1000000).toFixed(1) + " Tr" : "Liên hệ";
+    let priceText = price ? (price/1000000).toFixed(1) + " Tr" : "Thỏa thuận";
     let img = room['Hình ảnh'];
     if(!img || !img.startsWith('http')) img = NO_IMAGE_URL;
     let safeAddr = hideHouseNumber(room['Địa chỉ']);
-    let promoBadge = (room['Khuyến Mại'] && room['Khuyến Mại'].length > 2) ? `<div class="promo-badge-mini"><i class="fas fa-gift"></i> KM</div>` : '';
     
-    // Link tới file detail.html thay vì #detail
+    let promoTag = (room['Khuyến Mại'] && room['Khuyến Mại'].length > 2) 
+        ? `<span class="housa-tag"><i class="fas fa-gift"></i> KM</span>` 
+        : `<span class="housa-tag" style="background:#2c3e50">${room['Loại Phòng']}</span>`;
+
     return `
-        <div class="${isRelated ? 'col-12 col-md-4' : 'col-12 col-md-6 col-lg-4'}">
+        <div class="col-12 col-md-6 col-lg-4">
             <div class="room-card" onclick="window.location.href='detail.html?id=${id}'">
-                <div class="card-img-wrapper">
-                    <img src="${img}" class="card-img-top" onerror="this.src='${NO_IMAGE_URL}'">
-                    <div class="price-badge">${priceText}</div>
-                    ${promoBadge}
+                <div class="img-housa-wrapper">
+                    <img src="${img}" class="img-housa" onerror="this.src='${NO_IMAGE_URL}'">
+                    ${promoTag}
+                    <div class="housa-price">${priceText}</div>
                 </div>
-                <div class="card-body">
-                    <div class="text-uppercase text-muted small fw-bold mb-1" style="font-size:0.7rem">${room['Loại Phòng']} &bull; ${room['Quận']}</div>
-                    <h6 class="fw-bold text-dark text-truncate mb-1">${room['Phòng (P+Mã - Giá)']}</h6>
-                    <div class="small text-secondary text-truncate"><i class="fas fa-map-marker-alt me-1 text-warning"></i> ${safeAddr}</div>
+                <div class="p-3">
+                    <div class="text-muted small mb-1"><i class="fas fa-map-marker-alt text-warning me-1"></i> ${room['Quận']}</div>
+                    <h6 class="fw-bold text-dark text-truncate mb-2" style="font-size:1.1rem">${room['Phòng (P+Mã - Giá)']}</h6>
+                    <div class="d-flex align-items-center text-secondary small border-top pt-2 mt-2">
+                        <span class="me-3"><i class="fas fa-bed me-1"></i> ${room['Loại Phòng']}</span>
+                        <span><i class="fas fa-road me-1"></i> ${safeAddr}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -290,4 +319,5 @@ function hideHouseNumber(fullAddress) {
         return "Đường " + streetPart + ", " + parts.slice(1).join(', ');
     }
     return fullAddress;
+
 }
