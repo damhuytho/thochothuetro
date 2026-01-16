@@ -3,15 +3,14 @@
 // =========================================================
 const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
-// Danh sách ưu tiên hiển thị quận (Tùy chỉnh nếu cần)
+// Danh sách ưu tiên hiển thị quận
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận", "Bình Thạnh", "Gò Vấp", "Quận 3", "Quận 10"];
 
-// Cấu hình bộ lọc Loại phòng & Tiện ích
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy"];
 
 let allRooms = [];
-let expandedDistricts = new Set(); // Lưu trạng thái "Xem thêm" của từng quận
+let expandedDistricts = new Set();
 
 // =========================================================
 // 2. KHỞI TẠO
@@ -37,46 +36,41 @@ async function fetchData() {
 function processData(csvText) {
     const rows = parseCSV(csvText);
     
-    // Bỏ dòng tiêu đề (index 0), map dữ liệu từ dòng 1
-    // Cột C (index 2): Quận
-    // Cột D (index 3): Địa chỉ
-    // Cột E (index 4): Mã
-    // Cột F (index 5): Keypoint (Tiện ích nổi bật)
-    // Cột G (index 6): Giá
-    // Cột H (index 7): Mô tả chi tiết
-    // Cột Q (index 16): Loại phòng
-    // Cột T (index 19): Hình ảnh
+    // Map dữ liệu (Lưu ý: Index bắt đầu từ 0)
+    // Col C (2): Quận | Col D (3): Địa chỉ | Col E (4): ID | Col F (5): Tiện ích
+    // Col G (6): Giá | Col H (7): Mô tả | Col Q (16): Loại | Col T (19): Ảnh | Col X (23): Khuyến Mại
     
     allRooms = rows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
-        // Chuẩn hóa tên Quận (VD: "Q.Tân Bình" -> "Tân Bình") để bộ lọc đẹp hơn
-        if (districtRaw.toLowerCase().startsWith("q.")) districtRaw = districtRaw.replace(/q\./i, "Quận ");
+        // Chuẩn hóa tên Quận
+        if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
+            districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
+        }
         
         return {
             id: row[4] || "", 
             district: districtRaw,
             address: (row[3] || "").trim(),
-            keypoint: (row[5] || ""), // Cột F: Keypoint hiển thị
-            price: parsePrice(row[6]),
+            keypoint: (row[5] || ""), 
+            price: parsePrice(row[6]), // Xử lý giá kỹ càng hơn
             desc: row[7] || "",
             type: (row[16] || "").trim(),
-            amenities_search: (row[5] || "").toLowerCase(), // Dùng để search (lowercase)
-            images: row[19] ? row[19].split('|') : []
+            images: row[19] ? row[19].split('|') : [],
+            promotion: (row[23] || "").trim(), // Cột X - Khuyến mại
+            amenities_search: (row[5] || "").toLowerCase()
         };
     }).filter(item => item.id && item.price > 0); 
 
     const urlParams = new URLSearchParams(window.location.search);
     const detailId = urlParams.get('id');
-
-    // Tắt loading
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
 
     if (detailId) {
         renderDetailPage(detailId);
     } else {
-        initFilters(); // Khởi tạo bộ lọc (bao gồm bộ lọc Quận)
-        applyFilters(); // Render trang chủ
+        initFilters(); 
+        applyFilters(); 
     }
 }
 
@@ -85,13 +79,14 @@ function processData(csvText) {
 // =========================================================
 
 function initFilters() {
-    // 1. TẠO BỘ LỌC QUẬN TỪ DỮ LIỆU CỘT C
+    // 1. TẠO BỘ LỌC QUẬN (Quét sạch dữ liệu)
     const districtSelect = document.getElementById('district-filter');
     if (districtSelect) {
-        // Lấy danh sách quận duy nhất từ dữ liệu đã tải
-        const uniqueDistricts = [...new Set(allRooms.map(r => r.district))].filter(d => d).sort();
+        // Lấy danh sách quận, loại bỏ rỗng
+        const districts = allRooms.map(r => r.district).filter(d => d && d !== "");
+        const uniqueDistricts = [...new Set(districts)].sort();
         
-        let html = '<option value="all">Tất cả Quận</option>';
+        let html = '<option value="all">Tất cả Khu vực</option>';
         uniqueDistricts.forEach(d => {
             html += `<option value="${d}">${d}</option>`;
         });
@@ -110,7 +105,7 @@ function initFilters() {
         typeSelect.addEventListener('change', applyFilters);
     }
 
-    // 3. TẠO CHECKBOX TIỆN ÍCH
+    // 3. CHECKBOX TIỆN ÍCH
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
     if (amenityContainer) {
         let html = '';
@@ -131,20 +126,27 @@ function applyFilters() {
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
-    const filtered = allRooms.filter(room => {
-        // Lọc Quận
+    // Filter Logic
+    let filtered = allRooms.filter(room => {
         if (districtVal !== 'all' && room.district !== districtVal) return false;
-        
-        // Lọc Loại phòng
         if (typeVal !== 'all' && !room.type.toLowerCase().includes(typeVal.toLowerCase())) return false;
-
-        // Lọc Tiện ích (Checkbox tìm trong cột F)
         if (checkedAmenities.length > 0) {
             const hasAll = checkedAmenities.every(req => room.amenities_search.includes(req));
             if (!hasAll) return false;
         }
-
         return true;
+    });
+
+    // === LOGIC SẮP XẾP ƯU TIÊN ===
+    // 1. Căn có Khuyến Mại (Cột X) lên đầu
+    // 2. Sau đó mới đến các căn thường
+    filtered.sort((a, b) => {
+        const hasPromoA = a.promotion.length > 0;
+        const hasPromoB = b.promotion.length > 0;
+        
+        if (hasPromoA && !hasPromoB) return -1; // A lên trước
+        if (!hasPromoA && hasPromoB) return 1;  // B lên trước
+        return 0;
     });
 
     renderGroupedByDistrict(filtered);
@@ -160,19 +162,16 @@ function renderGroupedByDistrict(rooms) {
         return;
     }
 
-    // Gom nhóm theo Quận
     const grouped = {};
     rooms.forEach(room => {
-        const dName = room.district || "Khác";
+        const dName = room.district || "Khu vực khác";
         if (!grouped[dName]) grouped[dName] = [];
         grouped[dName].push(room);
     });
 
-    // Sắp xếp thứ tự hiển thị Quận
     const sortedDistricts = Object.keys(grouped).sort((a, b) => {
         const idxA = PRIORITY_DISTRICTS.indexOf(a);
         const idxB = PRIORITY_DISTRICTS.indexOf(b);
-        // Quận ưu tiên đưa lên trước
         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
         if (idxA !== -1) return -1;
         if (idxB !== -1) return 1;
@@ -188,8 +187,8 @@ function renderGroupedByDistrict(rooms) {
         section.className = 'mb-5 district-section';
         
         let html = `
-            <h3 class="fw-bold mb-3 border-start border-4 border-primary ps-3 text-uppercase">
-                ${district} <small class="text-muted fs-6 fw-normal">(${districtRooms.length} căn)</small>
+            <h3 class="fw-bold mb-3 border-start border-4 border-primary ps-3 text-uppercase d-flex align-items-center">
+                ${district} <span class="badge bg-light text-dark border ms-2 rounded-pill fs-6">${districtRooms.length}</span>
             </h3>
             <div class="row g-3">
         `;
@@ -219,37 +218,42 @@ function expandDistrict(districtName) {
     applyFilters(); 
 }
 
-// HÀM TẠO HTML CHO CARD (Đã cập nhật theo yêu cầu mới)
+// === HÀM TẠO CARD (ĐÃ SỬA UI) ===
 function createCardHTML(room) {
     const imgUrl = (room.images.length > 0 && room.images[0].length > 5) 
         ? room.images[0] 
         : "https://placehold.co/600x400?text=Phong+Tro";
         
-    // 1. Xử lý Địa chỉ (Bỏ số nhà, giữ Đường, Phường, Quận)
     const cleanAddr = cleanAddress(room.address);
-    
-    // 2. Tạo Tiêu đề: Mã E + Địa chỉ sạch (Cho phép hiện 2 dòng)
     const title = `${room.id} - ${cleanAddr}`;
     
-    // 3. Keypoint (Cột F) in nghiêng
-    const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small line-clamp-1"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
+    // Keypoint (Cột F)
+    const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small text-truncate"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
+    
+    // Badge Khuyến mại (Nếu có) - Hiển thị góc ảnh
+    const promoBadge = room.promotion 
+        ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i>Ưu đãi</span>` 
+        : '';
 
-    const priceText = formatMoney(room.price);
     const detailLink = `detail.html?id=${encodeURIComponent(room.id)}`;
 
     return `
         <div class="col-6 col-md-4 col-lg-4">
             <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='${detailLink}'" style="cursor:pointer;">
                 <div class="position-relative">
-                    <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" style="height: 200px;">
-                    <span class="position-absolute top-0 start-0 bg-danger text-white px-2 py-1 m-2 rounded fw-bold small shadow">
-                        ${priceText}
-                    </span>
+                    <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" style="height: 205px;">
+                    ${promoBadge}
                 </div>
+                
                 <div class="card-body p-3 d-flex flex-column">
                     <h6 class="card-title fw-bold text-primary mb-1 line-clamp-2" style="min-height: 2.5em;">
                         ${title}
                     </h6>
+
+                    <div class="mb-2">
+                        <span class="text-danger fw-bold fs-6">${formatMoney(room.price)}/tháng</span>
+                        <span class="text-muted small ms-1">- Có thương lượng</span>
+                    </div>
                     
                     ${keypointHTML}
                     
@@ -278,7 +282,6 @@ function renderDetailPage(id) {
         return;
     }
 
-    // Tiêu đề chi tiết: Mã + Địa chỉ sạch
     const titleEl = document.querySelector('h1') || document.getElementById('detail-title');
     if (titleEl) titleEl.textContent = `${room.id} - ${cleanAddress(room.address)}`;
 
@@ -286,12 +289,13 @@ function renderDetailPage(id) {
     if (priceEl) priceEl.textContent = formatMoney(room.price);
 
     const addrEl = document.getElementById('detail-address');
-    if (addrEl) addrEl.textContent = room.address; // Trang chi tiết giữ nguyên địa chỉ gốc (có số nhà)
+    if (addrEl) addrEl.textContent = room.address; 
 
     const descEl = document.getElementById('detail-desc');
-    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>');
+    // Nếu có khuyến mại thì hiện thêm dòng khuyến mại trong mô tả
+    let promoHtml = room.promotion ? `<div class="alert alert-warning mt-3"><i class="fas fa-gift me-2"></i><strong>Ưu đãi:</strong> ${room.promotion}</div>` : '';
+    if (descEl) descEl.innerHTML = room.desc.replace(/\n/g, '<br>') + promoHtml;
 
-    // Gallery
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer && room.images.length > 0) {
         let html = `<div class="col-12 mb-2"><img src="${room.images[0]}" class="img-fluid rounded shadow-sm w-100" style="max-height:450px; object-fit:cover;"></div>`;
@@ -303,7 +307,6 @@ function renderDetailPage(id) {
         galleryContainer.innerHTML = html;
     }
 
-    // Tiện ích chi tiết
     const featureContainer = document.getElementById('detail-features');
     if (featureContainer) {
         const items = room.keypoint.split(',').filter(i => i.trim());
@@ -312,15 +315,11 @@ function renderDetailPage(id) {
 }
 
 // =========================================================
-// 5. CÁC HÀM TIỆN ÍCH (HELPER)
+// 5. HELPER FUNCTIONS
 // =========================================================
 
-// Hàm loại bỏ số nhà ở đầu, giữ lại phần sau
-// VD: "71/88/4 Nguyễn Bặc, Phường 3, Tân Bình" -> "Nguyễn Bặc, Phường 3, Tân Bình"
 function cleanAddress(fullAddr) {
     if (!fullAddr) return "";
-    // Regex tìm phần số nhà (bắt đầu bằng số, có thể có /, k, bis... và kết thúc bằng khoảng trắng)
-    // Sau đó lấy phần còn lại
     return fullAddr.replace(/^[\d\/a-zA-Z]+\s+(?:đường\s+)?/i, '').trim();
 }
 
@@ -349,9 +348,14 @@ function parseCSV(text) {
     return result;
 }
 
+// Hàm xử lý giá mạnh mẽ hơn
 function parsePrice(str) {
     if (!str) return 0;
-    return parseInt(str.replace(/\D/g, '')) || 0;
+    // Chuyển về string, xóa hết ký tự không phải số
+    // VD: "5.500.000" -> "5500000", "5,5 tr" -> "55" (cần cẩn thận logic này)
+    // Nhưng vì file excel của bạn là số nguyên 5500000, nên xóa hết ký tự lạ là OK
+    const clean = String(str).replace(/\D/g, '');
+    return parseInt(clean) || 0;
 }
 
 function formatMoney(num) {
