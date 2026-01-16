@@ -211,7 +211,7 @@
 
     <script>
         // =========================================================
-        // LINK CSV CỦA BẠN
+        // LINK CSV CỦA BẠN (KIỂM TRA LẠI XEM ĐÚNG CHƯA NHÉ)
         // =========================================================
         const SHEET_NGUONHANG = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
         const SHEET_TIENICH   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv';
@@ -220,16 +220,17 @@
         let allRooms = [];
         let allAmenities = [];
         let map = null;
-
-        // 🟢 CẤU HÌNH ẢNH MẪU MỚI (Dùng Placehold.co ổn định hơn)
+        
+        // Ảnh dự phòng (Server trâu bò, không lo sập)
         const NO_IMAGE_URL = "https://placehold.co/600x400?text=Dang+Cap+Nhat";
 
         window.onload = () => {
             console.log("Web bắt đầu tải...");
-            
-            // 🛡️ CHỐNG TREO: Ép tắt Loading sau 1.5 giây dù có lỗi hay không
+            // 🛡️ Ép tắt Loading sau 1.5 giây để hiện khung web
             setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
+                if(document.getElementById('loading').style.display !== 'none') {
+                    document.getElementById('loading').style.display = 'none';
+                }
             }, 1500);
 
             loadAmenities(); 
@@ -239,7 +240,7 @@
             Papa.parse(SHEET_TIENICH, {
                 download: true, header: true,
                 complete: (results) => { allAmenities = results.data; loadRooms(); },
-                error: () => { loadRooms(); } // Lỗi vẫn chạy tiếp
+                error: () => { loadRooms(); }
             });
         }
 
@@ -254,9 +255,9 @@
         }
 
         function initApp() {
+            document.getElementById('loading').style.display = 'none';
             populateDistricts();
             
-            // Điều hướng
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('id');
             if(roomId) {
@@ -281,7 +282,6 @@
                 let priceRaw = parseInt(room['Giá tiền']);
                 let priceText = priceRaw ? (priceRaw / 1000000).toFixed(1) + " Tr" : "Liên hệ";
                 
-                // Xử lý ảnh (Nếu lỗi thì dùng ảnh mẫu ngay)
                 let imgUrl = room['Hình ảnh'];
                 if(!imgUrl || imgUrl.trim() === '') imgUrl = NO_IMAGE_URL;
 
@@ -324,7 +324,6 @@
             document.getElementById('detail-view').style.display = 'block';
             window.scrollTo(0,0);
 
-            // Fill dữ liệu
             let imgEl = document.getElementById('d-img');
             imgEl.src = room['Hình ảnh'] || NO_IMAGE_URL;
             imgEl.onerror = function() { this.src = NO_IMAGE_URL; };
@@ -385,8 +384,11 @@
         function goHome() { window.location.href = window.location.pathname; }
 
         function initMap(room) {
-            let lat = parseFloat(room['Lat'] || room['Latitude'] || Object.values(room)[28]);
-            let lng = parseFloat(room['Lng'] || room['Longitude'] || Object.values(room)[29]);
+            // 🔴 PHẦN CẬP NHẬT TỌA ĐỘ MỚI TẠI ĐÂY
+            // Ưu tiên cột tên "Latitude"/"Longitude" hoặc "Lat"/"Lng"
+            // Nếu không có tên, dùng chỉ số cột: AA là cột 26 (tính từ 0), AB là cột 27
+            let lat = parseFloat(room['Latitude'] || room['Lat'] || Object.values(room)[26]);
+            let lng = parseFloat(room['Longitude'] || room['Lng'] || Object.values(room)[27]);
 
             if (isNaN(lat) || isNaN(lng) || lat === 0) {
                 document.getElementById('map-detail').innerHTML = '<div class="text-center p-5 text-muted">Chưa có dữ liệu bản đồ</div>';
@@ -397,6 +399,7 @@
             map = L.map('map-detail').setView([lat, lng], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
+            // Marker Nhà (Đỏ)
             L.marker([lat, lng], {
                 icon: L.divIcon({
                     html: '<div style="background:#d63031; width:25px; height:25px; border-radius:50%; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.4);"></div>',
@@ -404,9 +407,12 @@
                 })
             }).addTo(map).bindPopup("<b>Vị trí phòng</b>").openPopup();
 
+            // Marker Tiện ích (Xanh/Cam) - Giữ nguyên logic cũ cho sheet Tiện Ích
             allAmenities.forEach(am => {
-                let aLat = parseFloat(am['Lat'] || Object.values(am)[7]);
-                let aLng = parseFloat(am['Lng'] || Object.values(am)[8]);
+                // Sheet Tiện ích vẫn dùng cột Lat/Lng cũ (Cột H, I tương ứng index 7, 8)
+                let aLat = parseFloat(am['Lat'] || am['Latitude'] || Object.values(am)[7]);
+                let aLng = parseFloat(am['Lng'] || am['Longitude'] || Object.values(am)[8]);
+                
                 if(!isNaN(aLat) && !isNaN(aLng)) {
                     let dist = Math.sqrt(Math.pow(aLat-lat, 2) + Math.pow(aLng-lng, 2));
                     if(dist < 0.015) {
@@ -421,6 +427,4 @@
         }
     </script>
 </body>
-
 </html>
-
