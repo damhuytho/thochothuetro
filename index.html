@@ -211,7 +211,7 @@
 
     <script>
         // =========================================================
-        // 🔴 CẤU HÌNH LINK CSV (Đã điền sẵn link của bạn)
+        // LINK CSV CỦA BẠN
         // =========================================================
         const SHEET_NGUONHANG = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
         const SHEET_TIENICH   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv';
@@ -221,32 +221,25 @@
         let allAmenities = [];
         let map = null;
 
-        // Tự động chạy khi web tải xong
+        // 🟢 CẤU HÌNH ẢNH MẪU MỚI (Dùng Placehold.co ổn định hơn)
+        const NO_IMAGE_URL = "https://placehold.co/600x400?text=Dang+Cap+Nhat";
+
         window.onload = () => {
-            console.log("Website bắt đầu tải...");
-            loadAmenities(); 
+            console.log("Web bắt đầu tải...");
             
-            // 🛡️ AN TOÀN: Nếu sau 3 giây mà vẫn xoay, ép tắt Loading để hiện nội dung
+            // 🛡️ CHỐNG TREO: Ép tắt Loading sau 1.5 giây dù có lỗi hay không
             setTimeout(() => {
-                if(document.getElementById('loading').style.display !== 'none') {
-                    console.log("Hết thời gian chờ, ép hiển thị!");
-                    document.getElementById('loading').style.display = 'none';
-                }
-            }, 3000);
+                document.getElementById('loading').style.display = 'none';
+            }, 1500);
+
+            loadAmenities(); 
         };
 
         function loadAmenities() {
             Papa.parse(SHEET_TIENICH, {
                 download: true, header: true,
-                complete: (results) => {
-                    allAmenities = results.data;
-                    console.log(`Đã tải ${allAmenities.length} tiện ích.`);
-                    loadRooms(); 
-                },
-                error: (err) => {
-                    console.warn("Lỗi tải tiện ích, vẫn tiếp tục tải nguồn hàng...");
-                    loadRooms();
-                }
+                complete: (results) => { allAmenities = results.data; loadRooms(); },
+                error: () => { loadRooms(); } // Lỗi vẫn chạy tiếp
             });
         }
 
@@ -254,23 +247,16 @@
             Papa.parse(SHEET_NGUONHANG, {
                 download: true, header: true,
                 complete: (results) => {
-                    console.log(`Đã tải ${results.data.length} phòng.`);
                     allRooms = results.data;
                     initApp();
-                },
-                error: (err) => {
-                    alert("Không tải được danh sách phòng. Kiểm tra lại Link CSV!");
-                    document.getElementById('loading').style.display = 'none';
                 }
             });
         }
 
         function initApp() {
-            // Tắt màn hình chờ ngay lập tức
-            document.getElementById('loading').style.display = 'none';
-            
             populateDistricts();
             
+            // Điều hướng
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('id');
             if(roomId) {
@@ -284,43 +270,34 @@
             const container = document.getElementById('products-grid');
             const countLabel = document.getElementById('count-result');
             container.innerHTML = '';
+            
+            if(!data) return;
             countLabel.innerText = `${data.length} tin đăng`;
 
-            if(!data || data.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center text-muted">Không có dữ liệu hiển thị.</div>';
-                return;
-            }
-
             data.forEach(room => {
-                // Lấy ID an toàn
                 let id = room['ID'] || Object.values(room)[0];
-                if (!id || id.trim() === '') return; // Bỏ qua dòng trống
+                if (!id) return;
 
-                // Xử lý giá tiền
                 let priceRaw = parseInt(room['Giá tiền']);
                 let priceText = priceRaw ? (priceRaw / 1000000).toFixed(1) + " Tr" : "Liên hệ";
                 
-                // Xử lý ảnh: Ưu tiên ảnh cột Hình ảnh, nếu lỗi thì dùng ảnh placeholder chuẩn
+                // Xử lý ảnh (Nếu lỗi thì dùng ảnh mẫu ngay)
                 let imgUrl = room['Hình ảnh'];
-                if(!imgUrl || imgUrl.trim() === '') {
-                    imgUrl = 'https://via.placeholder.com/400x300?text=Chua+co+hinh';
-                }
+                if(!imgUrl || imgUrl.trim() === '') imgUrl = NO_IMAGE_URL;
 
-                // Xử lý thông tin khác
                 let title = room['Phòng (P+Mã - Giá)'] || 'Phòng trọ';
-                let address = room['Địa chỉ'] || 'Đang cập nhật';
+                let address = room['Địa chỉ'] || 'TPHCM';
                 let district = room['Quận'] || '';
                 let type = room['Loại Phòng'] || 'Phòng trọ';
 
                 let col = document.createElement('div');
                 col.className = 'col-12 col-md-6 col-lg-4';
                 
-                // 🛠️ SỬA LỖI QUAN TRỌNG: Sửa lại đường dẫn ảnh dự phòng trong onerror
                 col.innerHTML = `
                     <div class="room-card shadow-sm" onclick="showDetail('${id}')">
                         <div class="position-relative">
                             <img src="${imgUrl}" class="card-img-top" 
-                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Chua+co+hinh';">
+                                 onerror="this.src='${NO_IMAGE_URL}'">
                             <span class="price-badge">${priceText}</span>
                         </div>
                         <div class="card-body">
@@ -333,6 +310,38 @@
                 `;
                 container.appendChild(col);
             });
+        }
+
+        function showDetail(id) {
+            let room = allRooms.find(r => (r['ID'] || Object.values(r)[0]) == id);
+            if(!room) { alert("Không tìm thấy!"); return; }
+
+            const newUrl = `${window.location.pathname}?id=${id}`;
+            window.history.pushState({path:newUrl}, '', newUrl);
+
+            document.getElementById('listing-view').style.display = 'none';
+            document.querySelector('.navbar').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+            window.scrollTo(0,0);
+
+            // Fill dữ liệu
+            let imgEl = document.getElementById('d-img');
+            imgEl.src = room['Hình ảnh'] || NO_IMAGE_URL;
+            imgEl.onerror = function() { this.src = NO_IMAGE_URL; };
+
+            document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'] || '';
+            let p = parseInt(room['Giá tiền']);
+            document.getElementById('d-price').innerText = p ? (p/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
+            document.getElementById('d-address').innerText = room['Địa chỉ'] || '';
+            document.getElementById('d-date').innerText = room['Ngày Cập Nhật'] || '';
+            document.getElementById('d-type').innerText = room['Loại Phòng'] || '';
+            document.getElementById('d-desc').innerText = room['Đặc điểm'] || room['Điểm Nổi Bật'] || 'Đang cập nhật...';
+            
+            let linkFolder = room['Folder'] || '#';
+            document.getElementById('d-link-pc').href = linkFolder;
+            document.getElementById('d-link-mobile').href = linkFolder;
+
+            setTimeout(() => { initMap(room); }, 500);
         }
 
         function populateDistricts() {
@@ -365,38 +374,6 @@
             document.getElementById('listing-view').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function showDetail(id) {
-            let room = allRooms.find(r => (r['ID'] || Object.values(r)[0]) == id);
-            if(!room) { alert("Không tìm thấy phòng!"); return; }
-
-            const newUrl = `${window.location.pathname}?id=${id}`;
-            window.history.pushState({path:newUrl}, '', newUrl);
-
-            document.getElementById('listing-view').style.display = 'none';
-            document.querySelector('.navbar').style.display = 'none';
-            document.getElementById('detail-view').style.display = 'block';
-            window.scrollTo(0,0);
-
-            let imgUrl = room['Hình ảnh'] || 'https://via.placeholder.com/800x400?text=Chua+co+hinh';
-            let imgEl = document.getElementById('d-img');
-            imgEl.src = imgUrl;
-            imgEl.onerror = function() { this.src = 'https://via.placeholder.com/800x400?text=Chua+co+hinh'; };
-
-            document.getElementById('d-title').innerText = room['Phòng (P+Mã - Giá)'] || '';
-            let p = parseInt(room['Giá tiền']);
-            document.getElementById('d-price').innerText = p ? (p/1000000).toFixed(1) + " Triệu/tháng" : "Liên hệ";
-            document.getElementById('d-address').innerText = room['Địa chỉ'] || '';
-            document.getElementById('d-date').innerText = room['Ngày Cập Nhật'] || '';
-            document.getElementById('d-type').innerText = room['Loại Phòng'] || '';
-            document.getElementById('d-desc').innerText = room['Đặc điểm'] || room['Điểm Nổi Bật'] || '';
-            
-            let linkFolder = room['Folder'] || '#';
-            document.getElementById('d-link-pc').href = linkFolder;
-            document.getElementById('d-link-mobile').href = linkFolder;
-
-            setTimeout(() => { initMap(room); }, 500);
-        }
-
         function goBack() {
             const newUrl = window.location.pathname;
             window.history.pushState({path:newUrl}, '', newUrl);
@@ -408,12 +385,11 @@
         function goHome() { window.location.href = window.location.pathname; }
 
         function initMap(room) {
-            // Tự động dò tìm cột Lat/Lng
             let lat = parseFloat(room['Lat'] || room['Latitude'] || Object.values(room)[28]);
             let lng = parseFloat(room['Lng'] || room['Longitude'] || Object.values(room)[29]);
 
             if (isNaN(lat) || isNaN(lng) || lat === 0) {
-                document.getElementById('map-detail').innerHTML = '<div class="text-center p-5 text-muted">Chưa có toạ độ bản đồ</div>';
+                document.getElementById('map-detail').innerHTML = '<div class="text-center p-5 text-muted">Chưa có dữ liệu bản đồ</div>';
                 return;
             }
 
@@ -421,7 +397,6 @@
             map = L.map('map-detail').setView([lat, lng], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
-            // Marker Nhà
             L.marker([lat, lng], {
                 icon: L.divIcon({
                     html: '<div style="background:#d63031; width:25px; height:25px; border-radius:50%; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.4);"></div>',
@@ -429,7 +404,6 @@
                 })
             }).addTo(map).bindPopup("<b>Vị trí phòng</b>").openPopup();
 
-            // Marker Tiện ích
             allAmenities.forEach(am => {
                 let aLat = parseFloat(am['Lat'] || Object.values(am)[7]);
                 let aLng = parseFloat(am['Lng'] || Object.values(am)[8]);
@@ -449,3 +423,4 @@
 </body>
 
 </html>
+
