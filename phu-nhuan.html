@@ -54,37 +54,47 @@
     <div id="home-page-container" class="container mt-4 mb-5">
         <div class="row">
             <div class="col-lg-3 mb-4">
-                <div class="bg-white p-3 rounded shadow-sm border position-sticky" style="top: 90px; z-index: 100;">
-                    <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="fas fa-filter text-warning me-2"></i>Bộ Lọc</h6>
-                    
-                    <div class="mb-3">
-                        <label class="small fw-bold">Khu vực</label>
-                        <select class="form-select form-select-sm" id="f-district"><option value="all">Tất cả</option></select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-bold">Loại phòng</label>
-                        <select class="form-select form-select-sm" id="type-filter"></select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-bold">Khoảng giá</label>
-                        <select class="form-select form-select-sm" id="f-price">
-                            <option value="all">Mọi mức giá</option>
-                            <option value="0-4000000">Dưới 4 Triệu</option>
-                            <option value="4000000-6000000">4 - 6 Triệu</option>
-                            <option value="6000000-8000000">6 - 8 Triệu</option>
-                            <option value="8000000-99000000">Trên 8 Triệu</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="small fw-bold">Tiện ích</label>
-                        <div id="f-amenities-checkboxes" style="max-height: 200px; overflow-y: auto;"></div>
-                    </div>
+    <div id="main-filter-box" class="bg-white p-3 rounded shadow-sm border position-sticky" style="top: 90px; z-index: 100;">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 cursor-pointer" onclick="expandFilterBox()">
+            <h6 class="fw-bold mb-0"><i class="fas fa-filter text-warning me-2"></i>Bộ Lọc</h6>
+            <i class="fas fa-chevron-down small text-muted"></i>
+        </div>
 
-                    <button class="btn btn-primary w-100 btn-sm" onclick="applyFilters()">Áp dụng</button>
-                    <button class="btn btn-outline-secondary w-100 btn-sm mt-2" onclick="resetFilters()">Đặt lại</button>
-                </div>
+        <button class="btn btn-expand-filter btn-sm" onclick="expandFilterBox()">
+            <i class="fas fa-sliders-h me-1"></i> Hiển thị bộ lọc
+        </button>
+        
+        <div class="filter-content">
+            <div class="mb-3">
+                <label class="small fw-bold">Khu vực</label>
+                <select class="form-select form-select-sm" id="f-district"><option value="all">Tất cả</option></select>
             </div>
+            <div class="mb-3">
+                <label class="small fw-bold">Loại phòng</label>
+                <select class="form-select form-select-sm" id="type-filter"></select>
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold">Khoảng giá</label>
+                <select class="form-select form-select-sm" id="f-price">
+                    <option value="all">Mọi mức giá</option>
+                    <option value="0-4000000">Dưới 4 Triệu</option>
+                    <option value="4000000-6000000">4 - 6 Triệu</option>
+                    <option value="6000000-8000000">6 - 8 Triệu</option>
+                    <option value="8000000-99000000">Trên 8 Triệu</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="small fw-bold">Tiện ích</label>
+                <div id="f-amenities-checkboxes" class="amenities-grid"></div>
+            </div>
+
+            <button class="btn btn-primary w-100 btn-sm" onclick="applyFilters()">Áp dụng</button>
+            <button class="btn btn-outline-secondary w-100 btn-sm mt-2" onclick="resetFilters()">Đặt lại</button>
+        </div>
+    </div>
+</div>
 
             <div class="col-lg-9">
                 <div id="home-content"></div>
@@ -152,3 +162,4 @@
     <script src="main.js"></script>
 </body>
 </html>
+
