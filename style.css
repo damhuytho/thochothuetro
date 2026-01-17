@@ -45,12 +45,7 @@ body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var
     padding: 6px 14px; border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.housa-tag {
-    position: absolute; top: 15px; right: 15px;
-    background: var(--primary); color: #fff;
-    font-weight: 700; font-size: 0.75rem;
-    padding: 4px 10px; border-radius: 6px;
-}
+.housa-tag { display: none !important; }
 
 /* SIDEBAR & CHI TIẾT */
 .sidebar-box {
@@ -147,17 +142,13 @@ body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var
 }
 /* --- THANH HIỂN THỊ BỘ LỌC (STICKY FILTER BAR) --- */
 .active-filter-bar {
-    position: fixed;
-    top: 76px; /* Nằm ngay dưới Navbar */
-    left: 0;
-    width: 100%;
-    background: #fff;
-    z-index: 1040;
-    padding: 10px 0;
+    position: fixed; top: 76px; left: 0; width: 100%;
+    background: #fff; z-index: 1030;
+    padding: 8px 0;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    display: none; /* Ẩn mặc định, hiện khi JS gọi */
     border-bottom: 1px solid #eee;
     animation: slideDown 0.3s ease-out;
+    display: none; /* Mặc định ẩn tuyệt đối */
 }
 
 @keyframes slideDown {
@@ -201,4 +192,33 @@ body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+}
+
+/* --- BỘ LỌC SIDEBAR --- */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia 2 cột */
+    gap: 8px;
+}
+
+/* Trạng thái thu gọn bộ lọc */
+.filter-box-collapsed .filter-content {
+    display: none !important;
+}
+.filter-box-collapsed .btn-expand-filter {
+    display: block !important;
+}
+.btn-expand-filter {
+    display: none; /* Mặc định ẩn nút này */
+    width: 100%;
+    background: #f8f9fa;
+    border: 1px dashed var(--primary);
+    color: var(--primary-dark);
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+.btn-expand-filter:hover {
+    background: #fff3cd;
 }
