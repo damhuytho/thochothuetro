@@ -294,25 +294,30 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
-        // TĂNG ZOOM MẶC ĐỊNH LÊN 17
         map = L.map('half-map-view').setView([10.801646, 106.663158], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     runInternalFilter('all', false);
 }
 
+// [QUAN TRỌNG] Render danh sách map KHÔNG dùng .row / .col
+// Để CSS Grid ở style.css tự xử lý
 function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
-    // col-12 col-sm-6: Mobile 1 cột, Tablet trở lên 2 cột
-    const html = rooms.map(room => `
-        <div class="col-12 col-sm-6 mb-3">
-            ${createCardHTML(room)}
-        </div>
-    `).join('');
+    const html = rooms.map(room => createCardHTML(room)).join('');
     
-    container.innerHTML = `<div class="row g-2">${html || '<div class="p-3 text-center">Không tìm thấy phòng</div>'}</div>`;
+    // Nếu không có phòng thì hiển thị thông báo
+    if (!html) {
+        container.innerHTML = '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>';
+        // Reset display để thông báo hiện full width
+        container.style.display = 'block';
+    } else {
+        container.innerHTML = html;
+        // Trả lại grid nếu có dữ liệu
+        container.style.display = null; 
+    }
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -466,8 +471,12 @@ function renderGridWithPagination(container, rooms) {
     const roomsToShow = rooms.slice(0, currentLimit);
     const hasMore = rooms.length > currentLimit;
 
+    // Bọc lại bằng Row của Bootstrap
     let html = `<div class="row g-3">`;
-    roomsToShow.forEach(room => html += createCardHTML(room));
+    roomsToShow.forEach(room => {
+        // [QUAN TRỌNG] Thêm wrapper col- ở đây cho trang chủ
+        html += `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`;
+    });
     html += `</div>`;
 
     if (hasMore) {
@@ -524,7 +533,7 @@ function renderHomePageGroups() {
                     <a href="#" onclick="viewAllDistrict('${district}'); return false;" class="btn btn-outline-primary btn-sm rounded-pill">Xem tất cả <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
                 <div class="row g-3">
-                    ${displayRooms.map(room => createCardHTML(room)).join('')}
+                    ${displayRooms.map(room => `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`).join('')}
                 </div>
             </div>
         `;
@@ -544,6 +553,7 @@ window.viewAllDistrict = function(district) {
 
 window.resetFilters = function() { window.location.reload(); }
 
+// [QUAN TRỌNG] Hàm này giờ chỉ trả về Card trần, không có col- wrapper
 function createCardHTML(room) {
     let imgUrl = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
     const cleanAddr = cleanAddress(room.address);
@@ -552,26 +562,24 @@ function createCardHTML(room) {
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
     return `
-        <div class="col-6 col-md-4 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
-                <div class="position-relative">
-                    <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy">
-                    ${promoBadge}
+        <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
+            <div class="position-relative">
+                <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy">
+                ${promoBadge}
+            </div>
+            <div class="card-body p-3 d-flex flex-column">
+                <h6 class="card-title fw-bold text-primary mb-1" style="font-size: 0.95rem; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h6>
+                <div class="mb-2">
+                    <span class="badge bg-light text-dark border small">${room.room_code}</span>
                 </div>
-                <div class="card-body p-3 d-flex flex-column">
-                    <h6 class="card-title fw-bold text-primary mb-1" style="font-size: 0.95rem; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h6>
-                    <div class="mb-2">
-                        <span class="badge bg-light text-dark border small">${room.room_code}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-danger fw-bold fs-6">${formatMoney(room.price)}/tháng</span>
-                    </div>
-                    ${keypointHTML}
-                    <div class="mt-auto pt-2 border-top">
-                        <div class="d-flex justify-content-between align-items-center small text-muted">
-                            <span><i class="fas fa-map-marker-alt me-1"></i> ${room.district}</span>
-                            <span class="text-muted"><i class="fas fa-eye me-1"></i> Xem ngay</span>
-                        </div>
+                <div class="mb-2">
+                    <span class="text-danger fw-bold fs-6">${formatMoney(room.price)}/tháng</span>
+                </div>
+                ${keypointHTML}
+                <div class="mt-auto pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                        <span><i class="fas fa-map-marker-alt me-1"></i> ${room.district}</span>
+                        <span class="text-muted"><i class="fas fa-eye me-1"></i> Xem ngay</span>
                     </div>
                 </div>
             </div>
@@ -687,7 +695,8 @@ function renderRelatedApartments(currentRoom) {
     if (!grid) return;
     const related = allRooms.filter(r => r.district === currentRoom.district && r.id !== currentRoom.id && r.image_detail.length > 0 && Math.abs(r.price - currentRoom.price) <= 1500000).slice(0, 6);
     if (related.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự.</div>'; return; }
-    grid.innerHTML = related.map(room => createCardHTML(room)).join('');
+    // Thêm wrapper col- cho related
+    grid.innerHTML = related.map(room => `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`).join('');
 }
 
 function initMap(lat, lng, label) {
@@ -706,7 +715,7 @@ function parseCSV(text) {
         const char = text[i]; const nextChar = text[i + 1];
         if (char === '"') { if (inQuotes && nextChar === '"') { currentToken += '"'; i++; } else { inQuotes = !inQuotes; } }
         else if (char === ',' && !inQuotes) { row.push(currentToken); currentToken = ''; }
-        else if ((char === '\r' || char === '\n') && !inQuotes) { if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); row = []; currentToken = ''; if (char === '\r' && nextChar === '\n') i++; }
+        else if ((char === '\\r' || char === '\\n') && !inQuotes) { if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); row = []; currentToken = ''; if (char === '\\r' && nextChar === '\\n') i++; }
         else { currentToken += char; }
     }
     if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); return result;
