@@ -92,27 +92,32 @@ a { text-decoration: none; }
     height: 100%; width: 100%; position: relative;
 }
 
-/* --- MOBILE RESPONSIVE (SỬA LỖI MẤT DANH SÁCH) --- */
+/* --- MOBILE RESPONSIVE (SỬA LỖI MẤT BẢN ĐỒ & LAYOUT) --- */
 @media (max-width: 992px) {
     /* Mở khóa cuộn trang cho điện thoại */
-    body { overflow: auto !important; }
+    body { overflow-x: hidden !important; overflow-y: auto !important; }
     
     .map-layout-grid {
-        display: block; /* Hủy Grid, chuyển sang Block xếp chồng */
+        display: flex;           /* Dùng Flex để đảo thứ tự */
+        flex-direction: column-reverse; /* Đưa Map (phần tử số 2) lên đầu, List xuống dưới */
         height: auto;
     }
     
     .half-map-view { 
-        height: 50vh; /* Bản đồ chiếm 50% màn hình */
+        height: 40vh;           /* Chiều cao bản đồ chiếm 40% màn hình */
         width: 100%; 
-        position: sticky; top: 76px; z-index: 100; 
+        position: sticky;       /* Dính bản đồ lên trên ngay dưới menu */
+        top: 76px;              /* Cách top bằng chiều cao navbar */
+        z-index: 99; 
         border-bottom: 2px solid var(--primary);
+        flex-shrink: 0;
     }
     
     .half-map-list { 
         height: auto; 
         overflow: visible; 
         border-right: none;
+        background: #fff;       /* Đảm bảo nền trắng */
     }
 }
 
@@ -183,3 +188,4 @@ footer .logo-img { height: 60px; margin-bottom: 15px; }
 .btn-load-more { background: var(--primary); color: #000; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 600; transition: 0.3s; }
 .btn-load-more:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3); }
 .cursor-pointer { cursor: pointer; }
+
