@@ -294,11 +294,8 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
-        // --- CHỈNH ĐỘ ZOOM BẢN ĐỒ Ở ĐÂY ---
-        // Số 17 là mức độ Zoom (Càng lớn càng nhìn gần). 
-        // Bạn có thể sửa thành 15, 16, 17, 18 tùy ý.
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 18);
-        
+        // TĂNG ZOOM MẶC ĐỊNH LÊN 17
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     runInternalFilter('all', false);
@@ -308,13 +305,14 @@ function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
+    // col-12 col-sm-6: Mobile 1 cột, Tablet trở lên 2 cột
     const html = rooms.map(room => `
-        <div class="col-12 col-md-6 mb-3">
+        <div class="col-12 col-sm-6 mb-3">
             ${createCardHTML(room)}
         </div>
     `).join('');
     
-    container.innerHTML = `<div class="row">${html || '<div class="p-3 text-center">Không tìm thấy phòng</div>'}</div>`;
+    container.innerHTML = `<div class="row g-2">${html || '<div class="p-3 text-center">Không tìm thấy phòng</div>'}</div>`;
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -333,8 +331,6 @@ function renderHalfMapMarkers(rooms) {
     const bounds = [];
     rooms.forEach(room => {
         const marker = L.marker([room.lat, room.lng], { icon: customIcon }).addTo(map);
-        
-        // POPUP ĐÃ SỬA: Bỏ dòng giá+loại, Nút vàng chữ đen
         marker.bindPopup(`
             <div style="width: 220px;">
                 <img src="${room.image_detail[0] || ''}" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; margin-bottom:8px;">
@@ -346,7 +342,7 @@ function renderHalfMapMarkers(rooms) {
         bounds.push([room.lat, room.lng]);
     });
 
-    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
 }
 
 // =========================================================
@@ -717,4 +713,3 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
-
