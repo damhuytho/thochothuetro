@@ -13,7 +13,7 @@ body {
     font-family: 'Lexend', sans-serif;
     background: var(--gray-bg);
     color: var(--text-dark);
-    padding-top: 76px; /* Để nội dung không bị menu che mất */
+    padding-top: 76px;
 }
 
 a { text-decoration: none; }
@@ -25,7 +25,7 @@ a { text-decoration: none; }
     background: #fff;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     padding: 10px 0;
-    z-index: 1050; /* Luôn nổi trên cùng */
+    z-index: 1050;
 }
 .brand-text { display: block !important; }
 
@@ -39,6 +39,12 @@ a { text-decoration: none; }
     color: var(--primary-dark);
 }
 
+.logo-img {
+    height: 45px;
+    width: auto;
+    object-fit: contain;
+}
+
 /* =========================================
    3. CARD SẢN PHẨM (DANH SÁCH PHÒNG)
    ========================================= */
@@ -48,12 +54,12 @@ a { text-decoration: none; }
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
-    height: 100%; /* Giữ chiều cao bằng nhau */
-    display: flex;       /* Thêm Flex để dàn nội dung */
-    flex-direction: column; /* Xếp dọc */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .room-card .card-body {
-    flex: 1; /* Phần nội dung tự giãn để đẩy footer xuống đáy */
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
@@ -64,14 +70,12 @@ a { text-decoration: none; }
     border-color: var(--primary);
 }
 
-/* --- QUAN TRỌNG: SỬA LỖI ẢNH CARD --- */
 .room-card .card-img-top {
-    height: 220px;
+    height: 220px; /* Chiều cao chuẩn trang chủ */
     width: 100%;
     object-fit: cover;
 }
 
-/* Nhãn ưu đãi (Góc phải ảnh) */
 .position-relative .badge {
     z-index: 2;
 }
@@ -86,7 +90,6 @@ a { text-decoration: none; }
     margin-bottom: 30px;
 }
 
-/* Header xám có ảnh nền (Breadcrumb) */
 .page-header-block {
     background-color: #333;
     background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
@@ -112,7 +115,6 @@ a { text-decoration: none; }
 .breadcrumb-custom a { color: #fff; }
 .breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; }
 
-/* Gallery (Album ảnh chi tiết) - Smart Crop */
 .gallery-container { display: flex; flex-direction: column; gap: 10px; }
 .gallery-main-frame {
     width: 100%; aspect-ratio: 4/3;
@@ -132,7 +134,6 @@ a { text-decoration: none; }
     width: 100%; height: 100%; object-fit: cover;
 }
 
-/* Block tiện ích, mô tả */
 .section-title {
     font-weight: 700; font-size: 1.2rem;
     margin-bottom: 15px; position: relative;
@@ -143,7 +144,6 @@ a { text-decoration: none; }
     width: 4px; background: var(--primary); border-radius: 2px;
 }
 
-/* Thẻ Agent (Liên hệ bên phải) */
 .agent-card {
     position: sticky; top: 100px;
     background: #fff; padding: 25px;
@@ -152,45 +152,66 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   5. TRANG BẢN ĐỒ (MAP SEARCH)
+   5. TRANG BẢN ĐỒ (MAP SEARCH) - FINAL
    ========================================= */
-/* Layout chia đôi: Trái (List) - Phải (Map) */
 .map-layout-grid {
     display: grid;
-    grid-template-columns: 680px 1fr; /* Cột trái rộng 680px để chứa 2 cột Card */
-    height: calc(100vh - 76px); /* Full màn hình trừ menu */
-    /* margin-top: -24px; Loại bỏ margin thừa nếu có */
+    grid-template-columns: 700px 1fr; /* Sidebar 700px như bạn chọn */
+    height: calc(100vh - 76px);
+    gap: 0;
 }
 
-/* Cột danh sách bên trái */
 .half-map-list {
     height: 100%;
-    overflow-y: auto; /* Cho phép cuộn dọc */
+    overflow-y: auto;
     background: #f8f9fa;
     border-right: 1px solid #ddd;
-    display: flex; flex-direction: column;
+    display: flex; 
+    flex-direction: column;
 }
 
-/* Cột bản đồ bên phải */
+/* Container bên trong list - thêm padding */
+.half-map-list > .p-3 {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Card trong trang Map: Ảnh nhỏ hơn chút để đỡ dài */
+#half-map-list-content .room-card .card-img-top {
+    height: 180px; 
+}
+
+/* Cột bản đồ */
 .half-map-view {
     height: 100%;
     width: 100%;
     position: relative;
 }
 
-/* Responsive cho Mobile (Map lên đầu) */
+/* Responsive cho Mobile */
 @media (max-width: 992px) {
     .map-layout-grid {
         grid-template-columns: 1fr;
         height: auto;
-        display: flex; flex-direction: column;
+        display: flex; 
+        flex-direction: column;
     }
-    .half-map-view { height: 400px; order: -1; position: sticky; top: 76px; z-index: 100; }
-    .half-map-list { height: auto; overflow: visible; }
+    .half-map-view { 
+        height: 400px; 
+        order: -1; 
+        position: sticky; top: 76px; z-index: 100;
+    }
+    .half-map-list { 
+        height: auto; 
+        overflow: visible; 
+    }
+    body { overflow: auto; }
 }
 
-/* Icon định vị (Marker hình giọt nước) */
-.custom-map-marker { display: flex; justify-content: center; align-items: center; }
+/* Marker (Icon Định Vị) */
+.custom-map-marker { 
+    display: flex; justify-content: center; align-items: center; 
+}
 .marker-pin {
     width: 40px; height: 40px;
     border-radius: 50% 50% 50% 0;
@@ -204,18 +225,19 @@ a { text-decoration: none; }
 .marker-pin i {
     transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px;
 }
-/* Hiệu ứng nhún khi di chuột vào marker */
 .marker-pin:hover {
     transform: rotate(-45deg) scale(1.1);
     background: var(--primary-dark);
     transition: 0.2s;
 }
 
-/* Style cho Popup bản đồ */
-.leaflet-popup-content-wrapper { border-radius: 8px; overflow: hidden; padding: 0; }
-.leaflet-popup-content { margin: 15px; width: 220px !important; }
-
-/* Nút "Xem chi tiết" trong Popup (Vàng, Chữ đen, Phẳng) */
+/* Popup Bản đồ */
+.leaflet-popup-content-wrapper { 
+    border-radius: 8px; overflow: hidden; padding: 0; 
+}
+.leaflet-popup-content { 
+    margin: 15px; width: 220px !important; 
+}
 .btn-popup-custom {
     display: block; width: 100%;
     background-color: var(--primary) !important;
@@ -232,50 +254,79 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   6. FOOTER & CÁC THÀNH PHẦN KHÁC
+   6. BỘ LỌC & FILTER BOX
+   ========================================= */
+#main-filter-box { transition: all 0.3s ease; }
+.filter-content { display: block; }
+.btn-expand-filter {
+    display: none; width: 100%;
+    background: var(--primary); color: #000;
+    border: none; border-radius: 8px; padding: 10px;
+    font-weight: 600; margin-bottom: 15px;
+}
+.filter-box-collapsed .filter-content { display: none; }
+.filter-box-collapsed .btn-expand-filter { display: block; }
+.amenities-grid {
+    display: grid; grid-template-columns: 1fr; gap: 8px;
+    max-height: 200px; overflow-y: auto;
+}
+
+/* =========================================
+   7. FOOTER
    ========================================= */
 footer {
     background: #212529; color: #fff;
     padding: 50px 0 30px; margin-top: 50px;
 }
-/* Logo dưới Footer to hơn chút */
-footer .logo-img { height: 60px; margin-bottom: 15px; }
-.logo-img {
-    height: 45px; /* Chỉnh lại logo nhỏ hơn xíu cho cân đối với chữ */
-    width: auto;
-    object-fit: contain;
+footer .logo-img { 
+    height: 60px; margin-bottom: 15px; 
 }
 
-/* Màn hình Loading */
+/* =========================================
+   8. LOADING & UTILITY
+   ========================================= */
 .loading-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%;
     background: #fff; z-index: 9999;
-    display: flex; justify-content: center; align-items: center; flex-direction: column;
+    display: flex; justify-content: center; align-items: center; 
+    flex-direction: column;
 }
 
-/* Thanh lọc trôi (Sticky Filter Bar) */
 .active-filter-bar {
     position: fixed; top: 76px; left: 0; width: 100%;
     background: #fff; z-index: 1030;
     padding: 10px 0;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     border-bottom: 1px solid #eee;
-    display: none; /* Mặc định ẩn, hiện bằng JS */
+    display: none;
 }
 
-/* Tag hiển thị trong thanh lọc */
 .filter-tag {
     background: #fff; border: 1px solid #ddd;
     padding: 5px 12px; border-radius: 20px;
     font-size: 0.85rem; font-weight: 600;
-    margin-right: 8px; cursor: pointer;
-    display: inline-flex; align-items: center;
-    white-space: nowrap;
+    cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap;
+    margin-right: 8px;
 }
-.filter-tag:hover { border-color: var(--primary); color: var(--primary-dark); }
-/* Icon đóng (x) */
+.filter-tag:hover { 
+    border-color: var(--primary); color: var(--primary-dark); 
+}
 .filter-tag::after {
     content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
     margin-left: 6px; font-size: 0.7rem; color: #999;
 }
 
+.btn-load-more {
+    background: var(--primary); color: #000;
+    border: none; padding: 12px 30px;
+    border-radius: 25px; font-weight: 600;
+    transition: 0.3s;
+}
+.btn-load-more:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+}
+
+.cursor-pointer { cursor: pointer; }
