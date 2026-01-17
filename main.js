@@ -3,8 +3,8 @@
 // =========================================================
 const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
-// [QUAN TRỌNG] BẠN HÃY DÁN LINK CSV CỦA SHEET "DB_TienIch" VÀO DÒNG DƯỚI ĐÂY:
-const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv'; 
+// Link CSV của file Tiện ích (DB_TienIch).
+const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=123456789&single=true&output=csv'; 
 
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận"];
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
@@ -16,10 +16,11 @@ let allAmenities = [];
 let map = null;
 let currentFilteredRooms = []; 
 let currentLimit = 6;          
-const LOAD_MORE_STEP = 9;      
+const LOAD_MORE_STEP = 9;   
+let currentSortOrder = 'default'; // [MỚI] Biến lưu trạng thái sắp xếp
 
 // =========================================================
-// 2. KHỞI TẠO & FETCH DATA (TẢI SONG SONG 2 FILE)
+// 2. KHỞI TẠO & FETCH DATA
 // =========================================================
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
@@ -32,7 +33,6 @@ async function fetchData() {
     if (loading) loading.style.display = 'flex';
 
     try {
-        // Tải cả file Phòng và file Tiện ích cùng lúc
         const [roomsResponse, amenitiesResponse] = await Promise.all([
             fetch(SHEET_API),
             fetch(AMENITIES_API)
@@ -45,7 +45,6 @@ async function fetchData() {
 
     } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);
-        // Nếu lỗi tải tiện ích (do chưa dán link), vẫn hiển thị phòng bình thường
         if (allRooms.length === 0 && loading) {
             loading.innerHTML = '<p class="text-white">Đang tải danh sách phòng...</p>';
         }
@@ -53,7 +52,7 @@ async function fetchData() {
 }
 
 function processData(roomsCsv, amenitiesCsv) {
-    // --- 1. XỬ LÝ DỮ LIỆU PHÒNG (Nguonhang.csv) ---
+    // --- XỬ LÝ PHÒNG ---
     const roomRows = parseCSV(roomsCsv);
     allRooms = roomRows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
@@ -86,22 +85,17 @@ function processData(roomsCsv, amenitiesCsv) {
         };
     }).filter(item => item.id && item.price > 0); 
 
-    // --- 2. XỬ LÝ DỮ LIỆU TIỆN ÍCH (DB_TienIch.csv) ---
-    // Mapping: Cột B(1)=Tên, C(2)=Loại, H(7)=Lat, I(8)=Lng
+    // --- XỬ LÝ TIỆN ÍCH ---
     if (amenitiesCsv) {
         const amenityRows = parseCSV(amenitiesCsv);
         allAmenities = amenityRows.slice(1).map(row => {
-            // Kiểm tra xem dòng có đủ dữ liệu tọa độ không
             const lat = parseFloat(row[7]);
             const lng = parseFloat(row[8]);
-            
             if (isNaN(lat) || isNaN(lng)) return null;
-
             return {
-                name: (row[1] || "Tiện ích").trim(), // Cột B
-                type: (row[2] || "Khác").trim(),     // Cột C
-                lat: lat,                            // Cột H
-                lng: lng                             // Cột I
+                name: (row[1] || "Tiện ích").trim(),
+                type: (row[2] || "Khác").trim(),
+                lat: lat, lng: lng
             };
         }).filter(item => item !== null);
     }
@@ -139,13 +133,12 @@ function detectPageAndRender() {
     if (targetDistrict) {
         const districtSelect = document.getElementById('f-district');
         if (districtSelect) districtSelect.value = targetDistrict;
-    }
-
-    const urlType = urlParams.get('type');
-    const urlPrice = urlParams.get('price');
-    const urlAmenities = urlParams.get('amenities');
-
-    if (targetDistrict) {
+        
+        // Khôi phục bộ lọc từ URL nếu có
+        const urlType = urlParams.get('type');
+        const urlPrice = urlParams.get('price');
+        const urlAmenities = urlParams.get('amenities');
+        
         if (urlType) document.getElementById('type-filter').value = urlType;
         if (urlPrice) document.getElementById('f-price').value = urlPrice;
         if (urlAmenities) {
@@ -154,7 +147,9 @@ function detectPageAndRender() {
                 if(cb) cb.checked = true;
             });
         }
+
         renderPageHeader(`Phòng trọ ${targetDistrict}`, targetDistrict);
+        // Luôn chạy filter để hiển thị danh sách (kể cả khi không có param lọc)
         runInternalFilter(targetDistrict, !!(urlType || urlPrice || urlAmenities)); 
     } else {
         renderHomePageGroups();
@@ -210,8 +205,24 @@ function initFilters() {
 }
 
 // =========================================================
-// 4. XỬ LÝ LỌC
+// 4. XỬ LÝ LỌC & SẮP XẾP
 // =========================================================
+
+// [MỚI] Hàm xử lý khi chọn dropdown sắp xếp
+window.sortRooms = function(order) {
+    currentSortOrder = order;
+    // Lấy giá trị district hiện tại để chạy lại lọc
+    let districtVal = document.getElementById('f-district')?.value || 'all';
+    
+    // Nếu đang ở trang Quận cụ thể, ép districtVal về đúng quận đó
+    const path = window.location.pathname;
+    if (path.includes("tan-binh")) districtVal = "Tân Bình";
+    if (path.includes("phu-nhuan")) districtVal = "Phú Nhuận";
+    
+    // Gọi lại hàm lọc, tham số thứ 2 là true để báo hiệu đây là hành động lọc/xếp
+    runInternalFilter(districtVal, true);
+}
+
 window.applyFilters = function() {
     const districtVal = document.getElementById('f-district')?.value || 'all';
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
@@ -238,9 +249,11 @@ window.applyFilters = function() {
     }
 
     collapseFilterBox();
+    
     let finalDistrictVal = districtVal;
     if (path.includes("tan-binh")) finalDistrictVal = "Tân Bình";
     if (path.includes("phu-nhuan")) finalDistrictVal = "Phú Nhuận";
+
     runInternalFilter(finalDistrictVal, true);
     
     if (window.innerWidth < 992) {
@@ -271,18 +284,26 @@ function runInternalFilter(districtVal, isFilteredAction) {
         return true;
     });
 
-    // Sắp xếp: Ưu tiên Khuyến mại -> Ưu tiên có Ảnh
-    filtered.sort((a, b) => {
-        const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
-        const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
-        if (aPromo !== bPromo) return bPromo - aPromo;
-        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
-        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
-        return bHasImage - aHasImage;
-    });
+    // --- [MỚI] LOGIC SẮP XẾP ---
+    if (currentSortOrder === 'price-asc') {
+        filtered.sort((a, b) => a.price - b.price);
+    } else if (currentSortOrder === 'price-desc') {
+        filtered.sort((a, b) => b.price - a.price);
+    } else {
+        // Mặc định: Ưu tiên Khuyến mại -> Ưu tiên có Ảnh
+        filtered.sort((a, b) => {
+            const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
+            const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
+            if (aPromo !== bPromo) return bPromo - aPromo;
+            
+            const aHasImage = a.image_detail.length > 0 ? 1 : 0;
+            const bHasImage = b.image_detail.length > 0 ? 1 : 0;
+            return bHasImage - aHasImage;
+        });
+    }
 
     currentFilteredRooms = filtered;
-    currentLimit = 6; 
+    currentLimit = 6; // Reset về 6 mỗi khi lọc/sắp xếp lại
     
     const path = window.location.pathname;
     
@@ -291,6 +312,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
         renderHalfMapMarkers(filtered);
     } else {
         const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
+        
         if (isHomePage && districtVal === 'all') {
             document.getElementById('home-content').style.display = 'none';
             document.getElementById('search-results').style.display = 'block';
@@ -311,7 +333,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
 }
 
 // =========================================================
-// 5. HALF MAP LOGIC (CÓ TIỆN ÍCH)
+// 5. HALF MAP LOGIC
 // =========================================================
 
 function renderHalfMapPage() {
@@ -323,6 +345,7 @@ function renderHalfMapPage() {
     const defaultDist = "Phú Nhuận";
     const dSelect = document.getElementById('f-district');
     if(dSelect) dSelect.value = defaultDist; 
+    
     runInternalFilter(defaultDist, false);
 }
 
@@ -364,7 +387,6 @@ function renderHalfMapMarkers(rooms) {
         if (layer instanceof L.Marker) map.removeLayer(layer);
     });
 
-    // --- MARKER CĂN HỘ (To, màu vàng) ---
     const roomIcon = L.divIcon({
         className: 'custom-map-marker',
         html: '<div class="marker-pin"><i class="fas fa-home"></i></div>',
@@ -388,10 +410,8 @@ function renderHalfMapMarkers(rooms) {
         bounds.push([room.lat, room.lng]);
     });
 
-    // --- MARKER TIỆN ÍCH (Nhỏ, màu xanh) ---
     const amenityIcon = L.divIcon({
         className: 'custom-map-marker-amenity',
-        // Hình tròn màu xanh dương, icon cửa hàng
         html: '<div style="width:24px; height:24px; background:#3498db; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; color:#fff;"><i class="fas fa-store" style="font-size:10px;"></i></div>',
         iconSize: [24, 24],
         iconAnchor: [12, 12],
@@ -399,7 +419,6 @@ function renderHalfMapMarkers(rooms) {
     });
 
     allAmenities.forEach(am => {
-        // Chỉ vẽ nếu tiện ích nằm gần khu vực đang hiển thị (tùy chọn, ở đây vẽ hết cho đơn giản)
         const marker = L.marker([am.lat, am.lng], { icon: amenityIcon, zIndexOffset: 500 }).addTo(map);
         marker.bindPopup(`
             <div class="text-center p-1">
@@ -409,7 +428,6 @@ function renderHalfMapMarkers(rooms) {
         `);
     });
 
-    // Fit Bounds chỉ theo danh sách phòng (để khách tập trung vào phòng)
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
 }
 
@@ -435,7 +453,6 @@ window.toggleFilterSidebar = function() {
 function highlightCurrentMenu() {
     const path = window.location.pathname;
     const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-    
     navLinks.forEach(link => {
         link.classList.remove('active');
         const href = link.getAttribute('href');
@@ -485,13 +502,9 @@ function updateActiveFilterBar(district, type, price, amenities, isActive) {
 
     bar.classList.add('show');
     const content = document.getElementById('filter-tags-content');
-    
     let html = '';
     
-    if (district !== 'all') {
-        html += `<span class="filter-tag" onclick="expandFilterBox()">${district}</span>`;
-    }
-
+    if (district !== 'all') html += `<span class="filter-tag" onclick="expandFilterBox()">${district}</span>`;
     if (type !== 'all') html += `<span class="filter-tag" onclick="expandFilterBox()">${type}</span>`;
     if (price !== 'all') {
         const label = document.querySelector(`#f-price option[value="${price}"]`)?.innerText || price;
