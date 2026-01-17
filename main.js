@@ -198,7 +198,7 @@ window.applyFilters = function() {
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
     const path = window.location.pathname;
 
-    // SỬA LỖI 2: Nếu đang ở trang Map thì KHÔNG chuyển trang
+    // SỬA LỖI: Nếu đang ở trang Map thì KHÔNG chuyển trang
     const isMapPage = path.includes("map-search");
 
     if (!isMapPage) {
@@ -547,7 +547,6 @@ function createCardHTML(room) {
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
-    // SỬA LỖI 1: Xóa class w-100 để không bị vỡ grid 1 cột
     return `
         <div class="col-6 col-md-4 col-lg-4">
             <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
@@ -609,7 +608,27 @@ function renderDetailPage(id) {
     if (document.getElementById('detail-keypoints') && room.keypoint) {
         document.getElementById('detail-keypoints').innerHTML = room.keypoint.split(',').map(i => `<div class="col-6"><i class="fas fa-check-circle"></i> ${i.trim()}</div>`).join('');
     }
+    
     renderProfessionalGallery(room);
+    
+    // --- BỔ SUNG TIÊU ĐỀ DƯỚI ẢNH (Theo yêu cầu của bạn) ---
+    const galleryContainer = document.getElementById('detail-gallery');
+    if (galleryContainer) {
+        // Xóa tiêu đề cũ nếu có để tránh trùng
+        const existingTitle = document.getElementById('content-title-below-gallery');
+        if (existingTitle) existingTitle.remove();
+
+        const titleEl = document.createElement('h2');
+        titleEl.id = 'content-title-below-gallery';
+        titleEl.className = 'fw-bold mb-3 mt-4 text-primary';
+        titleEl.style.fontSize = '1.5rem';
+        titleEl.textContent = `Cho thuê căn ${room.type} ${cleanAddress(room.address)}`;
+        
+        // Chèn ngay sau Gallery (trước highlight box)
+        galleryContainer.parentNode.insertBefore(titleEl, galleryContainer.nextSibling);
+    }
+    // -----------------------------------------------------
+
     renderCollageImage(room);
     if(document.getElementById('detail-desc')) document.getElementById('detail-desc').innerHTML = room.desc.replace(/\n/g, '<br>');
     
