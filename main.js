@@ -6,8 +6,6 @@ const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agy
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận"];
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy"];
-
-// Các tiện ích nhóm đặc biệt (Logic OR): Nếu chọn cả 2 thì chỉ cần có 1 trong 2
 const SPECIAL_AMENITIES_OR = ["ban công", "cửa sổ"]; 
 
 let allRooms = [];
@@ -88,17 +86,24 @@ function detectPageAndRender() {
     const urlParams = new URLSearchParams(window.location.search);
     const detailId = urlParams.get('id');
 
+    // 1. TRANG CHI TIẾT
     if (detailId) {
         renderDetailPage(detailId);
         return;
     }
+
+    // 2. TRANG HALF-MAP (Bản đồ tìm kiếm)
+    if (path.includes("map-search")) {
+        renderHalfMapPage();
+        return;
+    }
     
+    // 3. TRANG DANH SÁCH / TRANG CHỦ
     let targetDistrict = null;
     if (path.includes("tan-binh") || path.includes("tanbinh")) targetDistrict = "Tân Bình";
     if (path.includes("phu-nhuan") || path.includes("phunhuan")) targetDistrict = "Phú Nhuận";
     
-    // Feedback 3: KHÔNG ẨN SELECT QUẬN NỮA
-    // Nhưng nếu ở trang quận thì set giá trị mặc định cho dropdown
+    // Nếu ở trang quận, set dropdown
     if (targetDistrict) {
         const districtSelect = document.getElementById('f-district');
         if (districtSelect) districtSelect.value = targetDistrict;
@@ -110,7 +115,7 @@ function detectPageAndRender() {
 
     if (targetDistrict) {
         // --- TRANG QUẬN ---
-        // 1. Fill filter từ URL nếu có
+        // Fill filter từ URL
         if (urlType) document.getElementById('type-filter').value = urlType;
         if (urlPrice) document.getElementById('f-price').value = urlPrice;
         if (urlAmenities) {
@@ -120,22 +125,45 @@ function detectPageAndRender() {
             });
         }
 
-        // 2. Feedback 4: Tiêu đề trang
-        const homeContent = document.getElementById('home-content');
-        if(homeContent) homeContent.innerHTML = `<h2 class="fw-bold mb-4 pb-2 border-bottom">Phòng trọ ${targetDistrict}</h2>`;
+        // Tạo Header đẹp
+        renderPageHeader(`Phòng trọ ${targetDistrict}`, targetDistrict);
 
-        // 3. Chạy lọc ngay
-        // Nếu có param từ URL (tức là redirect từ home) -> Chạy lọc và thu gọn box
+        // Chạy lọc
         if (urlType || urlPrice || urlAmenities) {
-             runInternalFilter(targetDistrict, true); // true = auto collapse
+             runInternalFilter(targetDistrict, true); 
         } else {
-             runInternalFilter(targetDistrict, false); // Mặc định không thu gọn nếu vào trực tiếp
+             runInternalFilter(targetDistrict, false);
         }
 
     } else {
         // --- TRANG CHỦ ---
+        // Header trang chủ thì ẩn hoặc làm banner khác (Ở đây code cũ không dùng header)
         renderHomePageGroups();
     }
+}
+
+// Hàm tạo Header xám (Requirement 3)
+function renderPageHeader(title, breadcrumbLast) {
+    const container = document.getElementById('home-content');
+    if (!container) return;
+    
+    // Chèn Block Header vào trước home-content (hoặc thay thế phần đầu)
+    // Nhưng để tiện, ta render nó vào một div riêng nếu chưa có, hoặc prepend
+    
+    const headerHTML = `
+        <div class="page-header-block rounded-3">
+            <h1 class="page-header-title">${title}</h1>
+            <div class="breadcrumb-custom">
+                <a href="index.html">Trang chủ</a> 
+                <i class="fas fa-chevron-right"></i> 
+                <span>${breadcrumbLast}</span>
+            </div>
+        </div>
+        <div id="listing-area"></div>
+    `;
+    
+    // Xóa nội dung cũ và thêm Header
+    container.innerHTML = headerHTML;
 }
 
 function initFilters() {
@@ -154,7 +182,6 @@ function initFilters() {
         typeSelect.innerHTML = html;
     }
 
-    // Feedback 7: Checkbox đã được CSS Grid trong style.css
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
     if (amenityContainer) {
         let html = '';
@@ -170,7 +197,7 @@ function initFilters() {
 }
 
 // =========================================================
-// 4. XỬ LÝ LỌC (CORE)
+// 4. XỬ LÝ LỌC & CHUYỂN TRANG (Requirement 1)
 // =========================================================
 
 window.applyFilters = function() {
@@ -180,28 +207,41 @@ window.applyFilters = function() {
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
     const path = window.location.pathname;
-    const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
 
-    // --- LOGIC REDIRECT: Nếu ở trang chủ mà chọn quận -> Chuyển trang ---
-    if (isHomePage && districtVal !== 'all') {
-        let targetPage = '';
-        if (districtVal === 'Tân Bình') targetPage = 'tan-binh.html';
-        else if (districtVal === 'Phú Nhuận') targetPage = 'phu-nhuan.html';
-        
-        if (targetPage) {
-            const params = new URLSearchParams();
-            if (typeVal !== 'all') params.set('type', typeVal);
-            if (priceVal !== 'all') params.set('price', priceVal);
-            if (checkedAmenities.length > 0) params.set('amenities', checkedAmenities.join(','));
-            window.location.href = `${targetPage}?${params.toString()}`;
-            return;
-        }
+    // --- LOGIC CHUYỂN TRANG (REDIRECT) ---
+    let targetPage = '';
+
+    // 1. Nếu đang ở bất cứ đâu (Home/Tân Bình/Phú Nhuận) mà chọn Quận -> Check redirect
+    if (districtVal === 'Tân Bình' && !path.includes('tan-binh')) {
+        targetPage = 'tan-binh.html';
+    } else if (districtVal === 'Phú Nhuận' && !path.includes('phu-nhuan')) {
+        targetPage = 'phu-nhuan.html';
+    } 
+    // Nếu chọn "Tất cả" hoặc quận khác khi đang ở trang chuyên Quận -> Về Home hoặc trang Search chung
+    else if (districtVal === 'all' && (path.includes('tan-binh') || path.includes('phu-nhuan'))) {
+        targetPage = 'index.html'; // Hoặc map-search.html nếu bạn muốn
     }
 
-    // --- LỌC TẠI CHỖ ---
-    // Feedback 8: Thu gọn bộ lọc khi ấn Áp dụng
+    // Thực hiện redirect nếu cần
+    if (targetPage) {
+        const params = new URLSearchParams();
+        // Không cần set district param vì trang đích đã tự biết
+        if (typeVal !== 'all') params.set('type', typeVal);
+        if (priceVal !== 'all') params.set('price', priceVal);
+        if (checkedAmenities.length > 0) params.set('amenities', checkedAmenities.join(','));
+        window.location.href = `${targetPage}?${params.toString()}`;
+        return;
+    }
+
+    // --- NẾU KHÔNG REDIRECT -> LỌC TẠI CHỖ ---
     collapseFilterBox();
-    runInternalFilter(districtVal, true);
+    
+    // Xác định districtVal thực tế để lọc (Nếu đang ở trang quận thì ép buộc)
+    let finalDistrictVal = districtVal;
+    if (path.includes("tan-binh")) finalDistrictVal = "Tân Bình";
+    if (path.includes("phu-nhuan")) finalDistrictVal = "Phú Nhuận";
+
+    runInternalFilter(finalDistrictVal, true);
     
     // Scroll mobile
     if (window.innerWidth < 992) {
@@ -215,8 +255,6 @@ function runInternalFilter(districtVal, isFilteredAction) {
     const priceVal = document.getElementById('f-price')?.value || 'all';
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
-    // Feedback 5: Logic OR cho Ban công / Cửa sổ
-    // Tách các tiện ích thành 2 nhóm
     const specialReqs = checkedAmenities.filter(am => SPECIAL_AMENITIES_OR.includes(am));
     const normalReqs = checkedAmenities.filter(am => !SPECIAL_AMENITIES_OR.includes(am));
 
@@ -229,24 +267,17 @@ function runInternalFilter(districtVal, isFilteredAction) {
             if (room.price < min || room.price > max) return false;
         }
         
-        // 1. Kiểm tra nhóm thường (Logic AND - Phải có tất cả)
         if (normalReqs.length > 0) {
-            const hasAllNormal = normalReqs.every(req => room.amenities_search.includes(req));
-            if (!hasAllNormal) return false;
+            if (!normalReqs.every(req => room.amenities_search.includes(req))) return false;
         }
 
-        // 2. Kiểm tra nhóm đặc biệt (Logic OR - Chỉ cần 1 trong các cái đã chọn)
-        // Nếu user chọn cả Cửa sổ và Ban công -> Chỉ cần có 1 trong 2 là Đạt.
-        // Nếu user chỉ chọn Cửa sổ -> Bắt buộc có Cửa sổ.
         if (specialReqs.length > 0) {
-            const hasAtLeastOneSpecial = specialReqs.some(req => room.amenities_search.includes(req));
-            if (!hasAtLeastOneSpecial) return false;
+            if (!specialReqs.some(req => room.amenities_search.includes(req))) return false;
         }
 
         return true;
     });
 
-    // Sắp xếp
     filtered.sort((a, b) => {
         const aHasImage = a.image_detail.length > 0 ? 1 : 0;
         const bHasImage = b.image_detail.length > 0 ? 1 : 0;
@@ -257,29 +288,91 @@ function runInternalFilter(districtVal, isFilteredAction) {
     currentFilteredRooms = filtered;
     currentLimit = 6; 
     
-    // Render
     const path = window.location.pathname;
-    const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
     
-    if (isHomePage && districtVal === 'all') {
-        // Trang chủ search
-        document.getElementById('home-content').style.display = 'none';
-        document.getElementById('search-results').style.display = 'block';
-        document.getElementById('search-title').innerText = `Tìm thấy ${filtered.length} kết quả`;
-        renderGridWithPagination(document.getElementById('products-grid'), filtered);
+    // XỬ LÝ HIỂN THỊ
+    if (path.includes("map-search")) {
+        // Nếu đang ở trang Half-Map
+        renderHalfMapList(filtered);
+        renderHalfMapMarkers(filtered);
     } else {
-        // Trang quận
-        renderGridWithPagination(document.getElementById('home-content'), filtered);
+        // Trang thường
+        const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
+        
+        if (isHomePage && districtVal === 'all') {
+            document.getElementById('home-content').style.display = 'none';
+            document.getElementById('search-results').style.display = 'block';
+            document.getElementById('search-title').innerText = `Tìm thấy ${filtered.length} kết quả`;
+            renderGridWithPagination(document.getElementById('products-grid'), filtered);
+        } else {
+            // Render vào bên dưới Header (trong div listing-area ta vừa tạo)
+            const listingArea = document.getElementById('listing-area') || document.getElementById('home-content');
+            renderGridWithPagination(listingArea, filtered);
+        }
     }
 
-    // Feedback 2: Chỉ hiện thanh bar khi CÓ bộ lọc được áp dụng
-    // Điều kiện: Có param filter (Type, Price khác all HOẶC có tiện ích)
-    const hasActiveFilter = (typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
-    updateActiveFilterBar(typeVal, priceVal, checkedAmenities, hasActiveFilter);
+    // UPDATE FILTER BAR (Requirement 2: Hiện cả Quận)
+    const hasActiveFilter = (districtVal !== 'all' || typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
+    updateActiveFilterBar(districtVal, typeVal, priceVal, checkedAmenities, hasActiveFilter);
 }
 
 // =========================================================
-// 5. UI: THU GỌN / MỞ RỘNG BỘ LỌC (Feedback 8)
+// 5. HALF MAP LOGIC (Requirement 4)
+// =========================================================
+
+function renderHalfMapPage() {
+    // 1. Khởi tạo Map
+    if (!map) {
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+    }
+    
+    // 2. Load tất cả phòng lên list và map lần đầu
+    runInternalFilter('all', false);
+}
+
+function renderHalfMapList(rooms) {
+    const container = document.getElementById('half-map-list-content');
+    if (!container) return;
+    
+    // Ở trang Map load nhiều hơn chút, ví dụ 10 căn
+    const html = rooms.map(room => `
+        <div class="col-12 mb-3">
+            ${createCardHTML(room)}
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="row">${html || '<div class="p-3 text-center">Không tìm thấy phòng</div>'}</div>`;
+}
+
+function renderHalfMapMarkers(rooms) {
+    // Xóa marker cũ
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) map.removeLayer(layer);
+    });
+
+    // Thêm marker mới
+    const bounds = [];
+    rooms.forEach(room => {
+        const marker = L.marker([room.lat, room.lng]).addTo(map);
+        marker.bindPopup(`
+            <div style="width: 200px;">
+                <img src="${room.image_detail[0] || ''}" style="width:100%; height:100px; object-fit:cover; border-radius:4px; margin-bottom:5px;">
+                <h6 style="font-size:12px; font-weight:bold; margin-bottom:2px;">${room.type} - ${formatMoney(room.price)}</h6>
+                <div style="font-size:10px; color:#666;">${cleanAddress(room.address)}</div>
+                <a href="detail.html?id=${encodeURIComponent(room.id)}" style="display:block; margin-top:5px; font-size:11px; font-weight:bold; color:var(--primary-dark);">Xem chi tiết</a>
+            </div>
+        `);
+        bounds.push([room.lat, room.lng]);
+    });
+
+    // Zoom map vừa khít các marker
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+}
+
+
+// =========================================================
+// 6. UI & HELPERS
 // =========================================================
 window.collapseFilterBox = function() {
     const box = document.getElementById('main-filter-box');
@@ -289,37 +382,32 @@ window.collapseFilterBox = function() {
 window.expandFilterBox = function() {
     const box = document.getElementById('main-filter-box');
     if (box) box.classList.remove('filter-box-collapsed');
-    
-    // Cuộn nhẹ lên để thấy
-    if (window.innerWidth < 992) {
-        box.scrollIntoView({behavior: 'smooth', block: 'center'});
-    }
+    if (window.innerWidth < 992) box.scrollIntoView({behavior: 'smooth', block: 'center'});
 }
 
 window.toggleFilterSidebar = function() {
     const box = document.getElementById('main-filter-box');
-    if (box) {
-        if (box.classList.contains('filter-box-collapsed')) expandFilterBox();
-        else collapseFilterBox();
-    }
+    if (box) box.classList.contains('filter-box-collapsed') ? expandFilterBox() : collapseFilterBox();
 }
 
-// =========================================================
-// 6. STICKY FILTER BAR
-// =========================================================
 function setupStickyFilterBar() {
     if (!document.getElementById('active-filter-bar')) {
         const bar = document.createElement('div');
         bar.id = 'active-filter-bar';
         bar.className = 'active-filter-bar';
-        // Khi click vào thanh này thì Mở rộng bộ lọc bên trái
-        bar.innerHTML = '<div class="container d-flex align-items-center cursor-pointer" onclick="expandFilterBox()"><span class="me-3 fw-bold small text-muted text-uppercase">Đang lọc:</span><div id="filter-tags-content" class="flex-grow-1"></div><button class="btn btn-sm text-danger fw-bold" onclick="resetFilters(); event.stopPropagation();">Xóa lọc</button></div>';
+        bar.innerHTML = `
+            <div class="container d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center overflow-auto" style="flex:1; padding-right: 15px;">
+                    <span class="me-3 fw-bold small text-muted text-uppercase flex-shrink-0"><i class="fas fa-filter me-1"></i>Đang lọc:</span>
+                    <div id="filter-tags-content" class="filter-tags-container"></div>
+                </div>
+                <button class="btn btn-sm btn-outline-danger fw-bold flex-shrink-0" onclick="resetFilters()">Xóa lọc</button>
+            </div>`;
         document.body.appendChild(bar);
     }
     
     window.addEventListener('scroll', () => {
         const bar = document.getElementById('active-filter-bar');
-        // Feedback 2: Chỉ hiện nếu đang có class 'show' (được set bởi updateActiveFilterBar)
         if (bar.classList.contains('show')) {
              if (window.scrollY > 150) bar.style.display = 'block';
              else bar.style.display = 'none';
@@ -329,11 +417,10 @@ function setupStickyFilterBar() {
     });
 }
 
-function updateActiveFilterBar(type, price, amenities, isActive) {
+function updateActiveFilterBar(district, type, price, amenities, isActive) {
     const bar = document.getElementById('active-filter-bar');
     if (!bar) return;
 
-    // Feedback 2: Nếu không lọc gì -> Ẩn thanh này đi
     if (!isActive) {
         bar.classList.remove('show');
         bar.style.display = 'none';
@@ -344,32 +431,54 @@ function updateActiveFilterBar(type, price, amenities, isActive) {
     const content = document.getElementById('filter-tags-content');
     
     let html = '';
-    if (type !== 'all') html += `<span class="filter-tag">${type}</span>`;
+    
+    // REQUIREMENT 2: Thêm thẻ Quận
+    if (district !== 'all') {
+        html += `<span class="filter-tag" onclick="expandFilterBox()">${district}</span>`;
+    }
+
+    if (type !== 'all') html += `<span class="filter-tag" onclick="expandFilterBox()">${type}</span>`;
     if (price !== 'all') {
         const label = document.querySelector(`#f-price option[value="${price}"]`)?.innerText || price;
-        html += `<span class="filter-tag">${label}</span>`;
+        html += `<span class="filter-tag" onclick="expandFilterBox()">${label}</span>`;
     }
     amenities.forEach(am => {
         const displayAm = am.charAt(0).toUpperCase() + am.slice(1);
-        html += `<span class="filter-tag">${displayAm}</span>`;
+        html += `<span class="filter-tag" onclick="expandFilterBox()">${displayAm}</span>`;
     });
     content.innerHTML = html;
 }
 
-// =========================================================
-// 7. RENDER & HELPER
-// =========================================================
-
 function renderGridWithPagination(container, rooms) {
     if (!container) return;
+    // Không xóa Header
     
-    // Giữ lại tiêu đề nếu có
-    const existingTitle = container.querySelector('h2');
-    container.innerHTML = '';
-    if(existingTitle) container.appendChild(existingTitle);
-
+    const existingHeader = container.querySelector('.page-header-block');
+    const existingList = container.querySelector('#listing-area'); // Tìm vùng list riêng
+    
+    let targetContainer = container;
+    
+    // Nếu có Header structure, render vào listing-area
+    if (existingHeader && existingList) {
+        targetContainer = existingList;
+    } else if (existingHeader && !existingList) {
+        // Tạo listing area nếu chưa có
+        const listDiv = document.createElement('div');
+        listDiv.id = 'listing-area';
+        container.appendChild(listDiv);
+        targetContainer = listDiv;
+    } else {
+        // Home page hoặc search page cũ
+        // Clear content cũ nhưng cẩn thận nếu có element khác
+        // Ở đây ta cứ clear sạch sau đó append lại nếu cần, hoặc overwrite
+        container.innerHTML = ''; 
+    }
+    
+    // Logic Pagination cũ
+    targetContainer.innerHTML = ''; // Clear list cũ
+    
     if (rooms.length === 0) {
-        container.innerHTML += '<div class="alert alert-warning text-center mt-3">Không tìm thấy phòng phù hợp!</div>';
+        targetContainer.innerHTML = '<div class="alert alert-warning text-center mt-3">Không tìm thấy phòng phù hợp!</div>';
         return;
     }
 
@@ -383,22 +492,22 @@ function renderGridWithPagination(container, rooms) {
     if (hasMore) {
         html += `<div class="text-center mt-4"><button class="btn btn-load-more shadow-sm" onclick="loadMoreItems()">Xem thêm ${rooms.length - currentLimit} phòng nữa <i class="fas fa-arrow-down ms-1"></i></button></div>`;
     }
-    container.innerHTML += html;
+    targetContainer.innerHTML = html;
 }
 
 window.loadMoreItems = function() {
     currentLimit += LOAD_MORE_STEP; 
     const path = window.location.pathname;
-    // Render lại đúng chỗ
-    if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
-         // Nếu đang search ở home
+    
+    if (path.includes("map-search")) {
+        // Trang Map không phân trang kiểu này (hoặc có thể thêm logic sau), hiện tại load all hoặc scroll
+    } else if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
          if (document.getElementById('search-results').style.display === 'block') {
              renderGridWithPagination(document.getElementById('products-grid'), currentFilteredRooms);
-         } else {
-             // Home groups thì không dùng hàm này mà dùng logic khác, nhưng ở đây ta đang nói về filter result
          }
     } else {
-        renderGridWithPagination(document.getElementById('home-content'), currentFilteredRooms);
+        const listingArea = document.getElementById('listing-area') || document.getElementById('home-content');
+        renderGridWithPagination(listingArea, currentFilteredRooms);
     }
 }
 
@@ -452,10 +561,7 @@ window.viewAllDistrict = function(district) {
     }
 }
 
-window.resetFilters = function() {
-    // Reload lại trang hiện tại để xóa sạch mọi thứ
-    window.location.reload();
-}
+window.resetFilters = function() { window.location.reload(); }
 
 function createCardHTML(room) {
     let imgUrl = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
@@ -464,9 +570,8 @@ function createCardHTML(room) {
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
-    // Feedback 1: Đã xóa div.housa-tag ở đây
     return `
-        <div class="col-6 col-md-4 col-lg-4">
+        <div class="col-6 col-md-4 col-lg-4 w-100">
             <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
                 <div class="position-relative">
                     <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy" style="height: 220px;">
@@ -493,14 +598,30 @@ function createCardHTML(room) {
     `;
 }
 
-// --- DETAIL PAGE FUNCTIONS ---
 function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
     const room = allRooms.find(r => r.id === roomId);
     if (!room) return;
 
-    // Feedback 4: Tiêu đề trang chi tiết
-    if(document.getElementById('detail-title')) document.getElementById('detail-title').textContent = `Cho thuê căn ${room.type} ${cleanAddress(room.address)}`;
+    // Requirement 3: Cập nhật header trang chi tiết luôn cho đẹp
+    // Tìm container chứa title cũ và ẩn nó đi hoặc thay thế
+    const headerContainer = document.querySelector('.property-header');
+    if (headerContainer) {
+        headerContainer.innerHTML = `
+        <div class="container">
+            <div class="page-header-block rounded-3" style="padding: 40px 0; margin-bottom:0;">
+                <h1 class="page-header-title h2">${room.type} ${cleanAddress(room.address)}</h1>
+                <div class="breadcrumb-custom">
+                    <a href="index.html">Trang chủ</a> 
+                    <i class="fas fa-chevron-right"></i> 
+                    <a href="#" class="text-white">${room.district}</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>${room.room_code}</span>
+                </div>
+            </div>
+        </div>`;
+    }
+
     if(document.getElementById('detail-address')) document.getElementById('detail-address').textContent = cleanAddress(room.address);
     if(document.getElementById('d-type')) document.getElementById('d-type').textContent = room.type;
     if(document.getElementById('detail-price')) document.getElementById('detail-price').textContent = formatMoney(room.price);
@@ -515,7 +636,7 @@ function renderDetailPage(id) {
     renderProfessionalGallery(room);
     renderCollageImage(room);
     if(document.getElementById('detail-desc')) document.getElementById('detail-desc').innerHTML = room.desc.replace(/\n/g, '<br>');
-    // Video section (Giữ nguyên)
+    
     const videoSection = document.getElementById('video-section');
     const videoEmbed = document.getElementById('video-embed');
     if (room.video && room.video.length > 5 && videoSection) {
@@ -531,7 +652,6 @@ function renderDetailPage(id) {
     renderRelatedApartments(room);
 }
 
-// Các hàm phụ trợ (Gallery, Map, helpers...) giữ nguyên logic cũ
 function renderProfessionalGallery(room) {
     const galleryContainer = document.getElementById('detail-gallery');
     if (!galleryContainer) return;
@@ -570,7 +690,6 @@ function renderCollageImage(room) {
 function renderRelatedApartments(currentRoom) {
     const grid = document.getElementById('related-grid');
     if (!grid) return;
-    // Feedback 6: Lấy 6 căn tương tự
     const related = allRooms.filter(r => r.district === currentRoom.district && r.id !== currentRoom.id && r.image_detail.length > 0 && Math.abs(r.price - currentRoom.price) <= 1500000).slice(0, 6);
     if (related.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự.</div>'; return; }
     grid.innerHTML = related.map(room => createCardHTML(room)).join('');
