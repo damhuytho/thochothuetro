@@ -255,6 +255,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
         return true;
     });
 
+    // Sắp xếp: Ưu tiên có ảnh -> Ưu tiên có khuyến mãi
     filtered.sort((a, b) => {
         const aHasImage = a.image_detail.length > 0 ? 1 : 0;
         const bHasImage = b.image_detail.length > 0 ? 1 : 0;
@@ -263,7 +264,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
     });
 
     currentFilteredRooms = filtered;
-    currentLimit = 6; 
+    currentLimit = 6; // Reset lại số lượng hiển thị ban đầu là 6
     
     const path = window.location.pathname;
     
@@ -284,7 +285,14 @@ function runInternalFilter(districtVal, isFilteredAction) {
         }
     }
 
-    const hasActiveFilter = (districtVal !== 'all' || typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
+    // --- LOGIC MỚI: KIỂM TRA ĐỂ ẨN STICKY BAR NẾU TRÙNG QUẬN ---
+    let ignoreDistrictInBar = false;
+    if (path.includes('tan-binh') && districtVal === 'Tân Bình') ignoreDistrictInBar = true;
+    if (path.includes('phu-nhuan') && districtVal === 'Phú Nhuận') ignoreDistrictInBar = true;
+
+    // Chỉ hiện bar nếu có filter khác hoặc district KHÔNG phải là mặc định của trang
+    const hasActiveFilter = ((districtVal !== 'all' && !ignoreDistrictInBar) || typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
+    
     updateActiveFilterBar(districtVal, typeVal, priceVal, checkedAmenities, hasActiveFilter);
 }
 
@@ -718,4 +726,5 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
