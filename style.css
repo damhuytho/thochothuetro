@@ -104,11 +104,11 @@ a { text-decoration: none; }
 .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: var(--radius); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
 
 /* =========================================
-   5. TRANG BẢN ĐỒ (MAP SEARCH) - CỐT LÕI
+   5. TRANG BẢN ĐỒ (MAP SEARCH) - FINAL
    ========================================= */
 .map-layout-grid {
     display: grid;
-    grid-template-columns: 700px 1fr; /* Sidebar cố định 700px */
+    grid-template-columns: 750px 1fr; /* Sidebar cố định 750px */
     height: calc(100vh - 76px);
     gap: 0;
 }
@@ -120,21 +120,12 @@ a { text-decoration: none; }
 
 .half-map-list > .p-3 { flex: 1; overflow-y: auto; }
 
-/* [QUAN TRỌNG] CSS GRID TỰ ĐỘNG CHIA CỘT */
-#half-map-list-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Tự chia cột, tối thiểu 320px */
-    gap: 16px;
-}
-
-/* Card trong Map: Full width của ô grid */
-#half-map-list-content .room-card {
-    width: 100%;
-}
+/* CSS riêng cho Card trong trang Map để gọn hơn */
 #half-map-list-content .room-card .card-img-top {
-    height: 180px; /* Ảnh thấp hơn để đỡ tốn diện tích */
+    height: 180px; 
 }
 
+/* Cột bản đồ */
 .half-map-view { height: 100%; width: 100%; position: relative; }
 
 /* Responsive Mobile */
@@ -142,8 +133,6 @@ a { text-decoration: none; }
     .map-layout-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
     .half-map-view { height: 400px; order: -1; position: sticky; top: 76px; z-index: 100; }
     .half-map-list { height: auto; overflow: visible; }
-    /* Mobile về 1 cột */
-    #half-map-list-content { grid-template-columns: 1fr; }
     body { overflow: auto; }
 }
 
