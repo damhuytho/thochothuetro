@@ -313,14 +313,35 @@ function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
-    // col-sm-6 sẽ chia 2 cột khi màn hình > 576px (Sidebar 750px đủ rộng cho 2 cột này)
-    const html = rooms.map(room => `
-        <div class="col-12 col-sm-6 mb-3">
+    if (rooms.length === 0) {
+        container.innerHTML = '<div class="p-3 text-center w-100">Không tìm thấy phòng phù hợp</div>';
+        return;
+    }
+
+    // Cắt danh sách theo limit hiện tại
+    const roomsToShow = rooms.slice(0, currentLimit);
+    const hasMore = rooms.length > currentLimit;
+
+    // col-6: Mobile 2 cột | col-sm-6: Tablet/PC nhỏ 2 cột
+    const htmlItems = roomsToShow.map(room => `
+        <div class="col-6 col-sm-6 mb-3">
             ${createCardHTML(room)}
         </div>
     `).join('');
     
-    container.innerHTML = `<div class="row g-3">${html || '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>'}</div>`;
+    let fullHtml = `<div class="row g-2 p-2">${htmlItems}</div>`;
+
+    // Thêm nút Xem thêm nếu còn phòng
+    if (hasMore) {
+        fullHtml += `
+            <div class="text-center pb-3">
+                <button class="btn btn-load-more shadow-sm btn-sm" onclick="loadMoreItems()">
+                    Xem thêm ${rooms.length - currentLimit} phòng <i class="fas fa-arrow-down ms-1"></i>
+                </button>
+            </div>`;
+    }
+
+    container.innerHTML = fullHtml;
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -488,16 +509,19 @@ function renderGridWithPagination(container, rooms) {
 }
 
 window.loadMoreItems = function() {
-    currentLimit += LOAD_MORE_STEP; 
+    currentLimit += LOAD_MORE_STEP; // Tăng thêm 9
     const path = window.location.pathname;
     
     if (path.includes("map-search")) {
-        // Map page load all
+        // Gọi lại hàm render Map List với limit mới
+        renderHalfMapList(currentFilteredRooms);
     } else if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
+         // Trang chủ đang ở chế độ tìm kiếm
          if (document.getElementById('search-results').style.display === 'block') {
              renderGridWithPagination(document.getElementById('products-grid'), currentFilteredRooms);
          }
     } else {
+        // Trang Quận hoặc Trang chủ mặc định
         const listingArea = document.getElementById('listing-area') || document.getElementById('home-content');
         renderGridWithPagination(listingArea, currentFilteredRooms);
     }
@@ -726,5 +750,6 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
