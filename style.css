@@ -27,14 +27,7 @@ a { text-decoration: none; }
     padding: 10px 0;
     z-index: 1050; /* Luôn nổi trên cùng */
 }
-
-/* Logo hiển thị trên Menu */
-.logo-img {
-    height: 50px; /* Chiều cao chuẩn cho menu */
-    width: auto;
-    object-fit: contain;
-    display: block;
-}
+.brand-text { display: block !important; }
 
 .nav-link {
     font-weight: 600;
@@ -52,11 +45,17 @@ a { text-decoration: none; }
 .room-card {
     background: #fff;
     border: 1px solid #eee;
-    border-radius: var(--radius);
+    border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
-    height: 100%; /* Đảm bảo các card cao bằng nhau */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    height: 100%; /* Giữ chiều cao bằng nhau */
+    display: flex;       /* Thêm Flex để dàn nội dung */
+    flex-direction: column; /* Xếp dọc */
+}
+.room-card .card-body {
+    flex: 1; /* Phần nội dung tự giãn để đẩy footer xuống đáy */
+    display: flex;
+    flex-direction: column;
 }
 
 .room-card:hover {
@@ -67,10 +66,9 @@ a { text-decoration: none; }
 
 /* --- QUAN TRỌNG: SỬA LỖI ẢNH CARD --- */
 .room-card .card-img-top {
-    height: 220px; /* Chiều cao cố định */
+    height: 220px;
     width: 100%;
-    object-fit: cover; /* Cắt ảnh vừa khung, không bị méo/dẹt */
-    background-color: #eee;
+    object-fit: cover;
 }
 
 /* Nhãn ưu đãi (Góc phải ảnh) */
@@ -242,6 +240,11 @@ footer {
 }
 /* Logo dưới Footer to hơn chút */
 footer .logo-img { height: 60px; margin-bottom: 15px; }
+.logo-img {
+    height: 45px; /* Chỉnh lại logo nhỏ hơn xíu cho cân đối với chữ */
+    width: auto;
+    object-fit: contain;
+}
 
 /* Màn hình Loading */
 .loading-overlay {
@@ -275,3 +278,4 @@ footer .logo-img { height: 60px; margin-bottom: 15px; }
     content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
     margin-left: 6px; font-size: 0.7rem; color: #999;
 }
+
