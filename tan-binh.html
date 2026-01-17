@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Cho Thuê Phòng Trọ Quận Tân Bình Giá Tốt - Thọ Cho Thuê Trọ</title>
+    
+    <meta name="description" content="Danh sách phòng trọ, căn hộ dịch vụ tại Quận Tân Bình mới nhất. Full nội thất, giờ giấc tự do, gần sân bay, Etown, Cộng Hòa. Giá tốt, hỗ trợ xem phòng ngay.">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading" class="loading-overlay">
+        <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3 text-muted fw-bold">Đang tải dữ liệu...</p>
+    </div>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand lh-1" href="index.html">
+                <div class="brand-text"><i class="fas fa-building me-2"></i>THỌ CHO THUÊ</div>
+                <div class="small text-muted fw-normal" style="font-size: 12px;">Hệ thống phòng trọ tiện nghi</div>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Tất cả</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Khu vực
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 rounded-3">
+                            <li><a class="dropdown-item" href="tan-binh.html">📍 Quận Tân Bình</a></li>
+                            <li><a class="dropdown-item" href="phu-nhuan.html">📍 Quận Phú Nhuận</a></li>
+                            </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#lien-he-cuoi-trang">Liên hệ</a>
+                    </li>
+                </ul>
+                <div class="ms-lg-3 mt-2 mt-lg-0">
+                    <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary rounded-pill btn-sm px-3 fw-bold">
+                        <i class="fas fa-comment-dots me-1"></i> Chat Zalo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="home-page-container" class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="bg-white p-3 rounded shadow-sm border sticky-top" style="top: 90px;">
+                    <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="fas fa-filter text-warning me-2"></i>Bộ Lọc</h6>
+                    
+                    <div class="mb-3">
+                        <label class="small fw-bold">Khu vực</label>
+                        <select class="form-select form-select-sm" id="f-district"><option value="all">Tất cả</option></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold">Loại phòng</label>
+                        <select class="form-select form-select-sm" id="type-filter">
+                            </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold">Khoảng giá</label>
+                        <select class="form-select form-select-sm" id="f-price">
+                            <option value="all">Mọi mức giá</option>
+                            <option value="0-4000000">Dưới 4 Triệu</option>
+                            <option value="4000000-6000000">4 - 6 Triệu</option>
+                            <option value="6000000-8000000">6 - 8 Triệu</option>
+                            <option value="8000000-99000000">Trên 8 Triệu</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="small fw-bold">Tiện ích (Cột F)</label>
+                        <div id="f-amenities-checkboxes" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+
+                    <button class="btn btn-primary w-100 btn-sm" onclick="applyFilters()">Áp dụng</button>
+                    <button class="btn btn-outline-secondary w-100 btn-sm mt-2" onclick="resetFilters()">Đặt lại</button>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div id="home-content"></div>
+                <div id="search-results" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold" id="search-title">Kết quả tìm kiếm</h4>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">Xóa lọc</button>
+                    </div>
+                    <div class="row g-3" id="products-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
+
