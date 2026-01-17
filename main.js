@@ -294,30 +294,29 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
+        // TĂNG ZOOM MẶC ĐỊNH LÊN 17
         map = L.map('half-map-view').setView([10.801646, 106.663158], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     runInternalFilter('all', false);
 }
 
-// [QUAN TRỌNG] Render danh sách map KHÔNG dùng .row / .col
-// Để CSS Grid ở style.css tự xử lý
 function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
-    const html = rooms.map(room => createCardHTML(room)).join('');
+    // SỬ DỤNG CLASS BOOTSTRAP ĐỂ CHIA 2 CỘT CHUẨN
+    // col-12: Mobile 1 cột
+    // col-xl-6: Màn hình lớn 2 cột (Sidebar 750px được coi là màn hình phụ, nên dùng XL hoặc custom grid)
+    // Ở đây ta dùng col-sm-6 là đủ để chia 2 cột trong sidebar 750px
+    const html = rooms.map(room => `
+        <div class="col-12 col-sm-6 mb-3">
+            ${createCardHTML(room)}
+        </div>
+    `).join('');
     
-    // Nếu không có phòng thì hiển thị thông báo
-    if (!html) {
-        container.innerHTML = '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>';
-        // Reset display để thông báo hiện full width
-        container.style.display = 'block';
-    } else {
-        container.innerHTML = html;
-        // Trả lại grid nếu có dữ liệu
-        container.style.display = null; 
-    }
+    // Bọc trong row của Bootstrap
+    container.innerHTML = `<div class="row g-2">${html || '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>'}</div>`;
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -471,10 +470,9 @@ function renderGridWithPagination(container, rooms) {
     const roomsToShow = rooms.slice(0, currentLimit);
     const hasMore = rooms.length > currentLimit;
 
-    // Bọc lại bằng Row của Bootstrap
+    // Bọc trong Row để Grid hoạt động đúng ở Trang chủ
     let html = `<div class="row g-3">`;
     roomsToShow.forEach(room => {
-        // [QUAN TRỌNG] Thêm wrapper col- ở đây cho trang chủ
         html += `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`;
     });
     html += `</div>`;
@@ -553,7 +551,7 @@ window.viewAllDistrict = function(district) {
 
 window.resetFilters = function() { window.location.reload(); }
 
-// [QUAN TRỌNG] Hàm này giờ chỉ trả về Card trần, không có col- wrapper
+// [QUAN TRỌNG] Hàm này giờ chỉ trả về Card trần, các hàm render sẽ tự bọc col- tương ứng
 function createCardHTML(room) {
     let imgUrl = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
     const cleanAddr = cleanAddress(room.address);
@@ -695,7 +693,7 @@ function renderRelatedApartments(currentRoom) {
     if (!grid) return;
     const related = allRooms.filter(r => r.district === currentRoom.district && r.id !== currentRoom.id && r.image_detail.length > 0 && Math.abs(r.price - currentRoom.price) <= 1500000).slice(0, 6);
     if (related.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự.</div>'; return; }
-    // Thêm wrapper col- cho related
+    // Wrapper col- cho danh sách liên quan
     grid.innerHTML = related.map(room => `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`).join('');
 }
 
@@ -709,13 +707,15 @@ function initMap(lat, lng, label) {
 }
 
 function cleanAddress(fullAddr) { return fullAddr ? fullAddr.replace(/^[\d\/a-zA-Z]+\s+(?:đường\s+)?/i, '').trim() : ""; }
+
+// [FIX LỖI] Đã sửa lại hàm parseCSV để xử lý đúng ký tự xuống dòng
 function parseCSV(text) {
     const result = []; let row = []; let inQuotes = false; let currentToken = '';
     for (let i = 0; i < text.length; i++) {
         const char = text[i]; const nextChar = text[i + 1];
         if (char === '"') { if (inQuotes && nextChar === '"') { currentToken += '"'; i++; } else { inQuotes = !inQuotes; } }
         else if (char === ',' && !inQuotes) { row.push(currentToken); currentToken = ''; }
-        else if ((char === '\\r' || char === '\\n') && !inQuotes) { if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); row = []; currentToken = ''; if (char === '\\r' && nextChar === '\\n') i++; }
+        else if ((char === '\r' || char === '\n') && !inQuotes) { if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); row = []; currentToken = ''; if (char === '\r' && nextChar === '\n') i++; }
         else { currentToken += char; }
     }
     if (currentToken || row.length > 0) row.push(currentToken); if (row.length > 0) result.push(row); return result;
