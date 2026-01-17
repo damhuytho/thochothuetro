@@ -454,39 +454,42 @@ function renderProfessionalGallery(room) {
     // Lấy 4 ảnh đầu từ image_detail (cột AD)
     const images = room.image_detail.slice(0, 4);
     
+    // Trường hợp không có ảnh
     if (images.length === 0) {
-        galleryContainer.innerHTML = '<div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center" style="height: 450px;">Chưa có ảnh</div>';
+        galleryContainer.innerHTML = '<div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center" style="height: 400px; border-radius: 12px;">Đang cập nhật hình ảnh</div>';
         return;
     }
     
     const mainImg = images[0];
-    const thumbs = images.slice(1, 4);
+    const thumbs = images.slice(1, 4); // Lấy tối đa 3 ảnh tiếp theo
     
+    // HTML cấu trúc mới: 1 Lớn + Grid 3 Nhỏ
     let html = `
-        <div class="professional-gallery">
-            <div class="main-image-wrapper mb-2" style="height: 500px; border-radius: 12px; overflow: hidden; background: #f0f0f0;">
+        <div class="gallery-container">
+            <div class="gallery-main-frame">
                 <img src="${mainImg}" 
                      id="main-gallery-img" 
-                     class="w-100 h-100" 
-                     alt="Ảnh chính căn hộ ${room.id}"
-                     loading="eager"
-                     style="cursor: default; object-fit: contain;">
+                     class="img-smart-fill" 
+                     alt="Ảnh chi tiết ${room.room_code}"
+                     loading="eager">
+                
+                <div class="position-absolute bottom-0 end-0 m-3 px-3 py-1 bg-dark bg-opacity-75 text-white rounded-pill small">
+                    <i class="fas fa-expand me-1"></i> ${room.image_detail.length} ảnh
+                </div>
             </div>
+
             ${thumbs.length > 0 ? `
-            <div class="row g-2">
+            <div class="gallery-thumbs-grid">
                 ${thumbs.map((img, idx) => `
-                    <div class="col-4">
+                    <div class="gallery-sub-frame" onclick="changeMainGalleryImage('${img}')">
                         <img src="${img}" 
-                             class="w-100 gallery-thumb-pro" 
-                             alt="Ảnh ${idx + 2} căn hộ ${room.id}"
-                             loading="lazy"
-                             onclick="changeMainGalleryImage('${img}')"
-                             style="height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.8; transition: 0.3s; border: 2px solid transparent;"
-                             onmouseover="this.style.opacity='1'; this.style.borderColor='#f1c40f'"
-                             onmouseout="this.style.opacity='0.8'; this.style.borderColor='transparent'">
+                             class="img-smart-fill" 
+                             alt="Ảnh nhỏ ${idx + 1}"
+                             loading="lazy">
                     </div>
                 `).join('')}
-            </div>
+                
+                </div>
             ` : ''}
         </div>
     `;
@@ -611,3 +614,4 @@ function formatMoney(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr';
     return (num / 1000).toFixed(0) + 'k';
 }
+
