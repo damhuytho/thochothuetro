@@ -18,27 +18,37 @@
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand lh-1" href="index.html">
-                <div class="brand-text"><i class="fas fa-building me-2"></i>THỌ CHO THUÊ TRỌ</div>
-                <div class="brand-sub">Uy tín - Tận tâm - Giá tốt</div>
+                <div class="brand-text"><i class="fas fa-building me-2"></i>THỌ CHO THUÊ</div>
+                <div class="small text-muted fw-normal" style="font-size: 12px;">Hệ thống phòng trọ tiện nghi</div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link active fw-bold" href="index.html">Trang chủ</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Khu vực</a>
-                        <ul class="dropdown-menu" id="menu-districts"></ul>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Tất cả</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Loại phòng</a>
-                        <ul class="dropdown-menu" id="menu-types"></ul>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Khu vực
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 rounded-3">
+                            <li><a class="dropdown-item" href="tan-binh.html">📍 Quận Tân Bình</a></li>
+                            <li><a class="dropdown-item" href="phu-nhuan.html">📍 Quận Phú Nhuận</a></li>
+                            </ul>
                     </li>
-                    <li class="nav-item ms-lg-3">
-                        <a class="btn btn-primary rounded-pill px-4 shadow-sm" href="tel:0925996992">0925.996.992</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#lien-he-cuoi-trang">Liên hệ</a>
                     </li>
                 </ul>
+                <div class="ms-lg-3 mt-2 mt-lg-0">
+                    <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary rounded-pill btn-sm px-3 fw-bold">
+                        <i class="fas fa-comment-dots me-1"></i> Chat Zalo
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -97,4 +107,5 @@
     <script src="main.js"></script>
 </body>
 </html>
+
 
