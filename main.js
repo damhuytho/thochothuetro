@@ -603,9 +603,8 @@ function createCardHTML(room) {
                 </div>
                 ${keypointHTML}
                 <div class="mt-auto pt-2 border-top">
-                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                        <span><i class="fas fa-map-marker-alt me-1"></i> ${room.district}</span>
-                        <span class="text-muted"><i class="fas fa-eye me-1"></i> Xem ngay</span>
+                    <div class="text-muted small">
+                        <i class="fas fa-map-marker-alt me-1"></i> ${room.district}
                     </div>
                 </div>
             </div>
@@ -750,6 +749,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
