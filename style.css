@@ -1,8 +1,8 @@
 /* =========================================
-   1. CẤU HÌNH CHUNG (ROOT & RESET)
+   1. CẤU HÌNH CHUNG
    ========================================= */
 :root {
-    --primary: #f1c40f; /* Vàng chanh thương hiệu */
+    --primary: #f1c40f; 
     --primary-dark: #f39c12;
     --text-dark: #1a1a1a;
     --gray-bg: #f5f7fb;
@@ -76,256 +76,107 @@ a { text-decoration: none; }
     object-fit: cover;
 }
 
-.position-relative .badge {
-    z-index: 2;
-}
+.position-relative .badge { z-index: 2; }
 
 /* =========================================
-   4. TRANG CHI TIẾT (DETAIL PAGE)
+   4. TRANG CHI TIẾT
    ========================================= */
-.property-header {
-    background: #fff;
-    padding: 20px 0;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 30px;
-}
-
+.property-header { background: #fff; padding: 20px 0; border-bottom: 1px solid #eee; margin-bottom: 30px; }
 .page-header-block {
     background-color: #333;
     background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
-    background-size: cover;
-    background-position: center;
-    color: #fff;
-    padding: 50px 0;
-    margin-bottom: 30px;
-    text-align: center;
-    border-radius: var(--radius);
+    background-size: cover; background-position: center; color: #fff; padding: 50px 0; margin-bottom: 30px; text-align: center; border-radius: var(--radius);
 }
-
-.page-header-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
-.breadcrumb-custom {
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.8);
-}
+.page-header-title { font-size: 2rem; font-weight: 700; margin-bottom: 10px; }
+.breadcrumb-custom { font-size: 0.9rem; color: rgba(255,255,255,0.8); }
 .breadcrumb-custom a { color: #fff; }
 .breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; }
 
 .gallery-container { display: flex; flex-direction: column; gap: 10px; }
-.gallery-main-frame {
-    width: 100%; aspect-ratio: 4/3;
-    border-radius: var(--radius); overflow: hidden; position: relative;
-    background: #eee;
-}
-.gallery-thumbs-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
-}
-.gallery-sub-frame {
-    width: 100%; aspect-ratio: 4/3;
-    border-radius: 8px; overflow: hidden; cursor: pointer;
-    border: 2px solid transparent;
-}
+.gallery-main-frame { width: 100%; aspect-ratio: 4/3; border-radius: var(--radius); overflow: hidden; position: relative; background: #eee; }
+.gallery-thumbs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.gallery-sub-frame { width: 100%; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; }
 .gallery-sub-frame:hover { border-color: var(--primary); }
-.img-smart-fill {
-    width: 100%; height: 100%; object-fit: cover;
-}
+.img-smart-fill { width: 100%; height: 100%; object-fit: cover; }
 
-.section-title {
-    font-weight: 700; font-size: 1.2rem;
-    margin-bottom: 15px; position: relative;
-    padding-left: 12px;
-}
-.section-title::before {
-    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
-    width: 4px; background: var(--primary); border-radius: 2px;
-}
-
-.agent-card {
-    position: sticky; top: 100px;
-    background: #fff; padding: 25px;
-    border-radius: var(--radius);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-}
+.section-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 15px; position: relative; padding-left: 12px; }
+.section-title::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px; background: var(--primary); border-radius: 2px; }
+.agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: var(--radius); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
 
 /* =========================================
-   5. TRANG BẢN ĐỒ (MAP SEARCH) - FINAL
+   5. TRANG BẢN ĐỒ (MAP SEARCH) - CỐT LÕI
    ========================================= */
 .map-layout-grid {
     display: grid;
-    grid-template-columns: 700px 1fr; /* Sidebar 700px */
+    grid-template-columns: 700px 1fr; /* Sidebar cố định 700px */
     height: calc(100vh - 76px);
     gap: 0;
 }
 
 .half-map-list {
-    height: 100%;
-    overflow-y: auto;
-    background: #f8f9fa;
-    border-right: 1px solid #ddd;
-    display: flex; 
-    flex-direction: column;
+    height: 100%; overflow-y: auto; background: #f8f9fa; border-right: 1px solid #ddd;
+    display: flex; flex-direction: column;
 }
 
-/* Container bên trong list */
-.half-map-list > .p-3 {
-    flex: 1;
-    overflow-y: auto;
+.half-map-list > .p-3 { flex: 1; overflow-y: auto; }
+
+/* [QUAN TRỌNG] CSS GRID TỰ ĐỘNG CHIA CỘT */
+#half-map-list-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Tự chia cột, tối thiểu 320px */
+    gap: 16px;
 }
 
-/* --- Tinh chỉnh Card riêng cho trang Map --- */
+/* Card trong Map: Full width của ô grid */
+#half-map-list-content .room-card {
+    width: 100%;
+}
 #half-map-list-content .room-card .card-img-top {
     height: 180px; /* Ảnh thấp hơn để đỡ tốn diện tích */
 }
 
-.half-map-view {
-    height: 100%;
-    width: 100%;
-    position: relative;
-}
+.half-map-view { height: 100%; width: 100%; position: relative; }
 
-/* Responsive cho Mobile */
+/* Responsive Mobile */
 @media (max-width: 992px) {
-    .map-layout-grid {
-        grid-template-columns: 1fr;
-        height: auto;
-        display: flex; 
-        flex-direction: column;
-    }
-    .half-map-view { 
-        height: 400px; 
-        order: -1; 
-        position: sticky; top: 76px; z-index: 100;
-    }
-    .half-map-list { 
-        height: auto; 
-        overflow: visible; 
-    }
+    .map-layout-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
+    .half-map-view { height: 400px; order: -1; position: sticky; top: 76px; z-index: 100; }
+    .half-map-list { height: auto; overflow: visible; }
+    /* Mobile về 1 cột */
+    #half-map-list-content { grid-template-columns: 1fr; }
     body { overflow: auto; }
 }
 
-/* Marker (Icon Định Vị) */
-.custom-map-marker { 
-    display: flex; justify-content: center; align-items: center; 
-}
-.marker-pin {
-    width: 40px; height: 40px;
-    border-radius: 50% 50% 50% 0;
-    background: var(--primary);
-    position: absolute; transform: rotate(-45deg);
-    left: 50%; top: 50%; margin: -20px 0 0 -20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    border: 2px solid #fff;
-    display: flex; justify-content: center; align-items: center;
-}
-.marker-pin i {
-    transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px;
-}
-.marker-pin:hover {
-    transform: rotate(-45deg) scale(1.1);
-    background: var(--primary-dark);
-    transition: 0.2s;
-}
+/* Marker & Popup */
+.custom-map-marker { display: flex; justify-content: center; align-items: center; }
+.marker-pin { width: 40px; height: 40px; border-radius: 50% 50% 50% 0; background: var(--primary); position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -20px 0 0 -20px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2px solid #fff; display: flex; justify-content: center; align-items: center; }
+.marker-pin i { transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px; }
+.marker-pin:hover { transform: rotate(-45deg) scale(1.1); background: var(--primary-dark); transition: 0.2s; }
 
-/* Popup Bản đồ */
-.leaflet-popup-content-wrapper { 
-    border-radius: 8px; overflow: hidden; padding: 0; 
-}
-.leaflet-popup-content { 
-    margin: 15px; width: 220px !important; 
-}
-.btn-popup-custom {
-    display: block; width: 100%;
-    background-color: var(--primary) !important;
-    color: #000 !important;
-    font-weight: 700; text-align: center;
-    padding: 8px 0; border-radius: 4px;
-    margin-top: 8px; text-decoration: none;
-    box-shadow: none !important;
-    transition: background 0.2s;
-}
-.btn-popup-custom:hover {
-    background-color: var(--primary-dark) !important;
-    color: #000 !important;
-}
+.leaflet-popup-content-wrapper { border-radius: 8px; overflow: hidden; padding: 0; }
+.leaflet-popup-content { margin: 15px; width: 220px !important; }
+.btn-popup-custom { display: block; width: 100%; background-color: var(--primary) !important; color: #000 !important; font-weight: 700; text-align: center; padding: 8px 0; border-radius: 4px; margin-top: 8px; text-decoration: none; box-shadow: none !important; transition: background 0.2s; }
+.btn-popup-custom:hover { background-color: var(--primary-dark) !important; color: #000 !important; }
 
 /* =========================================
-   6. BỘ LỌC & FILTER BOX
+   6. CÁC THÀNH PHẦN KHÁC (FILTER, FOOTER...)
    ========================================= */
 #main-filter-box { transition: all 0.3s ease; }
 .filter-content { display: block; }
-.btn-expand-filter {
-    display: none; width: 100%;
-    background: var(--primary); color: #000;
-    border: none; border-radius: 8px; padding: 10px;
-    font-weight: 600; margin-bottom: 15px;
-}
+.btn-expand-filter { display: none; width: 100%; background: var(--primary); color: #000; border: none; border-radius: 8px; padding: 10px; font-weight: 600; margin-bottom: 15px; }
 .filter-box-collapsed .filter-content { display: none; }
 .filter-box-collapsed .btn-expand-filter { display: block; }
-.amenities-grid {
-    display: grid; grid-template-columns: 1fr; gap: 8px;
-    max-height: 200px; overflow-y: auto;
-}
+.amenities-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 200px; overflow-y: auto; }
 
-/* =========================================
-   7. FOOTER
-   ========================================= */
-footer {
-    background: #212529; color: #fff;
-    padding: 50px 0 30px; margin-top: 50px;
-}
-footer .logo-img { 
-    height: 60px; margin-bottom: 15px; 
-}
+footer { background: #212529; color: #fff; padding: 50px 0 30px; margin-top: 50px; }
+footer .logo-img { height: 60px; margin-bottom: 15px; }
 
-/* =========================================
-   8. LOADING & UTILITY
-   ========================================= */
-.loading-overlay {
-    position: fixed; top: 0; left: 0; 
-    width: 100%; height: 100%;
-    background: #fff; z-index: 9999;
-    display: flex; justify-content: center; align-items: center; 
-    flex-direction: column;
-}
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+.active-filter-bar { position: fixed; top: 76px; left: 0; width: 100%; background: #fff; z-index: 1030; padding: 10px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-bottom: 1px solid #eee; display: none; }
+.filter-tag { background: #fff; border: 1px solid #ddd; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; margin-right: 8px; }
+.filter-tag:hover { border-color: var(--primary); color: var(--primary-dark); }
+.filter-tag::after { content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-left: 6px; font-size: 0.7rem; color: #999; }
 
-.active-filter-bar {
-    position: fixed; top: 76px; left: 0; width: 100%;
-    background: #fff; z-index: 1030;
-    padding: 10px 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border-bottom: 1px solid #eee;
-    display: none;
-}
-
-.filter-tag {
-    background: #fff; border: 1px solid #ddd;
-    padding: 5px 12px; border-radius: 20px;
-    font-size: 0.85rem; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap;
-    margin-right: 8px;
-}
-.filter-tag:hover { 
-    border-color: var(--primary); color: var(--primary-dark); 
-}
-.filter-tag::after {
-    content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
-    margin-left: 6px; font-size: 0.7rem; color: #999;
-}
-
-.btn-load-more {
-    background: var(--primary); color: #000;
-    border: none; padding: 12px 30px;
-    border-radius: 25px; font-weight: 600;
-    transition: 0.3s;
-}
-.btn-load-more:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
-}
-
+.btn-load-more { background: var(--primary); color: #000; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 600; transition: 0.3s; }
+.btn-load-more:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3); }
 .cursor-pointer { cursor: pointer; }
