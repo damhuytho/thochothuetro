@@ -156,7 +156,7 @@ a { text-decoration: none; }
    ========================================= */
 .map-layout-grid {
     display: grid;
-    grid-template-columns: 700px 1fr; /* Sidebar 700px như bạn chọn */
+    grid-template-columns: 700px 1fr; /* Sidebar 700px */
     height: calc(100vh - 76px);
     gap: 0;
 }
@@ -170,18 +170,17 @@ a { text-decoration: none; }
     flex-direction: column;
 }
 
-/* Container bên trong list - thêm padding */
+/* Container bên trong list */
 .half-map-list > .p-3 {
     flex: 1;
     overflow-y: auto;
 }
 
-/* Card trong trang Map: Ảnh nhỏ hơn chút để đỡ dài */
+/* --- Tinh chỉnh Card riêng cho trang Map --- */
 #half-map-list-content .room-card .card-img-top {
-    height: 180px; 
+    height: 180px; /* Ảnh thấp hơn để đỡ tốn diện tích */
 }
 
-/* Cột bản đồ */
 .half-map-view {
     height: 100%;
     width: 100%;
