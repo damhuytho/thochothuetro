@@ -302,7 +302,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 20); // Zoom xa hơn tí cho bao quát
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 18); // Zoom xa hơn tí cho bao quát
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     
@@ -771,6 +771,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
