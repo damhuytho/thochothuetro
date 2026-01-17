@@ -104,7 +104,6 @@ function detectPageAndRender() {
     if (path.includes("tan-binh") || path.includes("tanbinh")) targetDistrict = "Tân Bình";
     if (path.includes("phu-nhuan") || path.includes("phunhuan")) targetDistrict = "Phú Nhuận";
     
-    // Nếu ở trang quận, set dropdown
     if (targetDistrict) {
         const districtSelect = document.getElementById('f-district');
         if (districtSelect) districtSelect.value = targetDistrict;
@@ -198,7 +197,7 @@ window.applyFilters = function() {
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
     const path = window.location.pathname;
 
-    // SỬA LỖI: Nếu đang ở trang Map thì KHÔNG chuyển trang
+    // Map Page: KHÔNG chuyển trang
     const isMapPage = path.includes("map-search");
 
     if (!isMapPage) {
@@ -296,12 +295,13 @@ function runInternalFilter(districtVal, isFilteredAction) {
 }
 
 // =========================================================
-// 5. HALF MAP LOGIC
+// 5. HALF MAP LOGIC (Updated: 2 Cột, Zoom 15, Custom Icon, Popup)
 // =========================================================
 
 function renderHalfMapPage() {
     if (!map) {
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 13);
+        // Zoom 15 theo yêu cầu (nhìn gần hơn)
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     runInternalFilter('all', false);
@@ -311,11 +311,13 @@ function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
+    // Sử dụng col-6 (2 cột) cho màn hình lớn
     const html = rooms.map(room => `
-        <div class="col-12 mb-3">
+        <div class="col-12 col-md-6 mb-3">
             ${createCardHTML(room)}
         </div>
     `).join('');
+    
     container.innerHTML = `<div class="row">${html || '<div class="p-3 text-center">Không tìm thấy phòng</div>'}</div>`;
 }
 
@@ -324,21 +326,33 @@ function renderHalfMapMarkers(rooms) {
         if (layer instanceof L.Marker) map.removeLayer(layer);
     });
 
+    // Tạo Icon tùy chỉnh
+    const customIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: '<div class="marker-pin"><i class="fas fa-home"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -45]
+    });
+
     const bounds = [];
     rooms.forEach(room => {
-        const marker = L.marker([room.lat, room.lng]).addTo(map);
+        const marker = L.marker([room.lat, room.lng], { icon: customIcon }).addTo(map);
+        
+        // Popup mới: Mã phòng (Dòng 1), Giá/Loại (Dòng 2), Địa chỉ (Dòng 3), Ảnh Full 4:3
         marker.bindPopup(`
-            <div style="width: 200px;">
-                <img src="${room.image_detail[0] || ''}" style="width:100%; height:100px; object-fit:cover; border-radius:4px; margin-bottom:5px;">
-                <h6 style="font-size:12px; font-weight:bold; margin-bottom:2px;">${room.type} - ${formatMoney(room.price)}</h6>
-                <div style="font-size:10px; color:#666;">${cleanAddress(room.address)}</div>
-                <a href="detail.html?id=${encodeURIComponent(room.id)}" style="display:block; margin-top:5px; font-size:11px; font-weight:bold; color:var(--primary-dark);">Xem chi tiết</a>
+            <div style="width: 220px;">
+                <img src="${room.image_detail[0] || ''}" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; margin-bottom:8px;">
+                <div class="fw-bold text-primary mb-1">${room.room_code}</div>
+                <div class="fw-bold mb-1" style="font-size:13px;">${formatMoney(room.price)} - ${room.type}</div>
+                <div class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${cleanAddress(room.address)}</div>
+                <a href="detail.html?id=${encodeURIComponent(room.id)}" class="btn btn-sm btn-primary w-100 rounded-pill">Xem chi tiết</a>
             </div>
         `);
         bounds.push([room.lat, room.lng]);
     });
 
-    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
 }
 
 // =========================================================
@@ -477,7 +491,7 @@ window.loadMoreItems = function() {
     const path = window.location.pathname;
     
     if (path.includes("map-search")) {
-        // Map page load all
+        // Map page load all (không phân trang kiểu này)
     } else if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
          if (document.getElementById('search-results').style.display === 'block') {
              renderGridWithPagination(document.getElementById('products-grid'), currentFilteredRooms);
@@ -611,10 +625,8 @@ function renderDetailPage(id) {
     
     renderProfessionalGallery(room);
     
-    // --- BỔ SUNG TIÊU ĐỀ DƯỚI ẢNH (Theo yêu cầu của bạn) ---
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer) {
-        // Xóa tiêu đề cũ nếu có để tránh trùng
         const existingTitle = document.getElementById('content-title-below-gallery');
         if (existingTitle) existingTitle.remove();
 
@@ -624,10 +636,8 @@ function renderDetailPage(id) {
         titleEl.style.fontSize = '1.5rem';
         titleEl.textContent = `Cho thuê căn ${room.type} ${cleanAddress(room.address)}`;
         
-        // Chèn ngay sau Gallery (trước highlight box)
         galleryContainer.parentNode.insertBefore(titleEl, galleryContainer.nextSibling);
     }
-    // -----------------------------------------------------
 
     renderCollageImage(room);
     if(document.getElementById('detail-desc')) document.getElementById('detail-desc').innerHTML = room.desc.replace(/\n/g, '<br>');
