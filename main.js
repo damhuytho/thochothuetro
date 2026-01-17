@@ -3,13 +3,26 @@
 // =========================================================
 const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
-// Link CSV của file Tiện ích (DB_TienIch).
-const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv'; 
+// Link CSV của file Tiện ích (DB_TienIch)
+const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=123456789&single=true&output=csv'; 
 
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận"];
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy"];
 const SPECIAL_AMENITIES_OR = ["ban công", "cửa sổ"]; 
+
+// [MỚI] HTML cho thanh sắp xếp (Dùng chung)
+const SORT_CONTROL_HTML = `
+<div class="d-flex justify-content-end align-items-center mb-3">
+    <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+        <span class="small fw-bold me-2 text-muted text-nowrap"><i class="fas fa-sort me-1"></i>Sắp xếp:</span>
+        <select class="form-select form-select-sm border-0 fw-bold text-primary" style="width: auto; cursor: pointer; outline: none; box-shadow: none;" onchange="sortRooms(this.value)">
+            <option value="default">Mặc định</option>
+            <option value="price-asc">Giá: Thấp đến Cao</option>
+            <option value="price-desc">Giá: Cao đến Thấp</option>
+        </select>
+    </div>
+</div>`;
 
 let allRooms = [];
 let allAmenities = []; 
@@ -17,7 +30,7 @@ let map = null;
 let currentFilteredRooms = []; 
 let currentLimit = 6;          
 const LOAD_MORE_STEP = 9;   
-let currentSortOrder = 'default'; // [MỚI] Biến lưu trạng thái sắp xếp
+let currentSortOrder = 'default'; 
 
 // =========================================================
 // 2. KHỞI TẠO & FETCH DATA
@@ -134,7 +147,6 @@ function detectPageAndRender() {
         const districtSelect = document.getElementById('f-district');
         if (districtSelect) districtSelect.value = targetDistrict;
         
-        // Khôi phục bộ lọc từ URL nếu có
         const urlType = urlParams.get('type');
         const urlPrice = urlParams.get('price');
         const urlAmenities = urlParams.get('amenities');
@@ -149,18 +161,18 @@ function detectPageAndRender() {
         }
 
         renderPageHeader(`Phòng trọ ${targetDistrict}`, targetDistrict);
-        // Luôn chạy filter để hiển thị danh sách (kể cả khi không có param lọc)
         runInternalFilter(targetDistrict, !!(urlType || urlPrice || urlAmenities)); 
     } else {
         renderHomePageGroups();
     }
 }
 
+// [MỚI] Hàm này đã được sửa để chèn thanh Sắp xếp vào ngay dưới Tiêu đề
 function renderPageHeader(title, breadcrumbLast) {
     const container = document.getElementById('home-content');
     if (!container) return;
     
-    const headerHTML = `
+    container.innerHTML = `
         <div class="page-header-block rounded-3">
             <h1 class="page-header-title">${title}</h1>
             <div class="breadcrumb-custom">
@@ -169,9 +181,12 @@ function renderPageHeader(title, breadcrumbLast) {
                 <span>${breadcrumbLast}</span>
             </div>
         </div>
-        <div id="listing-area"></div>
+        ${SORT_CONTROL_HTML} <div id="listing-area"></div>
     `;
-    container.innerHTML = headerHTML;
+    
+    // Đồng bộ lại giá trị dropdown (nếu đang sort dở)
+    const sortSelect = container.querySelector('select');
+    if(sortSelect) sortSelect.value = currentSortOrder;
 }
 
 function initFilters() {
@@ -208,18 +223,15 @@ function initFilters() {
 // 4. XỬ LÝ LỌC & SẮP XẾP
 // =========================================================
 
-// [MỚI] Hàm xử lý khi chọn dropdown sắp xếp
 window.sortRooms = function(order) {
     currentSortOrder = order;
-    // Lấy giá trị district hiện tại để chạy lại lọc
     let districtVal = document.getElementById('f-district')?.value || 'all';
     
-    // Nếu đang ở trang Quận cụ thể, ép districtVal về đúng quận đó
+    // Nếu ở trang Quận, ép buộc lọc lại theo đúng quận đó
     const path = window.location.pathname;
     if (path.includes("tan-binh")) districtVal = "Tân Bình";
     if (path.includes("phu-nhuan")) districtVal = "Phú Nhuận";
     
-    // Gọi lại hàm lọc, tham số thứ 2 là true để báo hiệu đây là hành động lọc/xếp
     runInternalFilter(districtVal, true);
 }
 
@@ -284,13 +296,13 @@ function runInternalFilter(districtVal, isFilteredAction) {
         return true;
     });
 
-    // --- [MỚI] LOGIC SẮP XẾP ---
+    // --- LOGIC SẮP XẾP ---
     if (currentSortOrder === 'price-asc') {
         filtered.sort((a, b) => a.price - b.price);
     } else if (currentSortOrder === 'price-desc') {
         filtered.sort((a, b) => b.price - a.price);
     } else {
-        // Mặc định: Ưu tiên Khuyến mại -> Ưu tiên có Ảnh
+        // Mặc định
         filtered.sort((a, b) => {
             const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
             const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
@@ -303,7 +315,7 @@ function runInternalFilter(districtVal, isFilteredAction) {
     }
 
     currentFilteredRooms = filtered;
-    currentLimit = 6; // Reset về 6 mỗi khi lọc/sắp xếp lại
+    currentLimit = 6; 
     
     const path = window.location.pathname;
     
@@ -349,26 +361,33 @@ function renderHalfMapPage() {
     runInternalFilter(defaultDist, false);
 }
 
+// [MỚI] Hàm này đã được sửa để luôn hiển thị thanh Sắp xếp ở đầu danh sách Map
 function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
+    // Luôn chèn thanh Sắp xếp vào đầu
+    let fullHtml = SORT_CONTROL_HTML;
+
     if (rooms.length === 0) {
-        container.innerHTML = '<div class="p-3 text-center w-100">Không tìm thấy phòng phù hợp</div>';
+        fullHtml += '<div class="p-3 text-center w-100">Không tìm thấy phòng phù hợp</div>';
+        container.innerHTML = fullHtml;
+        // Đồng bộ lại dropdown
+        const sortSelect = container.querySelector('select');
+        if(sortSelect) sortSelect.value = currentSortOrder;
         return;
     }
 
     const roomsToShow = rooms.slice(0, currentLimit);
     const hasMore = rooms.length > currentLimit;
 
-    // Lưới 2 cột cho Mobile
     const htmlItems = roomsToShow.map(room => `
         <div class="col-6 col-sm-6 mb-3">
             ${createCardHTML(room)}
         </div>
     `).join('');
     
-    let fullHtml = `<div class="row g-2 p-2">${htmlItems}</div>`;
+    fullHtml += `<div class="row g-2 p-2">${htmlItems}</div>`;
 
     if (hasMore) {
         fullHtml += `
@@ -380,6 +399,9 @@ function renderHalfMapList(rooms) {
     }
 
     container.innerHTML = fullHtml;
+    // Đồng bộ lại dropdown
+    const sortSelect = container.querySelector('select');
+    if(sortSelect) sortSelect.value = currentSortOrder;
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -520,9 +542,11 @@ function updateActiveFilterBar(district, type, price, amenities, isActive) {
 function renderGridWithPagination(container, rooms) {
     if (!container) return;
     
+    // Tìm các element cũ
     const existingHeader = container.querySelector('.page-header-block');
     const existingList = container.querySelector('#listing-area');
     
+    // Nếu là trang chủ (không có page-header), render thẳng vào container
     let targetContainer = container;
     
     if (existingHeader && existingList) {
@@ -533,6 +557,7 @@ function renderGridWithPagination(container, rooms) {
         container.appendChild(listDiv);
         targetContainer = listDiv;
     } else {
+        // Trang chủ: xóa sạch để render mới
         container.innerHTML = ''; 
     }
     
@@ -800,4 +825,3 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
-
