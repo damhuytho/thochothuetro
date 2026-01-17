@@ -30,23 +30,14 @@ a { text-decoration: none; }
 .brand-text { display: block !important; }
 
 .nav-link {
-    font-weight: 600;
-    color: var(--text-dark);
-    margin: 0 5px;
-    transition: 0.3s;
+    font-weight: 600; color: var(--text-dark); margin: 0 5px; transition: 0.3s;
 }
-.nav-link:hover, .nav-link.active {
-    color: var(--primary-dark);
-}
+.nav-link:hover, .nav-link.active { color: var(--primary-dark); }
 
-.logo-img {
-    height: 45px;
-    width: auto;
-    object-fit: contain;
-}
+.logo-img { height: 45px; width: auto; object-fit: contain; }
 
 /* =========================================
-   3. CARD SẢN PHẨM (DANH SÁCH PHÒNG)
+   3. CARD SẢN PHẨM (STYLE CHUNG CHO CẢ 2 TRANG)
    ========================================= */
 .room-card {
     background: #fff;
@@ -55,13 +46,10 @@ a { text-decoration: none; }
     overflow: hidden;
     transition: all 0.3s ease;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
 }
 .room-card .card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    flex: 1; display: flex; flex-direction: column; padding: 1rem; /* Padding chuẩn */
 }
 
 .room-card:hover {
@@ -70,8 +58,9 @@ a { text-decoration: none; }
     border-color: var(--primary);
 }
 
+/* Kích thước ảnh chuẩn đồng bộ 220px cho mọi nơi */
 .room-card .card-img-top {
-    height: 220px; /* Chiều cao chuẩn trang chủ */
+    height: 220px;
     width: 100%;
     object-fit: cover;
 }
@@ -79,7 +68,79 @@ a { text-decoration: none; }
 .position-relative .badge { z-index: 2; }
 
 /* =========================================
-   4. TRANG CHI TIẾT
+   4. TRANG BẢN ĐỒ (MAP SEARCH) - ĐÃ SỬA LỖI
+   ========================================= */
+.map-layout-grid {
+    display: grid;
+    /* Sidebar 750px để chứa vừa 2 card to */
+    grid-template-columns: 750px 1fr; 
+    height: calc(100vh - 76px);
+    gap: 0;
+}
+
+.half-map-list {
+    height: 100%;
+    overflow-y: auto; /* Cuộn dọc danh sách */
+    background: #f8f9fa;
+    border-right: 1px solid #ddd;
+    display: flex; flex-direction: column;
+}
+
+.half-map-list > .p-3 { flex: 1; }
+
+.half-map-view {
+    height: 100%; width: 100%; position: relative;
+}
+
+/* --- MOBILE RESPONSIVE (SỬA LỖI MẤT DANH SÁCH) --- */
+@media (max-width: 992px) {
+    /* Mở khóa cuộn trang cho điện thoại */
+    body { overflow: auto !important; }
+    
+    .map-layout-grid {
+        display: block; /* Hủy Grid, chuyển sang Block xếp chồng */
+        height: auto;
+    }
+    
+    .half-map-view { 
+        height: 50vh; /* Bản đồ chiếm 50% màn hình */
+        width: 100%; 
+        position: sticky; top: 76px; z-index: 100; 
+        border-bottom: 2px solid var(--primary);
+    }
+    
+    .half-map-list { 
+        height: auto; 
+        overflow: visible; 
+        border-right: none;
+    }
+}
+
+/* Marker & Popup */
+.custom-map-marker { display: flex; justify-content: center; align-items: center; }
+.marker-pin {
+    width: 40px; height: 40px; border-radius: 50% 50% 50% 0;
+    background: var(--primary); position: absolute; transform: rotate(-45deg);
+    left: 50%; top: 50%; margin: -20px 0 0 -20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2px solid #fff;
+    display: flex; justify-content: center; align-items: center;
+}
+.marker-pin i { transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px; }
+.marker-pin:hover { transform: rotate(-45deg) scale(1.1); background: var(--primary-dark); transition: 0.2s; }
+
+.leaflet-popup-content-wrapper { border-radius: 8px; overflow: hidden; padding: 0; }
+.leaflet-popup-content { margin: 15px; width: 220px !important; }
+.btn-popup-custom {
+    display: block; width: 100%;
+    background-color: var(--primary) !important; color: #000 !important;
+    font-weight: 700; text-align: center; padding: 8px 0; border-radius: 4px;
+    margin-top: 8px; text-decoration: none; box-shadow: none !important;
+    transition: background 0.2s;
+}
+.btn-popup-custom:hover { background-color: var(--primary-dark) !important; color: #000 !important; }
+
+/* =========================================
+   5. CÁC THÀNH PHẦN KHÁC
    ========================================= */
 .property-header { background: #fff; padding: 20px 0; border-bottom: 1px solid #eee; margin-bottom: 30px; }
 .page-header-block {
@@ -103,53 +164,6 @@ a { text-decoration: none; }
 .section-title::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px; background: var(--primary); border-radius: 2px; }
 .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: var(--radius); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
 
-/* =========================================
-   5. TRANG BẢN ĐỒ (MAP SEARCH) - FINAL
-   ========================================= */
-.map-layout-grid {
-    display: grid;
-    grid-template-columns: 750px 1fr; /* Sidebar cố định 750px */
-    height: calc(100vh - 76px);
-    gap: 0;
-}
-
-.half-map-list {
-    height: 100%; overflow-y: auto; background: #f8f9fa; border-right: 1px solid #ddd;
-    display: flex; flex-direction: column;
-}
-
-.half-map-list > .p-3 { flex: 1; overflow-y: auto; }
-
-/* CSS riêng cho Card trong trang Map để gọn hơn */
-#half-map-list-content .room-card .card-img-top {
-    height: 180px; 
-}
-
-/* Cột bản đồ */
-.half-map-view { height: 100%; width: 100%; position: relative; }
-
-/* Responsive Mobile */
-@media (max-width: 992px) {
-    .map-layout-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
-    .half-map-view { height: 400px; order: -1; position: sticky; top: 76px; z-index: 100; }
-    .half-map-list { height: auto; overflow: visible; }
-    body { overflow: auto; }
-}
-
-/* Marker & Popup */
-.custom-map-marker { display: flex; justify-content: center; align-items: center; }
-.marker-pin { width: 40px; height: 40px; border-radius: 50% 50% 50% 0; background: var(--primary); position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -20px 0 0 -20px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2px solid #fff; display: flex; justify-content: center; align-items: center; }
-.marker-pin i { transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px; }
-.marker-pin:hover { transform: rotate(-45deg) scale(1.1); background: var(--primary-dark); transition: 0.2s; }
-
-.leaflet-popup-content-wrapper { border-radius: 8px; overflow: hidden; padding: 0; }
-.leaflet-popup-content { margin: 15px; width: 220px !important; }
-.btn-popup-custom { display: block; width: 100%; background-color: var(--primary) !important; color: #000 !important; font-weight: 700; text-align: center; padding: 8px 0; border-radius: 4px; margin-top: 8px; text-decoration: none; box-shadow: none !important; transition: background 0.2s; }
-.btn-popup-custom:hover { background-color: var(--primary-dark) !important; color: #000 !important; }
-
-/* =========================================
-   6. CÁC THÀNH PHẦN KHÁC (FILTER, FOOTER...)
-   ========================================= */
 #main-filter-box { transition: all 0.3s ease; }
 .filter-content { display: block; }
 .btn-expand-filter { display: none; width: 100%; background: var(--primary); color: #000; border: none; border-radius: 8px; padding: 10px; font-weight: 600; margin-bottom: 15px; }
