@@ -12,20 +12,16 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* Tinh chỉnh riêng cho trang Map */
-        body { overflow: hidden; } /* Chặn scroll body */
-        .navbar { position: relative !important; } /* Navbar không fixed để tính chiều cao map */
-        
-        /* Layout chia đôi */
+        body { overflow: hidden; } 
+        .navbar { position: relative !important; } 
         .map-layout-grid {
             display: grid;
-            grid-template-columns: 450px 1fr; /* Trái 450px, Phải còn lại */
+            grid-template-columns: 450px 1fr;
             height: calc(100vh - 76px);
         }
-        
         @media (max-width: 768px) {
             .map-layout-grid { grid-template-columns: 1fr; height: auto; }
-            .half-map-view { height: 400px; order: -1; } /* Mobile map lên đầu */
+            .half-map-view { height: 400px; order: -1; }
             body { overflow: auto; }
         }
     </style>
@@ -79,11 +75,14 @@
                             <option value="8000000-99000000">Trên 8 Triệu</option>
                         </select>
                     </div>
+                    <div class="col-12 mt-2">
+                        <label class="small fw-bold mb-1">Tiện ích:</label>
+                        <div id="f-amenities-checkboxes" class="amenities-grid" onchange="applyFilters()"></div>
+                    </div>
                 </div>
             </div>
 
-            <div id="half-map-list-content" class="flex-grow-1">
-                </div>
+            <div id="half-map-list-content" class="flex-grow-1"></div>
         </div>
 
         <div id="half-map-view" class="half-map-view bg-light border-start"></div>
