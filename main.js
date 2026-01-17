@@ -42,11 +42,19 @@ function processData(csvText) {
             districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
         }
         
+        // Xử lý keypoint - loại bỏ thông tin khuyến mãi (chứa 🎁 hoặc KM)
+        let keypointRaw = (row[5] || "");
+        let keypointClean = keypointRaw.split(',')
+            .map(item => item.trim())
+            .filter(item => !item.includes('🎁') && !item.toLowerCase().includes('km '))
+            .join(', ');
+        
         return {
             id: row[4] || "", 
+            room_code: (row[4] || "").trim(), // Cột E - Mã phòng
             district: districtRaw,
             address: (row[3] || "").trim(),
-            keypoint: (row[5] || ""), 
+            keypoint: keypointClean, 
             price: parsePrice(row[6]),
             desc: row[7] || "",
             type: (row[16] || "").trim(),
@@ -55,8 +63,8 @@ function processData(csvText) {
             lat: parseFloat(row[26]) || 10.801646,
             lng: parseFloat(row[27]) || 106.663158,
             video: (row[28] || "").trim(),
-            image_detail: row[29] ? row[29].split('|').map(img => img.trim()) : [], // Cột AD
-            image_collage: row[30] ? row[30].split('|').map(img => img.trim()) : [], // Cột AE
+            image_detail: row[29] ? row[29].split('|').map(img => img.trim()).filter(img => img.length > 5) : [], // Cột AD
+            image_collage: row[30] ? row[30].split('|').map(img => img.trim()).filter(img => img.length > 5) : [], // Cột AE
             amenities_search: (row[5] || "").toLowerCase()
         };
     }).filter(item => item.id && item.price > 0); 
@@ -87,7 +95,7 @@ function processData(csvText) {
             const districtFilterContainer = document.getElementById('f-district')?.parentElement;
             if(districtFilterContainer) districtFilterContainer.style.display = 'none';
 
-            applyFilters(targetDistrict); 
+            applyFiltersForDistrict(targetDistrict); 
             
             const homeContent = document.getElementById('home-content');
             if(homeContent) homeContent.innerHTML = `<h2 class="fw-bold mb-4 border-bottom pb-2">Phòng trọ tại ${targetDistrict}</h2>`;
@@ -110,11 +118,9 @@ function initFilters() {
         uniqueDistricts.forEach(d => html += `<option value="${d}">${d}</option>`);
         districtSelect.innerHTML = html;
         
+        // XÓA auto-change, chỉ chuyển trang khi click link trên menu
         districtSelect.addEventListener('change', function() {
-            const val = this.value;
-            if (val === "Tân Bình") { window.location.href = "tan-binh.html"; return; }
-            if (val === "Phú Nhuận") { window.location.href = "phu-nhuan.html"; return; }
-            applyFilters();
+            // Không làm gì, chờ user click "Áp dụng"
         });
     }
 
@@ -123,12 +129,11 @@ function initFilters() {
         let html = '<option value="all">Tất cả Loại phòng</option>';
         ROOM_TYPES.forEach(t => html += `<option value="${t}">${t}</option>`);
         typeSelect.innerHTML = html;
-        typeSelect.addEventListener('change', () => applyFilters()); 
     }
 
     const priceSelect = document.getElementById('f-price');
     if (priceSelect) {
-        priceSelect.addEventListener('change', () => applyFilters());
+        // Không tự động apply
     }
 
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
@@ -137,7 +142,7 @@ function initFilters() {
         AMENITIES_LIST.forEach((am, index) => {
             html += `
                 <div class="form-check">
-                    <input class="form-check-input amenity-check" type="checkbox" value="${am.toLowerCase()}" id="am-${index}" onchange="applyFilters()">
+                    <input class="form-check-input amenity-check" type="checkbox" value="${am.toLowerCase()}" id="am-${index}">
                     <label class="form-check-label small" for="am-${index}">${am}</label>
                 </div>`;
         });
@@ -152,9 +157,16 @@ function renderHomePage() {
     
     container.innerHTML = '';
     
+    // Sắp xếp: Ưu tiên có ảnh AD lên trước
+    const sortedRooms = [...allRooms].sort((a, b) => {
+        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
+        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
+        return bHasImage - aHasImage;
+    });
+    
     // Group theo quận
     const grouped = {};
-    allRooms.forEach(room => {
+    sortedRooms.forEach(room => {
         const dName = room.district || "Khu vực khác";
         if (!grouped[dName]) grouped[dName] = [];
         grouped[dName].push(room);
@@ -208,12 +220,34 @@ window.viewAllDistrict = function(district) {
     }
 }
 
-function applyFilters(forcedDistrict = null) {
-    let districtVal = forcedDistrict || document.getElementById('f-district')?.value || 'all';
+// Hàm riêng cho trang quận (tự động apply)
+function applyFiltersForDistrict(forcedDistrict) {
+    let filtered = allRooms.filter(room => room.district === forcedDistrict);
     
+    // Sắp xếp: Ưu tiên có ảnh + có khuyến mãi
+    filtered.sort((a, b) => {
+        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
+        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
+        if (bHasImage !== aHasImage) return bHasImage - aHasImage;
+        return (b.promotion.length > 0) - (a.promotion.length > 0);
+    });
+    
+    renderGroupedByDistrict(filtered);
+}
+
+// Hàm apply filter chính (chỉ chạy khi click nút)
+window.applyFilters = function() {
     const path = window.location.pathname;
-    if (path.includes("tan-binh") || path.includes("tanbinh")) districtVal = "Tân Bình";
-    if (path.includes("phu-nhuan") || path.includes("phunhuan")) districtVal = "Phú Nhuận";
+    let districtVal = 'all';
+    
+    // Nếu đang ở trang quận, force district
+    if (path.includes("tan-binh") || path.includes("tanbinh")) {
+        districtVal = "Tân Bình";
+    } else if (path.includes("phu-nhuan") || path.includes("phunhuan")) {
+        districtVal = "Phú Nhuận";
+    } else {
+        districtVal = document.getElementById('f-district')?.value || 'all';
+    }
 
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
     const priceVal = document.getElementById('f-price')?.value || 'all';
@@ -235,8 +269,21 @@ function applyFilters(forcedDistrict = null) {
         return true;
     });
 
-    filtered.sort((a, b) => (b.promotion.length > 0) - (a.promotion.length > 0));
+    // Sắp xếp: Ưu tiên có ảnh + có khuyến mãi
+    filtered.sort((a, b) => {
+        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
+        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
+        if (bHasImage !== aHasImage) return bHasImage - aHasImage;
+        return (b.promotion.length > 0) - (a.promotion.length > 0);
+    });
+    
     renderGroupedByDistrict(filtered);
+    
+    // Scroll bộ lọc lên top (đặc biệt trên mobile)
+    const filterBox = document.querySelector('.sticky-top');
+    if (filterBox && window.innerWidth < 992) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 window.resetFilters = function() {
@@ -254,7 +301,8 @@ window.resetFilters = function() {
     if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
         renderHomePage();
     } else {
-        applyFilters();
+        const targetDistrict = path.includes("tan-binh") ? "Tân Bình" : "Phú Nhuận";
+        applyFiltersForDistrict(targetDistrict);
     }
 }
 
@@ -292,7 +340,7 @@ function renderGroupedByDistrict(rooms) {
 function createCardHTML(room) {
     // Lấy ảnh từ cột AD (image_detail) - ảnh đầu tiên
     let imgUrl = "https://placehold.co/600x400?text=Phong+Tro";
-    if (room.image_detail.length > 0 && room.image_detail[0].length > 5) {
+    if (room.image_detail.length > 0) {
         imgUrl = room.image_detail[0];
     }
     
@@ -300,18 +348,21 @@ function createCardHTML(room) {
     const cleanAddr = cleanAddress(room.address);
     const title = `Cho thuê căn ${room.type} ${cleanAddr}`;
     
-    const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small text-truncate"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
+    const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
     return `
         <div class="col-6 col-md-4 col-lg-4">
             <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
                 <div class="position-relative">
-                    <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy" style="height: 205px;">
+                    <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy" style="height: 220px;">
                     ${promoBadge}
                 </div>
                 <div class="card-body p-3 d-flex flex-column">
-                    <h6 class="card-title fw-bold text-primary mb-1 line-clamp-2" style="min-height: 2.5em;">${title}</h6>
+                    <h6 class="card-title fw-bold text-primary mb-1" style="font-size: 0.95rem; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h6>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark border small">${room.room_code}</span>
+                    </div>
                     <div class="mb-2">
                         <span class="text-danger fw-bold fs-6">${formatMoney(room.price)}/tháng</span>
                         <span class="text-muted small ms-1">- Có thương lượng</span>
@@ -344,7 +395,10 @@ function renderDetailPage(id) {
     const titleEl = document.getElementById('detail-title'); 
     if (titleEl) titleEl.textContent = `Cho thuê căn ${room.type} ${cleanAddress(room.address)}`;
     
-    const addrEl = document.getElementById('detail-address'); if (addrEl) addrEl.textContent = room.address;
+    // Địa chỉ bỏ số nhà
+    const addrEl = document.getElementById('detail-address'); 
+    if (addrEl) addrEl.textContent = cleanAddress(room.address);
+    
     const typeEl = document.getElementById('d-type'); if (typeEl) typeEl.textContent = room.type || "Căn hộ";
     const priceEl = document.getElementById('detail-price'); if (priceEl) priceEl.textContent = formatMoney(room.price);
     
@@ -388,7 +442,8 @@ function renderDetailPage(id) {
         }
     }
 
-    initMap(room.lat, room.lng, room.address);
+    // Map với địa chỉ bỏ số nhà
+    initMap(room.lat, room.lng, cleanAddress(room.address));
     renderRelatedApartments(room);
 }
 
@@ -409,13 +464,13 @@ function renderProfessionalGallery(room) {
     
     let html = `
         <div class="professional-gallery">
-            <div class="main-image-wrapper mb-2" style="height: 450px; border-radius: 12px; overflow: hidden;">
+            <div class="main-image-wrapper mb-2" style="height: 500px; border-radius: 12px; overflow: hidden; background: #f0f0f0;">
                 <img src="${mainImg}" 
                      id="main-gallery-img" 
-                     class="w-100 h-100 object-fit-cover" 
+                     class="w-100 h-100" 
                      alt="Ảnh chính căn hộ ${room.id}"
                      loading="eager"
-                     style="cursor: default;">
+                     style="cursor: default; object-fit: contain;">
             </div>
             ${thumbs.length > 0 ? `
             <div class="row g-2">
@@ -426,7 +481,7 @@ function renderProfessionalGallery(room) {
                              alt="Ảnh ${idx + 2} căn hộ ${room.id}"
                              loading="lazy"
                              onclick="changeMainGalleryImage('${img}')"
-                             style="height: 130px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.8; transition: 0.3s;"
+                             style="height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.8; transition: 0.3s; border: 2px solid transparent;"
                              onmouseover="this.style.opacity='1'; this.style.borderColor='#f1c40f'"
                              onmouseout="this.style.opacity='0.8'; this.style.borderColor='transparent'">
                     </div>
@@ -458,14 +513,14 @@ function renderCollageImage(room) {
     if (!highlightBox || !descBlock) return;
     
     // Lấy 1 ảnh collage từ cột AE
-    if (room.image_collage.length > 0 && room.image_collage[0].length > 5) {
+    if (room.image_collage.length > 0) {
         const collageImg = room.image_collage[0];
         
         // Tạo block ảnh collage
         const collageBlock = document.createElement('div');
         collageBlock.className = 'collage-block mb-4';
         collageBlock.innerHTML = `
-            <div class="rounded-4 overflow-hidden shadow-sm" style="aspect-ratio: 1700/1450;">
+            <div class="rounded-4 overflow-hidden shadow-sm" style="max-width: 100%; aspect-ratio: 1700/1450;">
                 <img src="${collageImg}" 
                      class="w-100 h-100 object-fit-cover" 
                      alt="Hình ảnh tổng quan căn ${room.type} tại ${room.district}"
@@ -482,11 +537,13 @@ function renderRelatedApartments(currentRoom) {
     const grid = document.getElementById('related-grid');
     if (!grid) return;
 
+    // Lọc căn tương tự: ưu tiên có ảnh, cùng quận, giá gần
     const related = allRooms.filter(r => 
         r.district === currentRoom.district && 
         r.id !== currentRoom.id &&
+        r.image_detail.length > 0 && // Chỉ lấy căn có ảnh
         Math.abs(r.price - currentRoom.price) <= 1500000 
-    ).slice(0, 3); 
+    ).slice(0, 4); // Lấy 4 căn
 
     if (related.length === 0) {
         grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự cùng khu vực.</div>';
