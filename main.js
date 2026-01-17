@@ -537,8 +537,23 @@ function renderHomePageGroups() {
     if (!container) return;
     container.innerHTML = '';
     
-    const sortedRooms = [...allRooms].sort((a, b) => (b.image_detail.length > 0) - (a.image_detail.length > 0));
+    // --- SỬA LOGIC SẮP XẾP ---
+    // 1. Ưu tiên có Khuyến mại (Promotion) xếp trước
+    // 2. Sau đó ưu tiên có Ảnh chi tiết
+    const sortedRooms = [...allRooms].sort((a, b) => {
+        const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
+        const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
+        
+        // Nếu một bên có khuyến mại, bên kia không -> xếp bên có lên trước
+        if (aPromo !== bPromo) return bPromo - aPromo;
+        
+        // Nếu cả hai cùng có hoặc cùng không -> xếp bên nào có ảnh lên trước
+        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
+        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
+        return bHasImage - aHasImage;
+    });
     
+    // --- GOM NHÓM THEO QUẬN ---
     const grouped = {};
     sortedRooms.forEach(room => {
         const dName = room.district || "Khu vực khác";
@@ -546,6 +561,7 @@ function renderHomePageGroups() {
         grouped[dName].push(room);
     });
     
+    // Sắp xếp thứ tự quận ưu tiên (Tân Bình -> Phú Nhuận -> ...)
     const sortedDistricts = Object.keys(grouped).sort((a, b) => {
         const aIdx = PRIORITY_DISTRICTS.indexOf(a);
         const bIdx = PRIORITY_DISTRICTS.indexOf(b);
@@ -553,10 +569,12 @@ function renderHomePageGroups() {
         return aIdx !== -1 ? -1 : (bIdx !== -1 ? 1 : a.localeCompare(b));
     });
     
+    // --- HIỂN THỊ RA MÀN HÌNH ---
     sortedDistricts.forEach(district => {
         const districtRooms = grouped[district];
-        const displayRooms = districtRooms.slice(0, 6); 
+        const displayRooms = districtRooms.slice(0, 6); // Chỉ hiện 6 căn đầu tiên mỗi quận
         
+        // Tạo HTML cho từng nhóm quận
         let html = `
             <div class="district-group mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -571,7 +589,6 @@ function renderHomePageGroups() {
         container.innerHTML += html;
     });
 }
-
 window.viewAllDistrict = function(district) {
     if (district === "Tân Bình") window.location.href = "tan-binh.html";
     else if (district === "Phú Nhuận") window.location.href = "phu-nhuan.html";
@@ -754,6 +771,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
