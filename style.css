@@ -1,320 +1,277 @@
-/* 🎨 STYLE MỚI THEO PHONG CÁCH HOUSA */
-:root { 
-    --primary: #f1c40f; /* Vàng chanh */
+/* =========================================
+   1. CẤU HÌNH CHUNG (ROOT & RESET)
+   ========================================= */
+:root {
+    --primary: #f1c40f; /* Vàng chanh thương hiệu */
     --primary-dark: #f39c12;
     --text-dark: #1a1a1a;
-    --gray-bg: #f5f7fb; /* Màu nền xám nhạt đặc trưng của Housa */
-    --radius: 16px; /* Bo góc mềm mại */
+    --gray-bg: #f5f7fb;
+    --radius: 12px;
 }
 
-body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var(--text-dark); padding-top: 80px; }
-
-/* NAVBAR TRẮNG SẠCH */
-.navbar { background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.03); padding: 15px 0; }
-.brand-text { font-weight: 800; color: var(--primary-dark); font-size: 1.4rem; letter-spacing: -0.5px; }
-
-/* CARD PHONG CÁCH HOUSA */
-.room-card {
-    background: #fff; border: 1px solid #eee; border-radius: var(--radius);
-    overflow: hidden; transition: all 0.4s ease; height: 100%;
-    position: relative;
-}
-.room-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); border-color: transparent; }
-
-/* 🖼️ XỬ LÝ ẢNH THÔNG MINH (QUAN TRỌNG) */
-.img-housa-wrapper {
-    position: relative;
-    width: 100%;
-    /* Tỷ lệ 1700x1450 ~ 1.17 (Gần vuông) */
-    aspect-ratio: 1700 / 1450; 
-    overflow: hidden;
-    background: #f0f0f0;
-}
-.img-housa {
-    width: 100%; height: 100%;
-    object-fit: cover; /* Tự động cắt ảnh thừa để lấp đầy khung */
-    transition: transform 0.5s;
-}
-.room-card:hover .img-housa { transform: scale(1.05); }
-
-/* TAG GIÁ & TRẠNG THÁI */
-.housa-price {
-    position: absolute; bottom: 15px; left: 15px;
-    background: rgba(255, 255, 255, 0.95);
-    color: #e74c3c; font-weight: 800;
-    padding: 6px 14px; border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.housa-tag { display: none !important; }
-
-/* SIDEBAR & CHI TIẾT */
-.sidebar-box {
-    background: #fff; border-radius: var(--radius);
-    padding: 25px; margin-bottom: 25px;
-    border: 1px solid #f0f0f0;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.02);
-}
-.sidebar-title { font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
-
-/* GALLERY CHI TIẾT (Tỷ lệ 4:3 chuẩn) */
-.detail-gallery {
-    border-radius: var(--radius); overflow: hidden;
-    aspect-ratio: 4/3; margin-bottom: 25px; background: #ddd;
+body {
+    font-family: 'Lexend', sans-serif;
+    background: var(--gray-bg);
+    color: var(--text-dark);
+    padding-top: 76px; /* Để nội dung không bị menu che mất */
 }
 
-/* VIDEO BLOCK */
-.video-container {
-    position: relative; padding-bottom: 56.25%; /* 16:9 */
-    height: 0; overflow: hidden; border-radius: var(--radius);
-    margin-bottom: 30px; background: #000;
-}
-.video-container iframe {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+a { text-decoration: none; }
+
+/* =========================================
+   2. NAVBAR & LOGO
+   ========================================= */
+.navbar {
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    padding: 10px 0;
+    z-index: 1050; /* Luôn nổi trên cùng */
 }
 
-/* TIỆN ÍCH ICONS */
-.feature-item {
-    background: #fff; padding: 12px 15px; border-radius: 10px;
-    border: 1px solid #eee; display: flex; align-items: center; gap: 10px;
-    font-size: 0.9rem; font-weight: 500;
-}
-.feature-item i { color: var(--primary-dark); font-size: 1.1rem; }
-/* --- GALLERY THÔNG MINH (Smart Crop) --- */
-.gallery-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px; /* Khoảng cách giữa ảnh lớn và hàng ảnh nhỏ */
-}
-
-/* Khung ảnh lớn */
-.gallery-main-frame {
-    width: 100%;
-    aspect-ratio: 4/3; /* Ép tỷ lệ 1600x1200 */
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    background-color: #f0f0f0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-/* Khu vực chứa 3 ảnh nhỏ */
-.gallery-thumbs-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* Chia đều 3 cột */
-    gap: 12px; /* Khoảng cách giữa các ảnh nhỏ */
-}
-
-/* Khung ảnh nhỏ */
-.gallery-sub-frame {
-    width: 100%;
-    aspect-ratio: 4/3; /* Ép tỷ lệ 4:3 giống ảnh lớn cho đồng bộ */
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.gallery-sub-frame:hover {
-    border-color: var(--primary); /* Viền vàng khi hover */
-    transform: translateY(-2px);
-}
-
-/* Class quan trọng nhất: Cắt ảnh tự động */
-.img-smart-fill {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Lấp đầy khung, cắt phần thừa, KHÔNG méo ảnh */
-    object-position: center; /* Luôn lấy trung tâm bức ảnh */
+/* Logo hiển thị trên Menu */
+.logo-img {
+    height: 50px; /* Chiều cao chuẩn cho menu */
+    width: auto;
+    object-fit: contain;
     display: block;
-    transition: transform 0.5s ease;
 }
 
-.gallery-main-frame:hover .img-smart-fill {
-    transform: scale(1.02); /* Hiệu ứng zoom nhẹ sang trọng */
-}
-
-/* Mobile: Tinh chỉnh khoảng cách nhỏ hơn chút */
-@media (max-width: 768px) {
-    .gallery-container { gap: 8px; }
-    .gallery-thumbs-grid { gap: 8px; }
-}
-/* --- THANH HIỂN THỊ BỘ LỌC (STICKY FILTER BAR) --- */
-.active-filter-bar {
-    position: fixed; top: 76px; left: 0; width: 100%;
-    background: #fff; z-index: 1030;
-    padding: 8px 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border-bottom: 1px solid #eee;
-    animation: slideDown 0.3s ease-out;
-    display: none; /* Mặc định ẩn tuyệt đối */
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.filter-tag {
-    display: inline-block;
-    background: #fff3cd;
-    color: #856404;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
+.nav-link {
     font-weight: 600;
-    margin-right: 8px;
-    border: 1px solid #ffeeba;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.filter-tag:hover {
-    background: #ffeeba;
-    transform: translateY(-1px);
-}
-
-.filter-tag i { margin-left: 5px; font-size: 10px; opacity: 0.7; }
-
-/* --- NÚT XEM THÊM --- */
-.btn-load-more {
-    background: white;
-    color: var(--primary-dark);
-    border: 1px solid var(--primary);
-    padding: 10px 30px;
-    border-radius: 30px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-.btn-load-more:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
-}
-
-/* --- BỘ LỌC SIDEBAR --- */
-.amenities-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Chia 2 cột */
-    gap: 8px;
-}
-
-/* Trạng thái thu gọn bộ lọc */
-.filter-box-collapsed .filter-content {
-    display: none !important;
-}
-.filter-box-collapsed .btn-expand-filter {
-    display: block !important;
-}
-.btn-expand-filter {
-    display: none; /* Mặc định ẩn nút này */
-    width: 100%;
-    background: #f8f9fa;
-    border: 1px dashed var(--primary);
-    color: var(--primary-dark);
-    font-weight: bold;
-    padding: 10px;
-    border-radius: 8px;
+    color: var(--text-dark);
+    margin: 0 5px;
     transition: 0.3s;
 }
-.btn-expand-filter:hover {
-    background: #fff3cd;
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-dark);
 }
-/* --- 1. PAGE HEADER (Giống ảnh bạn gửi) --- */
+
+/* =========================================
+   3. CARD SẢN PHẨM (DANH SÁCH PHÒNG)
+   ========================================= */
+.room-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%; /* Đảm bảo các card cao bằng nhau */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+/* --- QUAN TRỌNG: SỬA LỖI ẢNH CARD --- */
+.room-card .card-img-top {
+    height: 220px; /* Chiều cao cố định */
+    width: 100%;
+    object-fit: cover; /* Cắt ảnh vừa khung, không bị méo/dẹt */
+    background-color: #eee;
+}
+
+/* Nhãn ưu đãi (Góc phải ảnh) */
+.position-relative .badge {
+    z-index: 2;
+}
+
+/* =========================================
+   4. TRANG CHI TIẾT (DETAIL PAGE)
+   ========================================= */
+.property-header {
+    background: #fff;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 30px;
+}
+
+/* Header xám có ảnh nền (Breadcrumb) */
 .page-header-block {
-    background-color: #333; /* Màu xám đen nền */
-    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
+    background-color: #333;
+    background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
     background-size: cover;
     background-position: center;
     color: #fff;
-    padding: 60px 0;
+    padding: 50px 0;
     margin-bottom: 30px;
     text-align: center;
+    border-radius: var(--radius);
 }
 
 .page-header-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 10px;
 }
 
 .breadcrumb-custom {
+    font-size: 0.9rem;
     color: rgba(255,255,255,0.8);
-    font-size: 0.95rem;
 }
-.breadcrumb-custom a { color: #fff; text-decoration: none; }
-.breadcrumb-custom i { margin: 0 8px; font-size: 0.8rem; }
+.breadcrumb-custom a { color: #fff; }
+.breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; }
 
-/* --- 2. THANH ACTIVE FILTER BAR (Sửa lại cho thoáng) --- */
-.active-filter-bar {
-    position: fixed; top: 76px; left: 0; width: 100%;
-    background: #fff; z-index: 1030;
-    padding: 12px 0; /* Tăng padding */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    border-bottom: 1px solid #eee;
-    animation: slideDown 0.3s ease-out;
-    display: none;
+/* Gallery (Album ảnh chi tiết) - Smart Crop */
+.gallery-container { display: flex; flex-direction: column; gap: 10px; }
+.gallery-main-frame {
+    width: 100%; aspect-ratio: 4/3;
+    border-radius: var(--radius); overflow: hidden; position: relative;
+    background: #eee;
 }
-
-.filter-tags-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px; /* Tạo khoảng cách giữa các thẻ */
-    align-items: center;
+.gallery-thumbs-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
 }
-
-.filter-tag {
-    background: #fff;
-    color: var(--text-dark);
-    padding: 6px 16px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+.gallery-sub-frame {
+    width: 100%; aspect-ratio: 4/3;
+    border-radius: 8px; overflow: hidden; cursor: pointer;
+    border: 2px solid transparent;
+}
+.gallery-sub-frame:hover { border-color: var(--primary); }
+.img-smart-fill {
+    width: 100%; height: 100%; object-fit: cover;
 }
 
-.filter-tag:hover {
-    border-color: var(--primary);
-    color: var(--primary-dark);
-    transform: translateY(-1px);
+/* Block tiện ích, mô tả */
+.section-title {
+    font-weight: 700; font-size: 1.2rem;
+    margin-bottom: 15px; position: relative;
+    padding-left: 12px;
+}
+.section-title::before {
+    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+    width: 4px; background: var(--primary); border-radius: 2px;
 }
 
-.filter-tag::after {
-    content: '\f00d'; /* FontAwesome X icon */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    margin-left: 8px;
-    font-size: 0.75rem;
-    color: #999;
+/* Thẻ Agent (Liên hệ bên phải) */
+.agent-card {
+    position: sticky; top: 100px;
+    background: #fff; padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
-/* --- 3. GIAO DIỆN HALF-MAP (Bản đồ chia đôi) --- */
-.half-map-container {
-    height: calc(100vh - 76px); /* Full chiều cao trừ navbar */
-    overflow: hidden;
-    position: relative;
-    margin-top: 0 !important; /* Ghi đè margin mặc định */
+/* =========================================
+   5. TRANG BẢN ĐỒ (MAP SEARCH)
+   ========================================= */
+/* Layout chia đôi: Trái (List) - Phải (Map) */
+.map-layout-grid {
+    display: grid;
+    grid-template-columns: 680px 1fr; /* Cột trái rộng 680px để chứa 2 cột Card */
+    height: calc(100vh - 76px); /* Full màn hình trừ menu */
+    /* margin-top: -24px; Loại bỏ margin thừa nếu có */
 }
 
+/* Cột danh sách bên trái */
 .half-map-list {
     height: 100%;
-    overflow-y: auto; /* Scroll danh sách riêng */
-    padding: 20px;
-    background: #f9f9f9;
+    overflow-y: auto; /* Cho phép cuộn dọc */
+    background: #f8f9fa;
+    border-right: 1px solid #ddd;
+    display: flex; flex-direction: column;
 }
 
+/* Cột bản đồ bên phải */
 .half-map-view {
     height: 100%;
     width: 100%;
+    position: relative;
 }
 
-/* Card trong trang Map nhỏ hơn chút cho đẹp */
-.half-map-list .room-card .card-img-top { height: 180px; }
-.half-map-list .room-card h6 { font-size: 0.9rem; }
+/* Responsive cho Mobile (Map lên đầu) */
+@media (max-width: 992px) {
+    .map-layout-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+        display: flex; flex-direction: column;
+    }
+    .half-map-view { height: 400px; order: -1; position: sticky; top: 76px; z-index: 100; }
+    .half-map-list { height: auto; overflow: visible; }
+}
+
+/* Icon định vị (Marker hình giọt nước) */
+.custom-map-marker { display: flex; justify-content: center; align-items: center; }
+.marker-pin {
+    width: 40px; height: 40px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--primary);
+    position: absolute; transform: rotate(-45deg);
+    left: 50%; top: 50%; margin: -20px 0 0 -20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    border: 2px solid #fff;
+    display: flex; justify-content: center; align-items: center;
+}
+.marker-pin i {
+    transform: rotate(45deg); color: #fff; font-size: 18px; margin-top: 2px; margin-left: 2px;
+}
+/* Hiệu ứng nhún khi di chuột vào marker */
+.marker-pin:hover {
+    transform: rotate(-45deg) scale(1.1);
+    background: var(--primary-dark);
+    transition: 0.2s;
+}
+
+/* Style cho Popup bản đồ */
+.leaflet-popup-content-wrapper { border-radius: 8px; overflow: hidden; padding: 0; }
+.leaflet-popup-content { margin: 15px; width: 220px !important; }
+
+/* Nút "Xem chi tiết" trong Popup (Vàng, Chữ đen, Phẳng) */
+.btn-popup-custom {
+    display: block; width: 100%;
+    background-color: var(--primary) !important;
+    color: #000 !important;
+    font-weight: 700; text-align: center;
+    padding: 8px 0; border-radius: 4px;
+    margin-top: 8px; text-decoration: none;
+    box-shadow: none !important;
+    transition: background 0.2s;
+}
+.btn-popup-custom:hover {
+    background-color: var(--primary-dark) !important;
+    color: #000 !important;
+}
+
+/* =========================================
+   6. FOOTER & CÁC THÀNH PHẦN KHÁC
+   ========================================= */
+footer {
+    background: #212529; color: #fff;
+    padding: 50px 0 30px; margin-top: 50px;
+}
+/* Logo dưới Footer to hơn chút */
+footer .logo-img { height: 60px; margin-bottom: 15px; }
+
+/* Màn hình Loading */
+.loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #fff; z-index: 9999;
+    display: flex; justify-content: center; align-items: center; flex-direction: column;
+}
+
+/* Thanh lọc trôi (Sticky Filter Bar) */
+.active-filter-bar {
+    position: fixed; top: 76px; left: 0; width: 100%;
+    background: #fff; z-index: 1030;
+    padding: 10px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border-bottom: 1px solid #eee;
+    display: none; /* Mặc định ẩn, hiện bằng JS */
+}
+
+/* Tag hiển thị trong thanh lọc */
+.filter-tag {
+    background: #fff; border: 1px solid #ddd;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 0.85rem; font-weight: 600;
+    margin-right: 8px; cursor: pointer;
+    display: inline-flex; align-items: center;
+    white-space: nowrap;
+}
+.filter-tag:hover { border-color: var(--primary); color: var(--primary-dark); }
+/* Icon đóng (x) */
+.filter-tag::after {
+    content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+    margin-left: 6px; font-size: 0.7rem; color: #999;
+}
