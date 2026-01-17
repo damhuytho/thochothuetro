@@ -302,11 +302,16 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
-        // TĂNG ZOOM MẶC ĐỊNH LÊN 17
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 17);
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 20); // Zoom xa hơn tí cho bao quát
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
-    runInternalFilter('all', false);
+    
+    // --- SỬA: Mặc định chọn Phú Nhuận ---
+    const defaultDist = "Phú Nhuận";
+    const dSelect = document.getElementById('f-district');
+    if(dSelect) dSelect.value = defaultDist; // Gán giá trị cho dropdown
+    
+    runInternalFilter(defaultDist, false); // Chạy lọc theo Phú Nhuận
 }
 
 function renderHalfMapList(rooms) {
@@ -749,6 +754,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
