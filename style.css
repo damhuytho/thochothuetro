@@ -145,3 +145,60 @@ body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var
     .gallery-container { gap: 8px; }
     .gallery-thumbs-grid { gap: 8px; }
 }
+/* --- THANH HIỂN THỊ BỘ LỌC (STICKY FILTER BAR) --- */
+.active-filter-bar {
+    position: fixed;
+    top: 76px; /* Nằm ngay dưới Navbar */
+    left: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 1040;
+    padding: 10px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    display: none; /* Ẩn mặc định, hiện khi JS gọi */
+    border-bottom: 1px solid #eee;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.filter-tag {
+    display: inline-block;
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 8px;
+    border: 1px solid #ffeeba;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tag:hover {
+    background: #ffeeba;
+    transform: translateY(-1px);
+}
+
+.filter-tag i { margin-left: 5px; font-size: 10px; opacity: 0.7; }
+
+/* --- NÚT XEM THÊM --- */
+.btn-load-more {
+    background: white;
+    color: var(--primary-dark);
+    border: 1px solid var(--primary);
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-load-more:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+}
