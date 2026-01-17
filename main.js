@@ -20,7 +20,7 @@ const LOAD_MORE_STEP = 9;
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
     setupStickyFilterBar();
-    highlightCurrentMenu(); // Tự động active menu
+    highlightCurrentMenu();
 });
 
 async function fetchData() {
@@ -93,7 +93,7 @@ function detectPageAndRender() {
         return;
     }
 
-    // 2. TRANG HALF-MAP (Bản đồ tìm kiếm)
+    // 2. TRANG HALF-MAP (Bản đồ)
     if (path.includes("map-search")) {
         renderHalfMapPage();
         return;
@@ -198,23 +198,27 @@ window.applyFilters = function() {
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
     const path = window.location.pathname;
 
-    let targetPage = '';
+    // SỬA LỖI 2: Nếu đang ở trang Map thì KHÔNG chuyển trang
+    const isMapPage = path.includes("map-search");
 
-    if (districtVal === 'Tân Bình' && !path.includes('tan-binh')) {
-        targetPage = 'tan-binh.html';
-    } else if (districtVal === 'Phú Nhuận' && !path.includes('phu-nhuan')) {
-        targetPage = 'phu-nhuan.html';
-    } else if (districtVal === 'all' && (path.includes('tan-binh') || path.includes('phu-nhuan'))) {
-        targetPage = 'index.html'; 
-    }
+    if (!isMapPage) {
+        let targetPage = '';
+        if (districtVal === 'Tân Bình' && !path.includes('tan-binh')) {
+            targetPage = 'tan-binh.html';
+        } else if (districtVal === 'Phú Nhuận' && !path.includes('phu-nhuan')) {
+            targetPage = 'phu-nhuan.html';
+        } else if (districtVal === 'all' && (path.includes('tan-binh') || path.includes('phu-nhuan'))) {
+            targetPage = 'index.html'; 
+        }
 
-    if (targetPage) {
-        const params = new URLSearchParams();
-        if (typeVal !== 'all') params.set('type', typeVal);
-        if (priceVal !== 'all') params.set('price', priceVal);
-        if (checkedAmenities.length > 0) params.set('amenities', checkedAmenities.join(','));
-        window.location.href = `${targetPage}?${params.toString()}`;
-        return;
+        if (targetPage) {
+            const params = new URLSearchParams();
+            if (typeVal !== 'all') params.set('type', typeVal);
+            if (priceVal !== 'all') params.set('price', priceVal);
+            if (checkedAmenities.length > 0) params.set('amenities', checkedAmenities.join(','));
+            window.location.href = `${targetPage}?${params.toString()}`;
+            return;
+        }
     }
 
     collapseFilterBox();
@@ -363,8 +367,6 @@ function highlightCurrentMenu() {
     navLinks.forEach(link => {
         link.classList.remove('active');
         const href = link.getAttribute('href');
-        
-        // Logic so sánh đường dẫn
         if (path.includes(href) && href !== 'index.html') {
             link.classList.add('active');
         } else if ((path === '/' || path.endsWith('index.html') || path === '') && href === 'index.html') {
@@ -475,7 +477,7 @@ window.loadMoreItems = function() {
     const path = window.location.pathname;
     
     if (path.includes("map-search")) {
-        // Map page load all/scroll
+        // Map page load all
     } else if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
          if (document.getElementById('search-results').style.display === 'block') {
              renderGridWithPagination(document.getElementById('products-grid'), currentFilteredRooms);
@@ -545,8 +547,9 @@ function createCardHTML(room) {
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
+    // SỬA LỖI 1: Xóa class w-100 để không bị vỡ grid 1 cột
     return `
-        <div class="col-6 col-md-4 col-lg-4 w-100">
+        <div class="col-6 col-md-4 col-lg-4">
             <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
                 <div class="position-relative">
                     <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy" style="height: 220px;">
