@@ -92,40 +92,44 @@ a { text-decoration: none; }
     height: 100%; width: 100%; position: relative;
 }
 
-/* --- MOBILE RESPONSIVE: MENU & MAP --- */
+/* --- 1. SỬA LỖI PADDING & STICKY BAR KHI BỎ MENU FIXED --- */
+body {
+    padding-top: 0 !important; /* Bỏ khoảng trắng trên cùng do menu fixed gây ra */
+}
+
+.active-filter-bar {
+    top: 0 !important; /* Đẩy thanh lọc dính sát mép trên cùng màn hình */
+}
+
+/* --- 2. GIAO DIỆN MOBILE (MAP TRÊN, MENU GỌN) --- */
 @media (max-width: 992px) {
-    /* 1. MENU: Biến menu ẩn thành thanh ngang dưới logo */
-    .navbar-toggler { display: none !important; } /* Ẩn nút 3 gạch */
+    /* MENU: Hiển thị dạng lưới, tự xuống dòng, căn giữa */
+    .navbar-toggler { display: none !important; }
     
     .navbar-collapse {
-        display: block !important; /* Luôn hiện menu */
+        display: block !important;
         border-top: 1px solid #f0f0f0;
-        padding: 5px 0 0 0;
+        padding: 10px 0;
         background: #fff;
     }
 
     .navbar-nav {
-        flex-direction: row !important; /* Xếp hàng ngang */
-        overflow-x: auto; /* Cho phép trượt ngang nếu màn hình nhỏ */
-        white-space: nowrap;
-        padding-bottom: 5px;
-        gap: 5px;
-        align-items: center;
-        /* Ẩn thanh cuộn xấu xí */
-        -ms-overflow-style: none;  
-        scrollbar-width: none;  
+        flex-direction: row !important;
+        flex-wrap: wrap; /* Tự động xuống dòng nếu hết chỗ -> Không bị ẩn nút */
+        justify-content: center; /* Căn giữa cho đẹp */
+        gap: 8px;
     }
-    .navbar-nav::-webkit-scrollbar { display: none; }
 
     .nav-item { margin: 0; }
     
     .nav-link {
         font-size: 0.85rem;
-        padding: 6px 12px !important;
+        padding: 6px 15px !important;
         border-radius: 20px;
         background: #f8f9fa;
         color: #555;
         border: 1px solid #eee;
+        display: inline-block;
     }
     
     .nav-link.active {
@@ -134,40 +138,33 @@ a { text-decoration: none; }
         border-color: var(--primary);
     }
     
-    /* Nút Zalo trên mobile cho gọn lại */
-    .navbar-collapse .btn-primary {
-        font-size: 0.8rem;
-        padding: 5px 10px;
-        white-space: nowrap;
-        margin-left: 5px;
+    /* Nút Zalo */
+    .ms-lg-3 {
+        text-align: center;
+        margin-top: 10px !important;
+        width: 100%;
     }
 
-    /* 2. LAYOUT MAP: Sửa lỗi hiển thị */
+    /* MAP LAYOUT: Đảo ngược cột để Map lên đầu */
     .map-layout-grid {
         display: flex;
-        flex-direction: column; /* Map ở trên, List ở dưới */
+        flex-direction: column-reverse; /* Đảo ngược: View (Map) lên đầu, List xuống dưới */
         height: auto;
-        margin-top: 10px; /* Cách menu ra một chút */
     }
     
     .half-map-view { 
-        height: 35vh; /* Map chiếm 35% màn hình */
+        height: 40vh; /* Map cao 40% màn hình */
         width: 100%; 
-        position: sticky;
-        top: 125px; /* Dính ở dưới menu (Logo + Menu ngang ~ 125px) */
-        z-index: 90; 
-        border-bottom: 2px solid var(--primary);
+        position: relative; /* Không dùng sticky nữa để tránh lỗi đè */
+        z-index: 1; 
     }
     
     .half-map-list { 
         background: #fff;
-        z-index: 95; /* List đè lên Map khi cuộn */
-        position: relative;
-        padding-top: 10px;
-        min-height: 60vh;
+        z-index: 2;
+        padding-top: 0;
     }
 }
-
 /* Marker & Popup */
 .custom-map-marker { display: flex; justify-content: center; align-items: center; }
 .marker-pin {
@@ -252,4 +249,5 @@ footer .logo-img { height: 60px; margin-bottom: 15px; }
     margin-top: 0;
     margin-right: 8px;
 }
+
 
