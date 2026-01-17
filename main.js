@@ -7,14 +7,6 @@ const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận", "Bình Thạnh", "Gò 
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy", "Full nội thất", "Giờ giấc tự do"];
 
-// CẤU HÌNH TRANG KHU VỰC (Mapping URL -> Tên Quận trong Data)
-// Logic: Nếu tên file là "tan-binh.html" thì tự hiểu là đang lọc "Tân Bình"
-const PAGE_CONFIG = {
-    "tan-binh.html": "Tân Bình",
-    "phu-nhuan.html": "Phú Nhuận",
-    // Sau này thêm quận mới thì thêm vào đây: "go-vap.html": "Gò Vấp"
-};
-
 let allRooms = [];
 let expandedDistricts = new Set();
 let map = null; 
@@ -46,6 +38,7 @@ function processData(csvText) {
     // Map dữ liệu
     allRooms = rows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
+        // Chuẩn hóa tên quận (giữ nguyên nếu không có Q.)
         if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
             districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
         }
@@ -77,31 +70,39 @@ function processData(csvText) {
     } else {
         initFilters(); 
         
-        // --- LOGIC MỚI: TỰ ĐỘNG PHÁT HIỆN TRANG ---
-        const currentPage = window.location.pathname.split("/").pop(); // Lấy tên file (vd: tan-binh.html)
-        const targetDistrict = PAGE_CONFIG[currentPage];
+        // --- LOGIC NHẬN DIỆN TRANG (MỚI - MẠNH MẼ HƠN) ---
+        const path = window.location.pathname;
+        let targetDistrict = null;
+
+        // Kiểm tra URL chứa từ khóa (An toàn hơn so với check tên file chính xác)
+        if (path.includes("tan-binh") || path.includes("tanbinh")) {
+            targetDistrict = "Tân Bình";
+        } else if (path.includes("phu-nhuan") || path.includes("phunhuan")) {
+            targetDistrict = "Phú Nhuận";
+        }
 
         if (targetDistrict) {
-            // Nếu đang ở trang con (Tân Bình/Phú Nhuận)
-            // 1. Ẩn bộ lọc quận đi (vì trang này chỉ bán 1 quận)
+            console.log("Phát hiện trang khu vực:", targetDistrict);
+
+            // 1. Ẩn bộ lọc quận đi
             const districtFilterContainer = document.getElementById('district-filter')?.parentElement;
             if(districtFilterContainer) districtFilterContainer.style.display = 'none';
 
-            // 2. Set cứng giá trị lọc và chạy luôn
+            // 2. Ép buộc lọc theo quận
             applyFilters(targetDistrict); 
             
-            // 3. Đổi tiêu đề trang chủ để khách biết
+            // 3. Đổi tiêu đề
             const homeContent = document.getElementById('home-content');
-            if(homeContent) homeContent.innerHTML = `<h2 class="fw-bold mb-4">Phòng trọ tại ${targetDistrict}</h2>`;
+            if(homeContent) homeContent.innerHTML = `<h2 class="fw-bold mb-4 border-bottom pb-2">Phòng trọ tại ${targetDistrict}</h2>`;
         } else {
-            // Nếu là trang chủ (index.html)
+            // Trang chủ
             applyFilters(); 
         }
     }
 }
 
 // =========================================================
-// 3. LOGIC TRANG CHỦ & BỘ LỌC (ĐÃ SỬA ĐỂ REDIRECT)
+// 3. LOGIC TRANG CHỦ & BỘ LỌC
 // =========================================================
 function initFilters() {
     const districtSelect = document.getElementById('district-filter');
@@ -112,21 +113,10 @@ function initFilters() {
         uniqueDistricts.forEach(d => html += `<option value="${d}">${d}</option>`);
         districtSelect.innerHTML = html;
         
-        // SỰ KIỆN KHI CHỌN QUẬN Ở TRANG CHỦ
         districtSelect.addEventListener('change', function() {
             const val = this.value;
-            
-            // LOGIC REDIRECT: Chuyển hướng nếu chọn quận có trang riêng
-            if (val === "Tân Bình") {
-                window.location.href = "tan-binh.html";
-                return;
-            }
-            if (val === "Phú Nhuận") {
-                window.location.href = "phu-nhuan.html";
-                return;
-            }
-            
-            // Nếu chọn "Tất cả" hoặc quận chưa có trang riêng -> Lọc tại chỗ
+            if (val === "Tân Bình") { window.location.href = "tan-binh.html"; return; }
+            if (val === "Phú Nhuận") { window.location.href = "phu-nhuan.html"; return; }
             applyFilters();
         });
     }
@@ -136,7 +126,7 @@ function initFilters() {
         let html = '<option value="all">Tất cả Loại phòng</option>';
         ROOM_TYPES.forEach(t => html += `<option value="${t}">${t}</option>`);
         typeSelect.innerHTML = html;
-        typeSelect.addEventListener('change', () => applyFilters()); // Giữ nguyên trang, chỉ lọc
+        typeSelect.addEventListener('change', () => applyFilters()); 
     }
 
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
@@ -153,13 +143,14 @@ function initFilters() {
     }
 }
 
-// Hàm lọc (Nhận tham số forcedDistrict để ép buộc lọc theo quận nếu ở trang con)
 function applyFilters(forcedDistrict = null) {
-    // 1. Lấy giá trị từ bộ lọc
     let districtVal = forcedDistrict || document.getElementById('district-filter')?.value || 'all';
     
-    // Nếu đang ở trang con (vd: tan-binh.html) thì districtVal đã được set cứng là "Tân Bình"
-    
+    // Check lại lần nữa phòng hờ
+    const path = window.location.pathname;
+    if (path.includes("tan-binh") || path.includes("tanbinh")) districtVal = "Tân Bình";
+    if (path.includes("phu-nhuan") || path.includes("phunhuan")) districtVal = "Phú Nhuận";
+
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
@@ -173,9 +164,7 @@ function applyFilters(forcedDistrict = null) {
         return true;
     });
 
-    // Sắp xếp: Ưu tiên Khuyến Mại
     filtered.sort((a, b) => (b.promotion.length > 0) - (a.promotion.length > 0));
-    
     renderGroupedByDistrict(filtered);
 }
 
@@ -183,14 +172,12 @@ function renderGroupedByDistrict(rooms) {
     const container = document.getElementById('home-content');
     if (!container) return;
     
-    // Nếu là trang chủ thì giữ nguyên container để không mất tiêu đề nếu có
-    // Nếu là load lại thì clear nội dung cũ
-    const existingTitle = container.querySelector('h2'); // Giữ lại tiêu đề trang con nếu có
+    const existingTitle = container.querySelector('h2'); 
     container.innerHTML = '';
     if(existingTitle) container.appendChild(existingTitle);
 
     if (rooms.length === 0) {
-        container.innerHTML += '<div class="alert alert-warning text-center">Không tìm thấy phòng phù hợp!</div>';
+        container.innerHTML += '<div class="alert alert-warning text-center mt-3">Hiện chưa có phòng nào phù hợp tiêu chí này!</div>';
         return;
     }
 
@@ -201,53 +188,15 @@ function renderGroupedByDistrict(rooms) {
         grouped[dName].push(room);
     });
 
-    // Sắp xếp quận
-    const sortedDistricts = Object.keys(grouped).sort((a, b) => {
-        const idxA = PRIORITY_DISTRICTS.indexOf(a);
-        const idxB = PRIORITY_DISTRICTS.indexOf(b);
-        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-        if (idxA !== -1) return -1;
-        if (idxB !== -1) return 1;
-        return a.localeCompare(b);
-    });
+    const sortedDistricts = Object.keys(grouped).sort();
 
     sortedDistricts.forEach(district => {
         const districtRooms = grouped[district];
-        const isExpanded = expandedDistricts.has(district);
-        const displayRooms = isExpanded ? districtRooms : districtRooms.slice(0, 6);
-
-        const section = document.createElement('div');
-        section.className = 'mb-5 district-section';
-        
-        let html = `
-            <h3 class="fw-bold mb-3 border-start border-4 border-primary ps-3 text-uppercase d-flex align-items-center">
-                ${district} <span class="badge bg-light text-dark border ms-2 rounded-pill fs-6">${districtRooms.length}</span>
-            </h3>
-            <div class="row g-3">
-        `;
-        displayRooms.forEach(room => html += createCardHTML(room));
+        let html = `<div class="row g-3 mt-2">`;
+        districtRooms.forEach(room => html += createCardHTML(room));
         html += `</div>`;
-
-        if (!isExpanded && districtRooms.length > 6) {
-            html += `
-                <div class="text-center mt-3">
-                    <button class="btn btn-outline-primary rounded-pill px-4" onclick="expandDistrict('${district}')">
-                        Xem thêm ${districtRooms.length - 6} căn tại ${district} <i class="fas fa-chevron-down ms-1"></i>
-                    </button>
-                </div>
-            `;
-        }
-        section.innerHTML += html; // Append thay vì overwrite để giữ tiêu đề
-        container.appendChild(section);
+        container.innerHTML += html;
     });
-}
-
-function expandDistrict(districtName) {
-    expandedDistricts.add(districtName);
-    // Khi bấm xem thêm, ta cần biết đang ở trang nào để gọi applyFilters cho đúng
-    const currentPage = window.location.pathname.split("/").pop();
-    const targetDistrict = PAGE_CONFIG[currentPage];
-    applyFilters(targetDistrict); 
 }
 
 function createCardHTML(room) {
