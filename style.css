@@ -222,3 +222,99 @@ body { font-family: 'Lexend', sans-serif; background: var(--gray-bg); color: var
 .btn-expand-filter:hover {
     background: #fff3cd;
 }
+/* --- 1. PAGE HEADER (Giống ảnh bạn gửi) --- */
+.page-header-block {
+    background-color: #333; /* Màu xám đen nền */
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    padding: 60px 0;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.page-header-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.breadcrumb-custom {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.95rem;
+}
+.breadcrumb-custom a { color: #fff; text-decoration: none; }
+.breadcrumb-custom i { margin: 0 8px; font-size: 0.8rem; }
+
+/* --- 2. THANH ACTIVE FILTER BAR (Sửa lại cho thoáng) --- */
+.active-filter-bar {
+    position: fixed; top: 76px; left: 0; width: 100%;
+    background: #fff; z-index: 1030;
+    padding: 12px 0; /* Tăng padding */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #eee;
+    animation: slideDown 0.3s ease-out;
+    display: none;
+}
+
+.filter-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Tạo khoảng cách giữa các thẻ */
+    align-items: center;
+}
+
+.filter-tag {
+    background: #fff;
+    color: var(--text-dark);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.filter-tag:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.filter-tag::after {
+    content: '\f00d'; /* FontAwesome X icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-left: 8px;
+    font-size: 0.75rem;
+    color: #999;
+}
+
+/* --- 3. GIAO DIỆN HALF-MAP (Bản đồ chia đôi) --- */
+.half-map-container {
+    height: calc(100vh - 76px); /* Full chiều cao trừ navbar */
+    overflow: hidden;
+    position: relative;
+    margin-top: 0 !important; /* Ghi đè margin mặc định */
+}
+
+.half-map-list {
+    height: 100%;
+    overflow-y: auto; /* Scroll danh sách riêng */
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+.half-map-view {
+    height: 100%;
+    width: 100%;
+}
+
+/* Card trong trang Map nhỏ hơn chút cho đẹp */
+.half-map-list .room-card .card-img-top { height: 180px; }
+.half-map-list .room-card h6 { font-size: 0.9rem; }
