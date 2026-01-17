@@ -3,19 +3,23 @@
 // =========================================================
 const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
+// [QUAN TRỌNG] BẠN HÃY DÁN LINK CSV CỦA SHEET "DB_TienIch" VÀO DÒNG DƯỚI ĐÂY:
+const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv'; 
+
 const PRIORITY_DISTRICTS = ["Tân Bình", "Phú Nhuận"];
 const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy"];
 const SPECIAL_AMENITIES_OR = ["ban công", "cửa sổ"]; 
 
 let allRooms = [];
+let allAmenities = []; 
 let map = null;
 let currentFilteredRooms = []; 
 let currentLimit = 6;          
 const LOAD_MORE_STEP = 9;      
 
 // =========================================================
-// 2. KHỞI TẠO & FETCH DATA
+// 2. KHỞI TẠO & FETCH DATA (TẢI SONG SONG 2 FILE)
 // =========================================================
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
@@ -28,19 +32,30 @@ async function fetchData() {
     if (loading) loading.style.display = 'flex';
 
     try {
-        const response = await fetch(SHEET_API);
-        const text = await response.text();
-        processData(text);
+        // Tải cả file Phòng và file Tiện ích cùng lúc
+        const [roomsResponse, amenitiesResponse] = await Promise.all([
+            fetch(SHEET_API),
+            fetch(AMENITIES_API)
+        ]);
+
+        const roomsText = await roomsResponse.text();
+        const amenitiesText = await amenitiesResponse.text();
+
+        processData(roomsText, amenitiesText);
+
     } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);
-        if (loading) loading.innerHTML = '<p class="text-white">Lỗi kết nối server!</p>';
+        // Nếu lỗi tải tiện ích (do chưa dán link), vẫn hiển thị phòng bình thường
+        if (allRooms.length === 0 && loading) {
+            loading.innerHTML = '<p class="text-white">Đang tải danh sách phòng...</p>';
+        }
     }
 }
 
-function processData(csvText) {
-    const rows = parseCSV(csvText);
-    
-    allRooms = rows.slice(1).map(row => {
+function processData(roomsCsv, amenitiesCsv) {
+    // --- 1. XỬ LÝ DỮ LIỆU PHÒNG (Nguonhang.csv) ---
+    const roomRows = parseCSV(roomsCsv);
+    allRooms = roomRows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
         if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
             districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
@@ -70,6 +85,26 @@ function processData(csvText) {
             amenities_search: (row[5] || "").toLowerCase()
         };
     }).filter(item => item.id && item.price > 0); 
+
+    // --- 2. XỬ LÝ DỮ LIỆU TIỆN ÍCH (DB_TienIch.csv) ---
+    // Mapping: Cột B(1)=Tên, C(2)=Loại, H(7)=Lat, I(8)=Lng
+    if (amenitiesCsv) {
+        const amenityRows = parseCSV(amenitiesCsv);
+        allAmenities = amenityRows.slice(1).map(row => {
+            // Kiểm tra xem dòng có đủ dữ liệu tọa độ không
+            const lat = parseFloat(row[7]);
+            const lng = parseFloat(row[8]);
+            
+            if (isNaN(lat) || isNaN(lng)) return null;
+
+            return {
+                name: (row[1] || "Tiện ích").trim(), // Cột B
+                type: (row[2] || "Khác").trim(),     // Cột C
+                lat: lat,                            // Cột H
+                lng: lng                             // Cột I
+            };
+        }).filter(item => item !== null);
+    }
 
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
@@ -119,15 +154,8 @@ function detectPageAndRender() {
                 if(cb) cb.checked = true;
             });
         }
-
         renderPageHeader(`Phòng trọ ${targetDistrict}`, targetDistrict);
-
-        if (urlType || urlPrice || urlAmenities) {
-             runInternalFilter(targetDistrict, true); 
-        } else {
-             runInternalFilter(targetDistrict, false);
-        }
-
+        runInternalFilter(targetDistrict, !!(urlType || urlPrice || urlAmenities)); 
     } else {
         renderHomePageGroups();
     }
@@ -182,9 +210,8 @@ function initFilters() {
 }
 
 // =========================================================
-// 4. XỬ LÝ LỌC & CHUYỂN TRANG
+// 4. XỬ LÝ LỌC
 // =========================================================
-
 window.applyFilters = function() {
     const districtVal = document.getElementById('f-district')?.value || 'all';
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
@@ -196,13 +223,9 @@ window.applyFilters = function() {
 
     if (!isMapPage) {
         let targetPage = '';
-        if (districtVal === 'Tân Bình' && !path.includes('tan-binh')) {
-            targetPage = 'tan-binh.html';
-        } else if (districtVal === 'Phú Nhuận' && !path.includes('phu-nhuan')) {
-            targetPage = 'phu-nhuan.html';
-        } else if (districtVal === 'all' && (path.includes('tan-binh') || path.includes('phu-nhuan'))) {
-            targetPage = 'index.html'; 
-        }
+        if (districtVal === 'Tân Bình' && !path.includes('tan-binh')) targetPage = 'tan-binh.html';
+        else if (districtVal === 'Phú Nhuận' && !path.includes('phu-nhuan')) targetPage = 'phu-nhuan.html';
+        else if (districtVal === 'all' && (path.includes('tan-binh') || path.includes('phu-nhuan'))) targetPage = 'index.html'; 
 
         if (targetPage) {
             const params = new URLSearchParams();
@@ -215,11 +238,9 @@ window.applyFilters = function() {
     }
 
     collapseFilterBox();
-    
     let finalDistrictVal = districtVal;
     if (path.includes("tan-binh")) finalDistrictVal = "Tân Bình";
     if (path.includes("phu-nhuan")) finalDistrictVal = "Phú Nhuận";
-
     runInternalFilter(finalDistrictVal, true);
     
     if (window.innerWidth < 992) {
@@ -245,26 +266,23 @@ function runInternalFilter(districtVal, isFilteredAction) {
             if (room.price < min || room.price > max) return false;
         }
         
-        if (normalReqs.length > 0) {
-            if (!normalReqs.every(req => room.amenities_search.includes(req))) return false;
-        }
-
-        if (specialReqs.length > 0) {
-            if (!specialReqs.some(req => room.amenities_search.includes(req))) return false;
-        }
+        if (normalReqs.length > 0) if (!normalReqs.every(req => room.amenities_search.includes(req))) return false;
+        if (specialReqs.length > 0) if (!specialReqs.some(req => room.amenities_search.includes(req))) return false;
         return true;
     });
 
-    // Sắp xếp: Ưu tiên có ảnh -> Ưu tiên có khuyến mãi
+    // Sắp xếp: Ưu tiên Khuyến mại -> Ưu tiên có Ảnh
     filtered.sort((a, b) => {
+        const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
+        const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
+        if (aPromo !== bPromo) return bPromo - aPromo;
         const aHasImage = a.image_detail.length > 0 ? 1 : 0;
         const bHasImage = b.image_detail.length > 0 ? 1 : 0;
-        if (bHasImage !== aHasImage) return bHasImage - aHasImage;
-        return (b.promotion.length > 0) - (a.promotion.length > 0);
+        return bHasImage - aHasImage;
     });
 
     currentFilteredRooms = filtered;
-    currentLimit = 6; // Reset lại số lượng hiển thị ban đầu là 6
+    currentLimit = 6; 
     
     const path = window.location.pathname;
     
@@ -273,7 +291,6 @@ function runInternalFilter(districtVal, isFilteredAction) {
         renderHalfMapMarkers(filtered);
     } else {
         const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
-        
         if (isHomePage && districtVal === 'all') {
             document.getElementById('home-content').style.display = 'none';
             document.getElementById('search-results').style.display = 'block';
@@ -285,33 +302,28 @@ function runInternalFilter(districtVal, isFilteredAction) {
         }
     }
 
-    // --- LOGIC MỚI: KIỂM TRA ĐỂ ẨN STICKY BAR NẾU TRÙNG QUẬN ---
     let ignoreDistrictInBar = false;
     if (path.includes('tan-binh') && districtVal === 'Tân Bình') ignoreDistrictInBar = true;
     if (path.includes('phu-nhuan') && districtVal === 'Phú Nhuận') ignoreDistrictInBar = true;
 
-    // Chỉ hiện bar nếu có filter khác hoặc district KHÔNG phải là mặc định của trang
     const hasActiveFilter = ((districtVal !== 'all' && !ignoreDistrictInBar) || typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
-    
     updateActiveFilterBar(districtVal, typeVal, priceVal, checkedAmenities, hasActiveFilter);
 }
 
 // =========================================================
-// 5. HALF MAP LOGIC
+// 5. HALF MAP LOGIC (CÓ TIỆN ÍCH)
 // =========================================================
 
 function renderHalfMapPage() {
     if (!map) {
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 18); // Zoom xa hơn tí cho bao quát
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     
-    // --- SỬA: Mặc định chọn Phú Nhuận ---
     const defaultDist = "Phú Nhuận";
     const dSelect = document.getElementById('f-district');
-    if(dSelect) dSelect.value = defaultDist; // Gán giá trị cho dropdown
-    
-    runInternalFilter(defaultDist, false); // Chạy lọc theo Phú Nhuận
+    if(dSelect) dSelect.value = defaultDist; 
+    runInternalFilter(defaultDist, false);
 }
 
 function renderHalfMapList(rooms) {
@@ -323,11 +335,10 @@ function renderHalfMapList(rooms) {
         return;
     }
 
-    // Cắt danh sách theo limit hiện tại
     const roomsToShow = rooms.slice(0, currentLimit);
     const hasMore = rooms.length > currentLimit;
 
-    // col-6: Mobile 2 cột | col-sm-6: Tablet/PC nhỏ 2 cột
+    // Lưới 2 cột cho Mobile
     const htmlItems = roomsToShow.map(room => `
         <div class="col-6 col-sm-6 mb-3">
             ${createCardHTML(room)}
@@ -336,7 +347,6 @@ function renderHalfMapList(rooms) {
     
     let fullHtml = `<div class="row g-2 p-2">${htmlItems}</div>`;
 
-    // Thêm nút Xem thêm nếu còn phòng
     if (hasMore) {
         fullHtml += `
             <div class="text-center pb-3">
@@ -354,7 +364,8 @@ function renderHalfMapMarkers(rooms) {
         if (layer instanceof L.Marker) map.removeLayer(layer);
     });
 
-    const customIcon = L.divIcon({
+    // --- MARKER CĂN HỘ (To, màu vàng) ---
+    const roomIcon = L.divIcon({
         className: 'custom-map-marker',
         html: '<div class="marker-pin"><i class="fas fa-home"></i></div>',
         iconSize: [40, 40],
@@ -364,19 +375,42 @@ function renderHalfMapMarkers(rooms) {
 
     const bounds = [];
     rooms.forEach(room => {
-        const marker = L.marker([room.lat, room.lng], { icon: customIcon }).addTo(map);
+        const marker = L.marker([room.lat, room.lng], { icon: roomIcon, zIndexOffset: 1000 }).addTo(map);
         marker.bindPopup(`
-            <div style="width: 220px;">
+            <div style="width: 200px;">
                 <img src="${room.image_detail[0] || ''}" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; margin-bottom:8px;">
                 <div class="fw-bold text-primary mb-1">${room.room_code}</div>
                 <div class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${cleanAddress(room.address)}</div>
+                <div class="text-danger fw-bold small mb-2">${formatMoney(room.price)}/tháng</div>
                 <a href="detail.html?id=${encodeURIComponent(room.id)}" class="btn-popup-custom">Xem chi tiết</a>
             </div>
         `);
         bounds.push([room.lat, room.lng]);
     });
 
-    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+    // --- MARKER TIỆN ÍCH (Nhỏ, màu xanh) ---
+    const amenityIcon = L.divIcon({
+        className: 'custom-map-marker-amenity',
+        // Hình tròn màu xanh dương, icon cửa hàng
+        html: '<div style="width:24px; height:24px; background:#3498db; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; color:#fff;"><i class="fas fa-store" style="font-size:10px;"></i></div>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -15]
+    });
+
+    allAmenities.forEach(am => {
+        // Chỉ vẽ nếu tiện ích nằm gần khu vực đang hiển thị (tùy chọn, ở đây vẽ hết cho đơn giản)
+        const marker = L.marker([am.lat, am.lng], { icon: amenityIcon, zIndexOffset: 500 }).addTo(map);
+        marker.bindPopup(`
+            <div class="text-center p-1">
+                <div class="fw-bold text-primary small">${am.name}</div>
+                <div class="text-muted" style="font-size:11px;">${am.type}</div>
+            </div>
+        `);
+    });
+
+    // Fit Bounds chỉ theo danh sách phòng (để khách tập trung vào phòng)
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
 }
 
 // =========================================================
@@ -428,7 +462,6 @@ function setupStickyFilterBar() {
             </div>`;
         document.body.appendChild(bar);
     }
-    
     window.addEventListener('scroll', () => {
         const bar = document.getElementById('active-filter-bar');
         if (bar.classList.contains('show')) {
@@ -500,7 +533,6 @@ function renderGridWithPagination(container, rooms) {
     const roomsToShow = rooms.slice(0, currentLimit);
     const hasMore = rooms.length > currentLimit;
 
-    // Bọc trong Row để Grid hoạt động đúng ở Trang chủ
     let html = `<div class="row g-3">`;
     roomsToShow.forEach(room => {
         html += `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`;
@@ -514,19 +546,16 @@ function renderGridWithPagination(container, rooms) {
 }
 
 window.loadMoreItems = function() {
-    currentLimit += LOAD_MORE_STEP; // Tăng thêm 9
+    currentLimit += LOAD_MORE_STEP; 
     const path = window.location.pathname;
     
     if (path.includes("map-search")) {
-        // Gọi lại hàm render Map List với limit mới
         renderHalfMapList(currentFilteredRooms);
     } else if (!path.includes("tan-binh") && !path.includes("phu-nhuan")) {
-         // Trang chủ đang ở chế độ tìm kiếm
          if (document.getElementById('search-results').style.display === 'block') {
              renderGridWithPagination(document.getElementById('products-grid'), currentFilteredRooms);
          }
     } else {
-        // Trang Quận hoặc Trang chủ mặc định
         const listingArea = document.getElementById('listing-area') || document.getElementById('home-content');
         renderGridWithPagination(listingArea, currentFilteredRooms);
     }
@@ -537,23 +566,15 @@ function renderHomePageGroups() {
     if (!container) return;
     container.innerHTML = '';
     
-    // --- SỬA LOGIC SẮP XẾP ---
-    // 1. Ưu tiên có Khuyến mại (Promotion) xếp trước
-    // 2. Sau đó ưu tiên có Ảnh chi tiết
     const sortedRooms = [...allRooms].sort((a, b) => {
         const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
         const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
-        
-        // Nếu một bên có khuyến mại, bên kia không -> xếp bên có lên trước
         if (aPromo !== bPromo) return bPromo - aPromo;
-        
-        // Nếu cả hai cùng có hoặc cùng không -> xếp bên nào có ảnh lên trước
         const aHasImage = a.image_detail.length > 0 ? 1 : 0;
         const bHasImage = b.image_detail.length > 0 ? 1 : 0;
         return bHasImage - aHasImage;
     });
     
-    // --- GOM NHÓM THEO QUẬN ---
     const grouped = {};
     sortedRooms.forEach(room => {
         const dName = room.district || "Khu vực khác";
@@ -561,7 +582,6 @@ function renderHomePageGroups() {
         grouped[dName].push(room);
     });
     
-    // Sắp xếp thứ tự quận ưu tiên (Tân Bình -> Phú Nhuận -> ...)
     const sortedDistricts = Object.keys(grouped).sort((a, b) => {
         const aIdx = PRIORITY_DISTRICTS.indexOf(a);
         const bIdx = PRIORITY_DISTRICTS.indexOf(b);
@@ -569,12 +589,10 @@ function renderHomePageGroups() {
         return aIdx !== -1 ? -1 : (bIdx !== -1 ? 1 : a.localeCompare(b));
     });
     
-    // --- HIỂN THỊ RA MÀN HÌNH ---
     sortedDistricts.forEach(district => {
         const districtRooms = grouped[district];
-        const displayRooms = districtRooms.slice(0, 6); // Chỉ hiện 6 căn đầu tiên mỗi quận
+        const displayRooms = districtRooms.slice(0, 6); 
         
-        // Tạo HTML cho từng nhóm quận
         let html = `
             <div class="district-group mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -589,6 +607,7 @@ function renderHomePageGroups() {
         container.innerHTML += html;
     });
 }
+
 window.viewAllDistrict = function(district) {
     if (district === "Tân Bình") window.location.href = "tan-binh.html";
     else if (district === "Phú Nhuận") window.location.href = "phu-nhuan.html";
@@ -601,7 +620,6 @@ window.viewAllDistrict = function(district) {
 
 window.resetFilters = function() { window.location.reload(); }
 
-// [QUAN TRỌNG] Hàm này giờ chỉ trả về Card trần, các hàm render sẽ tự bọc col- tương ứng
 function createCardHTML(room) {
     let imgUrl = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
     const cleanAddr = cleanAddress(room.address);
@@ -742,7 +760,6 @@ function renderRelatedApartments(currentRoom) {
     if (!grid) return;
     const related = allRooms.filter(r => r.district === currentRoom.district && r.id !== currentRoom.id && r.image_detail.length > 0 && Math.abs(r.price - currentRoom.price) <= 1500000).slice(0, 6);
     if (related.length === 0) { grid.innerHTML = '<div class="col-12 text-center text-muted">Chưa có căn tương tự.</div>'; return; }
-    // Wrapper col- cho danh sách liên quan
     grid.innerHTML = related.map(room => `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`).join('');
 }
 
@@ -757,7 +774,6 @@ function initMap(lat, lng, label) {
 
 function cleanAddress(fullAddr) { return fullAddr ? fullAddr.replace(/^[\d\/a-zA-Z]+\s+(?:đường\s+)?/i, '').trim() : ""; }
 
-// [FIX LỖI] Đã sửa lại hàm parseCSV để xử lý đúng ký tự xuống dòng
 function parseCSV(text) {
     const result = []; let row = []; let inQuotes = false; let currentToken = '';
     for (let i = 0; i < text.length; i++) {
@@ -771,10 +787,3 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
-
-
-
-
-
-
-
