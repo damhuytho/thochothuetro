@@ -8,7 +8,6 @@ const ROOM_TYPES = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const AMENITIES_LIST = ["Ban công", "Cửa sổ", "Tách bếp", "Nuôi Pet", "Máy giặt riêng", "Thang máy", "Full nội thất", "Giờ giấc tự do"];
 
 let allRooms = [];
-let expandedDistricts = new Set();
 let map = null; 
 
 // =========================================================
@@ -38,7 +37,7 @@ function processData(csvText) {
     // Map dữ liệu
     allRooms = rows.slice(1).map(row => {
         let districtRaw = (row[2] || "").trim();
-        // Chuẩn hóa tên quận (giữ nguyên nếu không có Q.)
+        // Chuẩn hóa tên quận
         if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
             districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
         }
@@ -70,11 +69,10 @@ function processData(csvText) {
     } else {
         initFilters(); 
         
-        // --- LOGIC NHẬN DIỆN TRANG (MỚI - MẠNH MẼ HƠN) ---
+        // --- LOGIC NHẬN DIỆN TRANG ---
         const path = window.location.pathname;
         let targetDistrict = null;
 
-        // Kiểm tra URL chứa từ khóa (An toàn hơn so với check tên file chính xác)
         if (path.includes("tan-binh") || path.includes("tanbinh")) {
             targetDistrict = "Tân Bình";
         } else if (path.includes("phu-nhuan") || path.includes("phunhuan")) {
@@ -84,11 +82,11 @@ function processData(csvText) {
         if (targetDistrict) {
             console.log("Phát hiện trang khu vực:", targetDistrict);
 
-            // 1. Ẩn bộ lọc quận đi
-            const districtFilterContainer = document.getElementById('district-filter')?.parentElement;
+            // 1. Ẩn bộ lọc quận đi (FIX: Tìm đúng ID)
+            const districtFilterContainer = document.getElementById('f-district')?.parentElement;
             if(districtFilterContainer) districtFilterContainer.style.display = 'none';
 
-            // 2. Ép buộc lọc theo quận
+            // 2. Áp dụng lọc theo quận
             applyFilters(targetDistrict); 
             
             // 3. Đổi tiêu đề
@@ -105,7 +103,8 @@ function processData(csvText) {
 // 3. LOGIC TRANG CHỦ & BỘ LỌC
 // =========================================================
 function initFilters() {
-    const districtSelect = document.getElementById('district-filter');
+    // FIX: Sử dụng đúng ID 'f-district' thay vì 'district-filter'
+    const districtSelect = document.getElementById('f-district');
     if (districtSelect) {
         const districts = allRooms.map(r => r.district).filter(d => d && d !== "");
         const uniqueDistricts = [...new Set(districts)].sort();
@@ -129,6 +128,12 @@ function initFilters() {
         typeSelect.addEventListener('change', () => applyFilters()); 
     }
 
+    // FIX: Thêm filter giá
+    const priceSelect = document.getElementById('f-price');
+    if (priceSelect) {
+        priceSelect.addEventListener('change', () => applyFilters());
+    }
+
     const amenityContainer = document.getElementById('f-amenities-checkboxes');
     if (amenityContainer) {
         let html = '';
@@ -144,7 +149,8 @@ function initFilters() {
 }
 
 function applyFilters(forcedDistrict = null) {
-    let districtVal = forcedDistrict || document.getElementById('district-filter')?.value || 'all';
+    // FIX: Sử dụng đúng ID
+    let districtVal = forcedDistrict || document.getElementById('f-district')?.value || 'all';
     
     // Check lại lần nữa phòng hờ
     const path = window.location.pathname;
@@ -152,11 +158,23 @@ function applyFilters(forcedDistrict = null) {
     if (path.includes("phu-nhuan") || path.includes("phunhuan")) districtVal = "Phú Nhuận";
 
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
+    const priceVal = document.getElementById('f-price')?.value || 'all';
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
 
     let filtered = allRooms.filter(room => {
+        // Lọc quận
         if (districtVal !== 'all' && room.district !== districtVal) return false;
+        
+        // Lọc loại phòng
         if (typeVal !== 'all' && !room.type.toLowerCase().includes(typeVal.toLowerCase())) return false;
+        
+        // FIX: Lọc giá
+        if (priceVal !== 'all') {
+            const [min, max] = priceVal.split('-').map(v => parseInt(v));
+            if (room.price < min || room.price > max) return false;
+        }
+        
+        // Lọc tiện ích
         if (checkedAmenities.length > 0) {
             const hasAll = checkedAmenities.every(req => room.amenities_search.includes(req));
             if (!hasAll) return false;
@@ -164,8 +182,27 @@ function applyFilters(forcedDistrict = null) {
         return true;
     });
 
+    // Sắp xếp ưu tiên phòng có khuyến mãi
     filtered.sort((a, b) => (b.promotion.length > 0) - (a.promotion.length > 0));
     renderGroupedByDistrict(filtered);
+}
+
+// FIX: Thêm hàm resetFilters
+window.resetFilters = function() {
+    // Reset tất cả dropdown
+    const districtSelect = document.getElementById('f-district');
+    const typeSelect = document.getElementById('type-filter');
+    const priceSelect = document.getElementById('f-price');
+    
+    if (districtSelect) districtSelect.value = 'all';
+    if (typeSelect) typeSelect.value = 'all';
+    if (priceSelect) priceSelect.value = 'all';
+    
+    // Bỏ check tất cả amenities
+    document.querySelectorAll('.amenity-check').forEach(cb => cb.checked = false);
+    
+    // Áp dụng lại filters
+    applyFilters();
 }
 
 function renderGroupedByDistrict(rooms) {
