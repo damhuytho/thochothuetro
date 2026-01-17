@@ -305,18 +305,14 @@ function renderHalfMapList(rooms) {
     const container = document.getElementById('half-map-list-content');
     if (!container) return;
     
-    // SỬ DỤNG CLASS BOOTSTRAP ĐỂ CHIA 2 CỘT CHUẨN
-    // col-12: Mobile 1 cột
-    // col-xl-6: Màn hình lớn 2 cột (Sidebar 750px được coi là màn hình phụ, nên dùng XL hoặc custom grid)
-    // Ở đây ta dùng col-sm-6 là đủ để chia 2 cột trong sidebar 750px
+    // col-sm-6 sẽ chia 2 cột khi màn hình > 576px (Sidebar 750px đủ rộng cho 2 cột này)
     const html = rooms.map(room => `
         <div class="col-12 col-sm-6 mb-3">
             ${createCardHTML(room)}
         </div>
     `).join('');
     
-    // Bọc trong row của Bootstrap
-    container.innerHTML = `<div class="row g-2">${html || '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>'}</div>`;
+    container.innerHTML = `<div class="row g-3">${html || '<div class="p-3 text-center w-100">Không tìm thấy phòng</div>'}</div>`;
 }
 
 function renderHalfMapMarkers(rooms) {
@@ -722,3 +718,4 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
