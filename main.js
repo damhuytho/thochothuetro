@@ -294,8 +294,11 @@ function runInternalFilter(districtVal, isFilteredAction) {
 
 function renderHalfMapPage() {
     if (!map) {
-        // TĂNG ZOOM MẶC ĐỊNH LÊN 16
-        map = L.map('half-map-view').setView([10.801646, 106.663158], 16);
+        // --- CHỈNH ĐỘ ZOOM BẢN ĐỒ Ở ĐÂY ---
+        // Số 17 là mức độ Zoom (Càng lớn càng nhìn gần). 
+        // Bạn có thể sửa thành 15, 16, 17, 18 tùy ý.
+        map = L.map('half-map-view').setView([10.801646, 106.663158], 18);
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
     }
     runInternalFilter('all', false);
@@ -714,3 +717,4 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
