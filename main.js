@@ -85,27 +85,88 @@ async function fetchData() {
     }
 }
 
+// =========================================================
+// HÀM XỬ LÝ DỮ LIỆU (FINAL VERSION: MÃ + ĐƯỜNG + QUẬN)
+// =========================================================
+
 function processData(roomsCsv, amenitiesCsv) {
     try {
         // --- XỬ LÝ PHÒNG ---
         const roomRows = parseCSV(roomsCsv);
+        
+        // Biến theo dõi để xử lý trùng lặp ID
+        let idTracker = {}; 
+
         allRooms = roomRows.slice(1).map(row => {
+            // 1. Xử lý tên Quận hiển thị (cho đẹp)
             let districtRaw = (row[2] || "").trim();
             if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
                 districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
             }
             
+            // 2. Xử lý Keypoint
             let keypointRaw = (row[5] || "");
             let keypointClean = keypointRaw.split(',')
                 .map(item => item.trim())
                 .filter(item => !item.includes('🎁') && !item.toLowerCase().includes('km '))
                 .join(', ');
+
+            // --- [LOGIC TẠO ID MỚI THEO YÊU CẦU] ---
             
+            // B1: Lấy Mã Phòng (Cắt từ Cột E)
+            let rawCodeE = (row[4] || "").trim();
+            let roomNumber = rawCodeE.split('-')[0].trim();
+            
+            // B2: Lấy Tên Đường (Từ Cột D - Đã bỏ số nhà)
+            let rawAddress = (row[3] || "").trim(); 
+            let streetPart = rawAddress.split(',')[0].trim(); // Lấy trước dấu phẩy
+            // Regex xóa số nhà/hẻm ở đầu (Ví dụ: "71/4 Nguyễn Bặc" -> "Nguyễn Bặc")
+            let streetNameOnly = streetPart.replace(/^[0-9a-zA-Z\/\.\-]+\s+/, ""); 
+            if (!streetNameOnly) streetNameOnly = streetPart;
+
+            // B3: Lấy Quận (Từ Cột C)
+            // Lưu ý: Lấy trực tiếp row[2] như bạn yêu cầu
+            let districtForSlug = (row[2] || "").trim(); 
+
+            // B4: Hàm tạo slug (chuyển tiếng Việt sang không dấu, nối gạch ngang)
+            const toSlug = (str) => {
+                return str.toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
+                    .replace(/[đĐ]/g, "d")
+                    .replace(/[^a-z0-9]/g, "-") // Ký tự lạ thành -
+                    .replace(/-+/g, "-") // Xóa gạch thừa
+                    .replace(/^-|-$/g, ""); // Cắt đầu đuôi
+            };
+
+            let slugRoom = toSlug(roomNumber);
+            let slugStreet = toSlug(streetNameOnly);
+            let slugDistrict = toSlug(districtForSlug);
+
+            // B5: Ghép lại thành ID cơ sở
+            // Cấu trúc: p302-nguyen-bac-tan-binh
+            let baseID = `${slugRoom}-${slugStreet}-${slugDistrict}`;
+
+            // Dự phòng nếu dữ liệu rỗng
+            if (baseID.length < 5) baseID = "room-" + Math.random().toString(36).substr(2, 9);
+
+            // B6: Kiểm tra trùng lặp và đánh số tự động
+            let finalID = baseID;
+            
+            if (idTracker[baseID]) {
+                idTracker[baseID] += 1;
+                finalID = `${baseID}-${idTracker[baseID]}`; // Ví dụ: p302-nguyen-bac-tan-binh-2
+            } else {
+                idTracker[baseID] = 1;
+            }
+
+            // -----------------------------------------------------------
+
             return {
-                id: row[4] || "", 
-                room_code: (row[4] || "").trim(),
+                id: finalID, // ID chuẩn SEO, bền vững, không trùng
+                room_code: rawCodeE, 
+                
                 district: districtRaw,
-                address: (row[3] || "").trim(),
+                address: rawAddress, 
                 keypoint: keypointClean, 
                 price: parsePrice(row[6]),
                 desc: row[7] || "",
@@ -915,4 +976,5 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
