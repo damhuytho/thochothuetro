@@ -846,18 +846,84 @@ function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
     const room = allRooms.find(r => r.id === roomId);
 
+    const container = document.querySelector('.container.py-4');
+    
+    // Xử lý khi không tìm thấy phòng
     if (!room) {
         document.getElementById('loading').style.display = 'none';
-        const container = document.querySelector('.container.py-4');
         if(container) {
             container.innerHTML = `<div class="text-center py-5"><h2 class="fw-bold">Không tìm thấy phòng</h2><a href="index.html" class="btn btn-primary mt-3">Về trang chủ</a></div>`;
         }
         return;
     }
 
+    // --- PHẦN 1: TỐI ƯU SEO (Meta & Schema) ---
+    
+    // Tạo tiêu đề và mô tả chuẩn SEO
+    const pageTitle = `${room.type} ${cleanAddress(room.address)} - Giá ${formatMoney(room.price)}`;
+    const pageDesc = `Cho thuê ${room.type} tại ${cleanAddress(room.address)}, ${room.district}. Tiện ích: ${room.keypoint}. Giá ${formatMoney(room.price)}/tháng. Full nội thất, giờ giấc tự do. Liên hệ Thọ: 0925 996 992.`;
+    
+    // 1. Cập nhật Title và Meta Description của trình duyệt
+    document.title = pageTitle;
+    const metaDescTag = document.querySelector('meta[name="description"]');
+    if (metaDescTag) metaDescTag.setAttribute("content", pageDesc);
+
+    // 2. Xử lý danh sách tiện ích cho Schema (Tách từ chuỗi room.keypoint)
+    // Ví dụ: "Thang máy, Ban công" -> Google sẽ hiểu là 2 tiện ích riêng biệt
+    let amenitiesSchema = [];
+    if (room.keypoint) {
+        amenitiesSchema = room.keypoint.split(',').map(item => ({
+            "@type": "LocationFeatureSpecification",
+            "name": item.trim(),
+            "value": true
+        }));
+    }
+
+    // 3. Thêm Schema JSON-LD (Báo cáo đầy đủ cho Google)
+    // Xóa schema cũ nếu có để tránh trùng lặp khi load lại
+    const oldSchema = document.getElementById('json-ld-schema');
+    if (oldSchema) oldSchema.remove();
+
+    const scriptSchema = document.createElement('script');
+    scriptSchema.id = 'json-ld-schema'; // Đặt ID để quản lý
+    scriptSchema.type = 'application/ld+json';
+    scriptSchema.text = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Apartment", // Khai báo đây là Căn hộ
+        "name": pageTitle,
+        "description": room.desc,
+        "image": room.image_detail.map(img => getOptimizedImg(img, 800)),
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": cleanAddress(room.address),
+            "addressLocality": room.district,
+            "addressRegion": "Hồ Chí Minh",
+            "addressCountry": "VN"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": room.lat,
+            "longitude": room.lng
+        },
+        "amenityFeature": amenitiesSchema, // <-- Đã thêm khai báo tiện ích cột F tại đây
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "VND",
+            "price": room.price,
+            "availability": room.status === 'rented' ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+            "seller": {
+                "@type": "Person",
+                "name": "Thọ Cho Thuê Trọ",
+                "telephone": "0925996992"
+            }
+        }
+    });
+    document.head.appendChild(scriptSchema);
+
+    // --- PHẦN 2: HIỂN THỊ GIAO DIỆN (GIỮ NGUYÊN NHƯ CŨ) ---
+
     // NẾU LÀ PHÒNG ĐÃ THUÊ -> HIỆN CẢNH BÁO
     if (room.status === 'rented') {
-         const container = document.querySelector('.container.py-4');
          const alertDiv = document.createElement('div');
          alertDiv.className = 'alert alert-danger fw-bold text-center mb-4';
          alertDiv.style.border = '2px solid #dc3545';
@@ -865,7 +931,7 @@ function renderDetailPage(id) {
          if(container) container.parentNode.insertBefore(alertDiv, container);
     }
 
-    // Render thông tin
+    // Render Header (Breadcrumb)
     const headerContainer = document.querySelector('.property-header');
     if (headerContainer) {
         headerContainer.innerHTML = `
@@ -878,24 +944,30 @@ function renderDetailPage(id) {
             </div>
         </div>`;
     }
+
+    // Điền thông tin vào các thẻ HTML
     if(document.getElementById('detail-address')) document.getElementById('detail-address').textContent = cleanAddress(room.address);
     if(document.getElementById('d-type')) document.getElementById('d-type').textContent = room.type;
     if(document.getElementById('detail-price')) document.getElementById('detail-price').textContent = formatMoney(room.price);
     
+    // Hiển thị ưu đãi (nếu có)
     if (room.promotion && document.getElementById('promo-section')) {
         document.getElementById('promo-section').style.display = 'block';
         document.getElementById('detail-promo').textContent = room.promotion;
     }
+
+    // Hiển thị danh sách tiện ích (trên giao diện)
     if (document.getElementById('detail-keypoints') && room.keypoint) {
         document.getElementById('detail-keypoints').innerHTML = room.keypoint.split(',').map(i => `<div class="col-6"><i class="fas fa-check-circle"></i> ${i.trim()}</div>`).join('');
     }
     
     renderProfessionalGallery(room);
     
+    // Cập nhật tiêu đề phụ bên dưới
     const detailTitle = document.getElementById('detail-title');
     if(detailTitle) detailTitle.innerText = `${room.type} ${cleanAddress(room.address)}`;
-    document.title = `${room.type} ${cleanAddress(room.address)} - Giá ${formatMoney(room.price)}`;
 
+    // Xử lý tiêu đề dưới Gallery
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer) {
         const existingTitle = document.getElementById('content-title-below-gallery');
@@ -911,6 +983,7 @@ function renderDetailPage(id) {
     renderCollageImage(room);
     if(document.getElementById('detail-desc')) document.getElementById('detail-desc').innerHTML = room.desc.replace(/\n/g, '<br>');
     
+    // Xử lý Video
     const videoSection = document.getElementById('video-section');
     const videoEmbed = document.getElementById('video-embed');
     if (room.video && room.video.length > 5 && videoSection) {
@@ -922,8 +995,15 @@ function renderDetailPage(id) {
             videoEmbed.innerHTML = `<a href="${room.video}" target="_blank" class="btn btn-danger btn-lg rounded-pill">Xem Video</a>`;
         }
     }
+
+    // Khởi tạo bản đồ nhỏ
     initMap(room.lat, room.lng, cleanAddress(room.address));
+    
+    // Gợi ý phòng tương tự
     renderRelatedApartments(room);
+    
+    // Tắt loading
+    document.getElementById('loading').style.display = 'none';
 }
 
 function renderProfessionalGallery(room) {
@@ -1032,6 +1112,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
