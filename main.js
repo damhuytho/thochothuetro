@@ -46,45 +46,59 @@ function getOptimizedImg(url, width = 'auto') {
 }
 
 // =========================================================
-// 2. TỰ ĐỘNG TẠO MENU (NAVBAR)
+// 2. TỰ ĐỘNG TẠO MENU (NAVBAR) - ĐÃ TỐI ƯU MOBILE
 // =========================================================
 function renderNavbar() {
     const navContainer = document.getElementById('dynamic-navbar');
     if (!navContainer) return;
 
-    // Đây là code HTML Menu chuẩn, đã thêm mục LIÊN HỆ
     navContainer.innerHTML = `
     <nav class="navbar navbar-expand-lg border-bottom sticky-top bg-white">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 lh-1" href="index.html">
-                <img src="logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img">
-                <div class="brand-text text-uppercase" style="color: #f1c40f; font-weight: 800; font-size: 1.25rem; line-height: 1.2;">
-                    THỌ CHO THUÊ TRỌ
-                    <div style="font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none;">Hệ thống phòng trọ tiện nghi</div>
-                </div>
-            </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center justify-content-between w-100 d-lg-block">
+                
+                <a class="navbar-brand d-flex align-items-center gap-2 lh-1" href="index.html">
+                    <img src="logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img">
+                    <div class="brand-text text-uppercase" style="color: #f1c40f; font-weight: 800; font-size: 1.25rem; line-height: 1.2;">
+                        THỌ CHO THUÊ TRỌ
+                        <div style="font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none;">Hệ thống phòng trọ tiện nghi</div>
+                    </div>
+                </a>
 
-            <div class="collapse navbar-collapse" id="navbarContent">
+                <a href="contact.html" class="btn btn-outline-dark btn-sm rounded-pill d-lg-none fw-bold ms-auto d-flex align-items-center gap-1" style="border: 1px solid #1a1a1a;">
+                    <i class="fas fa-headset"></i> Liên hệ
+                </a>
+
+                <button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse mt-2 mt-lg-0" id="navbarContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3">
-                    <li class="nav-item">
+                    
+                    <li class="nav-item d-none d-lg-block">
                         <a class="nav-link" href="index.html">Trang chủ</a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="tan-binh.html">Quận Tân Bình</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="phu-nhuan.html">Quận Phú Nhuận</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="map-search.html">
-                            <i class="fas fa-map-marked-alt me-1"></i>Bản đồ
+                        <a class="nav-link" href="tan-binh.html">
+                            <i class="fas fa-building d-lg-none me-1 mb-1"></i>Quận Tân Bình
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="phu-nhuan.html">
+                            <i class="fas fa-city d-lg-none me-1 mb-1"></i>Quận Phú Nhuận
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="map-search.html">
+                            <i class="fas fa-map-marked-alt me-1 mb-1"></i>Bản đồ
+                        </a>
+                    </li>
+
+                    <li class="nav-item d-none d-lg-block">
                         <a class="nav-link" href="contact.html">Liên hệ</a>
                     </li>
                 </ul>
@@ -1170,6 +1184,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
