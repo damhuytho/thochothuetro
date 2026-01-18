@@ -449,7 +449,7 @@ function renderHalfMapMarkers(rooms) {
 
         marker.bindPopup(`
             <div style="width: 200px;">
-                <img src="${smallImg}" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; margin-bottom:8px;">
+                <img src="${smallImg}" alt="Phòng trọ ${room.room_code}" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; margin-bottom:8px;">
                 <div class="fw-bold text-primary mb-1">${room.room_code}</div>
                 <div class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${cleanAddress(room.address)}</div>
                 <div class="text-danger fw-bold small mb-2">${formatMoney(room.price)}/tháng</div>
@@ -688,6 +688,7 @@ function createCardHTML(room) {
     let imgUrl = getOptimizedImg(rawImg, 400); // 400px là đủ cho card
 
     const cleanAddr = cleanAddress(room.address);
+    // [SEO - ALT TAG] Tiêu đề được dùng làm alt cho ảnh
     const title = `Cho thuê căn ${room.type} ${cleanAddr}`;
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
     const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
@@ -798,10 +799,13 @@ function renderProfessionalGallery(room) {
     const mainImg = getOptimizedImg(images[0], 1000); 
     const thumbs = images.slice(1, 4);
 
+    // [SEO - ALT TAG] Tạo alt text chi tiết cho ảnh
+    const altText = `Phòng trọ ${room.room_code} - ${room.type} - ${cleanAddress(room.address)}`;
+
     let html = `
         <div class="gallery-container">
             <div class="gallery-main-frame">
-                <img src="${mainImg}" id="main-gallery-img" class="img-smart-fill" alt="Ảnh chi tiết">
+                <img src="${mainImg}" id="main-gallery-img" class="img-smart-fill" alt="${altText} - Ảnh chính">
                 <div class="position-absolute bottom-0 end-0 m-3 px-3 py-1 bg-dark bg-opacity-75 text-white rounded-pill small"><i class="fas fa-expand me-1"></i> ${room.image_detail.length} ảnh</div>
             </div>
             ${thumbs.length > 0 ? `<div class="gallery-thumbs-grid">${thumbs.map((img, idx) => {
@@ -809,7 +813,7 @@ function renderProfessionalGallery(room) {
                 let thumbUrl = getOptimizedImg(img, 300);
                 // Ảnh to để khi bấm vào nó hiện ra (truyền vào hàm onclick)
                 let fullUrl = getOptimizedImg(img, 1000);
-                return `<div class="gallery-sub-frame" onclick="changeMainGalleryImage('${fullUrl}')"><img src="${thumbUrl}" class="img-smart-fill" loading="lazy"></div>`;
+                return `<div class="gallery-sub-frame" onclick="changeMainGalleryImage('${fullUrl}')"><img src="${thumbUrl}" class="img-smart-fill" alt="${altText} - Ảnh phụ ${idx + 1}" loading="lazy"></div>`;
             }).join('')}</div>` : ''}
         </div>`;
     galleryContainer.innerHTML = html;
@@ -827,9 +831,12 @@ function renderCollageImage(room) {
     // Ảnh Collage này thường to, nên để w=1200 hoặc full
     const collageImg = getOptimizedImg(room.image_collage[0], 1200);
 
+    // [SEO - ALT TAG] Thêm alt text cho ảnh collage
+    const altText = `Tổng quan tiện nghi phòng ${room.room_code} ${room.type}`;
+
     const collageBlock = document.createElement('div');
     collageBlock.className = 'collage-block mb-4';
-    collageBlock.innerHTML = `<div class="rounded-4 overflow-hidden shadow-sm" style="max-width: 100%; aspect-ratio: 1700/1450;"><img src="${collageImg}" class="w-100 h-100 object-fit-cover" loading="lazy"></div>`;
+    collageBlock.innerHTML = `<div class="rounded-4 overflow-hidden shadow-sm" style="max-width: 100%; aspect-ratio: 1700/1450;"><img src="${collageImg}" class="w-100 h-100 object-fit-cover" alt="${altText}" loading="lazy"></div>`;
     highlightBox.parentNode.insertBefore(collageBlock, descBlock);
 }
 
