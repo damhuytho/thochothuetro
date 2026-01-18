@@ -211,28 +211,64 @@ a { text-decoration: none; }
     body { padding-bottom: 0; }
 }
 
-@media (max-width: 991.98px) {
+/* =========================================
+   6. MOBILE RESPONSIVE (ĐÃ SỬA LỖI BẢN ĐỒ CỐ ĐỊNH)
+   ========================================= */
+@media (max-width: 992px) {
     /* Navbar Mobile */
     .navbar-brand img { height: 40px; }
     .brand-text { font-size: 1rem !important; }
     
-    /* Map Layout Mobile: Đảo ngược (List dưới, Map trên) */
+    /* Navbar Toggle & Menu */
+    .navbar-toggler { display: none !important; }
+    .navbar-collapse {
+        display: block !important;
+        border-top: 1px solid #f0f0f0;
+        padding: 10px 0;
+        background: #fff;
+    }
+    .navbar-nav {
+        flex-direction: row !important;
+        flex-wrap: wrap; 
+        justify-content: center;
+        gap: 8px;
+    }
+    .nav-item { margin: 0; }
+    .nav-link {
+        font-size: 0.85rem; padding: 6px 15px !important; border-radius: 20px;
+        background: #f8f9fa; color: #555; border: 1px solid #eee; display: inline-block;
+    }
+    .nav-link.active {
+        background: var(--primary); color: #000; border-color: var(--primary);
+    }
+
+    /* --- MAP LAYOUT MOBILE: CUỘN TỰ NHIÊN --- */
     .map-layout-grid {
         display: flex;
         flex-direction: column-reverse; /* Map lên trên, List xuống dưới */
-        height: calc(100vh - 60px - 70px); /* Trừ Navbar và Bottom Bar */
+        
+        /* QUAN TRỌNG: Đổi height thành auto để trang web dài ra tự nhiên */
+        height: auto !important; 
+        overflow: visible;
     }
     
     .half-map-view { 
-        height: 45vh; /* Map chiếm 45% màn hình */
+        /* Chiều cao cố định cho bản đồ, nhưng nó sẽ trôi đi khi cuộn trang */
+        height: 350px; 
         width: 100%; 
+        position: relative;
+        z-index: 1;
         flex-shrink: 0;
     }
     
     .half-map-list { 
-        flex: 1; /* List chiếm phần còn lại */
-        height: auto;
-        overflow-y: auto;
+        /* List sẽ dài ra theo số lượng phòng, không bị cuộn trong khung nhỏ nữa */
+        height: auto; 
+        overflow: visible;
+        background: #fff;
+        z-index: 2;
+        padding-top: 0;
+        border-right: none;
     }
 
     /* Bộ lọc Mobile */
@@ -246,4 +282,9 @@ a { text-decoration: none; }
     .gallery-main-frame { height: 280px; }
     .gallery-sub-frame { height: 70px; }
     .room-card .card-img-top { height: 180px; }
+
+    /* Đẩy body lên tránh thanh bottom bar */
+    body {
+        padding-bottom: 70px !important; 
+    }
 }
