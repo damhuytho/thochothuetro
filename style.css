@@ -13,7 +13,6 @@ body {
     font-family: 'Lexend', sans-serif;
     background: var(--gray-bg);
     color: var(--text-dark);
-    /* Chừa chỗ cho thanh menu dưới cùng trên mobile */
     padding-bottom: 70px; 
 }
 
@@ -40,15 +39,40 @@ a { text-decoration: none; }
 
 .logo-img { height: 45px; width: auto; }
 
+/* ✅ FIX 4: ICON ĐIỆN THOẠI NAVBAR MÀU VÀNG */
+.navbar .bg-danger {
+    background: var(--primary) !important;
+    color: #000 !important;
+}
+
+.navbar .bg-danger i {
+    color: #000 !important;
+}
+
 /* =========================================
-   3. CARD (THẺ PHÒNG TRỌ)
+   3. LOADING
+   ========================================= */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fff;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* =========================================
+   4. CARD (THẺ PHÒNG TRỌ)
    ========================================= */
 .room-card {
     border-radius: var(--radius);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background: #fff;
-    height: 100%; /* Để card bằng nhau */
+    height: 100%;
     display: flex; flex-direction: column;
     border: 1px solid #eee;
 }
@@ -67,11 +91,11 @@ a { text-decoration: none; }
     object-fit: cover;
 }
 
-/* --- CSS CHO CĂN ĐÃ THUÊ --- */
+/* CSS CHO CĂN ĐÃ THUÊ */
 .room-card.rented {
     opacity: 0.9; 
     filter: grayscale(30%); 
-    cursor: pointer; /* Vẫn cho bấm vào để xem gợi ý khác */
+    cursor: pointer;
 }
 
 .rented-overlay {
@@ -98,28 +122,26 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   4. LAYOUT BẢN ĐỒ (QUAN TRỌNG - ĐÃ FIX)
+   5. LAYOUT BẢN ĐỒ
    ========================================= */
 .map-layout-grid {
     display: grid;
-    /* Sidebar trái 450px, Bản đồ bên phải chiếm hết phần còn lại */
     grid-template-columns: 450px 1fr; 
-    /* Chiều cao = 100% màn hình - Chiều cao Navbar (khoảng 76px) */
     height: calc(100vh - 76px); 
     width: 100%;
-    overflow: hidden; /* Ẩn thanh cuộn ngoài */
+    overflow: hidden;
 }
 
 .half-map-list {
     height: 100%;
-    overflow-y: auto; /* Chỉ cuộn danh sách, không cuộn bản đồ */
+    overflow-y: auto;
     background: #f8f9fa;
     border-right: 1px solid #ddd;
     display: flex; flex-direction: column;
 }
 
 .half-map-view {
-    height: 100%; /* Bắt buộc phải có height */
+    height: 100%;
     width: 100%;
     position: relative;
     z-index: 1;
@@ -141,9 +163,8 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   5. HEADER & FILTER
+   6. HEADER NỀN TRẮNG SANG TRỌNG
    ========================================= */
-/* HEADER NỀN TRẮNG SANG TRỌNG */
 .page-header-block {
     background: #ffffff;
     color: #1a1a1a;
@@ -163,7 +184,7 @@ a { text-decoration: none; }
     letter-spacing: 0.5px;
 }
 
-/* ✅ FIX VẤN ĐỀ 1: Breadcrumb màu đen dễ nhìn */
+/* ✅ FIX 1: BREADCRUMB MÀU ĐEN DỄ NHÌN - CẢ TRONG DETAIL.HTML */
 .breadcrumb-custom { 
     font-size: 0.9rem; 
     color: #666; 
@@ -171,17 +192,17 @@ a { text-decoration: none; }
 }
 
 .breadcrumb-custom a { 
-    color: #1a1a1a; /* Màu đen đậm */
+    color: #1a1a1a !important;
     font-weight: 600;
     transition: color 0.2s;
 }
 
 .breadcrumb-custom a:hover { 
-    color: #f1c40f; /* Hover vàng */
+    color: #f1c40f !important;
 }
 
 .breadcrumb-custom span { 
-    color: #1a1a1a; /* Chữ cuối cũng màu đen */
+    color: #1a1a1a !important;
     font-weight: 600;
 }
 
@@ -189,15 +210,23 @@ a { text-decoration: none; }
     margin: 0 8px; 
     font-size: 0.7rem; 
     opacity: 0.5; 
-    color: #999; 
+    color: #999 !important; 
 }
 
-/* Filter Box */
+/* Đảm bảo title trang detail cũng đúng màu */
+.property-header h1,
+.property-header #detail-title {
+    color: #1a1a1a !important;
+}
+
+/* =========================================
+   7. BỘ LỌC
+   ========================================= */
 .btn-expand-filter { display: none; } 
 #main-filter-box { transition: all 0.3s ease; }
 .amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-/* ✅ FIX VẤN ĐỀ 3: NÚT ÁP DỤNG & ĐẶT LẠI */
+/* ✅ FIX 3: NÚT FILTER 2 CỘT NGANG */
 .filter-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -206,17 +235,18 @@ a { text-decoration: none; }
 }
 
 .filter-actions .btn {
-    height: 45px; /* Tăng chiều cao dễ bấm */
+    height: 48px;
     font-weight: 700;
     font-size: 0.95rem;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
 
 .btn-apply-filter {
-    background: var(--primary) !important; /* Vàng thương hiệu */
+    background: var(--primary) !important;
     color: #000 !important;
     border: 2px solid var(--primary);
 }
@@ -246,48 +276,68 @@ a { text-decoration: none; }
     box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 1px solid #eee;
     display: none;
 }
+.filter-tags-container { display: flex; gap: 5px; flex-wrap: wrap; }
 .filter-tag {
     background: #fff3cd; color: #856404; padding: 3px 10px; border-radius: 20px;
-    font-size: 0.8rem; font-weight: 600; white-space: nowrap; margin-right: 5px;
+    font-size: 0.8rem; font-weight: 600; white-space: nowrap;
     border: 1px solid #ffeeba; cursor: pointer;
 }
 
 /* =========================================
-   6. CHI TIẾT & GALLERY
+   8. CHI TIẾT & GALLERY - TỶ LỆ 4:3
    ========================================= */
 .gallery-container { display: flex; flex-direction: column; gap: 10px; }
+
+/* ✅ FIX VẤN ĐỀ 2: ẢNH TỶ LỆ 4:3 CHUẨN */
 .gallery-main-frame {
-    width: 100%; height: 450px; border-radius: 12px; overflow: hidden; position: relative; cursor: zoom-in;
+    width: 100%; 
+    aspect-ratio: 4/3; /* Tự động tính chiều cao theo tỷ lệ 4:3 */
+    max-height: 600px; /* Giới hạn chiều cao tối đa */
+    border-radius: 12px; 
+    overflow: hidden; 
+    position: relative; 
+    cursor: zoom-in;
+    background: #f0f0f0;
 }
-.gallery-thumbs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.gallery-sub-frame { height: 100px; border-radius: 8px; overflow: hidden; cursor: pointer; opacity: 0.8; transition: 0.2s; }
+
+.gallery-thumbs-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 10px; 
+}
+
+.gallery-sub-frame { 
+    aspect-ratio: 4/3; /* Ảnh nhỏ cũng tỷ lệ 4:3 */
+    border-radius: 8px; 
+    overflow: hidden; 
+    cursor: pointer; 
+    opacity: 0.8; 
+    transition: 0.2s;
+    background: #f0f0f0;
+}
+
 .gallery-sub-frame:hover { opacity: 1; transform: scale(1.02); }
-.img-smart-fill { width: 100%; height: 100%; object-fit: cover; }
+
+.img-smart-fill { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
 .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-/* ✅ FIX VẤN ĐỀ 4: ICON ĐIỆN THOẠI MÀU VÀNG */
-.navbar .bg-danger {
-    background: var(--primary) !important; /* Đổi sang vàng */
-    color: #000 !important; /* Chữ đen */
-}
-
-.navbar .bg-danger i {
-    color: #000 !important;
-}
-
 /* =========================================
-   7. RESPONSIVE (MOBILE)
+   9. MOBILE BOTTOM NAV
    ========================================= */
 .mobile-bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
     background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1090; display: block;
 }
 
-/* ✅ FIX VẤN ĐỀ 5: NÚT GỌI ĐIỆN MOBILE MÀU VÀNG */
+/* ✅ FIX 5: NÚT GỌI ĐIỆN MOBILE MÀU VÀNG */
 .mobile-bottom-nav .btn-danger {
-    background: var(--primary) !important; /* Vàng thương hiệu */
+    background: var(--primary) !important;
     border-color: var(--primary) !important;
-    color: #000 !important; /* Chữ đen */
+    color: #000 !important;
     font-weight: 800;
 }
 
@@ -306,14 +356,12 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   8. MOBILE RESPONSIVE (ĐÃ SỬA LỖI BẢN ĐỒ CỐ ĐỊNH)
+   10. RESPONSIVE MOBILE
    ========================================= */
 @media (max-width: 992px) {
-    /* Navbar Mobile */
     .navbar-brand img { height: 40px; }
     .brand-text { font-size: 1rem !important; }
     
-    /* Navbar Toggle & Menu */
     .navbar-toggler { display: none !important; }
     .navbar-collapse {
         display: block !important;
@@ -336,18 +384,15 @@ a { text-decoration: none; }
         background: var(--primary); color: #000; border-color: var(--primary);
     }
 
-    /* --- MAP LAYOUT MOBILE: CUỘN TỰ NHIÊN --- */
+    /* MAP LAYOUT MOBILE */
     .map-layout-grid {
         display: flex;
-        flex-direction: column-reverse; /* Map lên trên, List xuống dưới */
-        
-        /* QUAN TRỌNG: Đổi height thành auto để trang web dài ra tự nhiên */
+        flex-direction: column-reverse;
         height: auto !important; 
         overflow: visible;
     }
     
     .half-map-view { 
-        /* Chiều cao cố định cho bản đồ, nhưng nó sẽ trôi đi khi cuộn trang */
         height: 350px; 
         width: 100%; 
         position: relative;
@@ -356,7 +401,6 @@ a { text-decoration: none; }
     }
     
     .half-map-list { 
-        /* List sẽ dài ra theo số lượng phòng, không bị cuộn trong khung nhỏ nữa */
         height: auto; 
         overflow: visible;
         background: #fff;
@@ -365,26 +409,32 @@ a { text-decoration: none; }
         border-right: none;
     }
 
-    /* Bộ lọc Mobile */
     .btn-expand-filter {
         display: block; width: 100%; margin-bottom: 10px;
         background: #fff; border: 1px solid #ddd; color: #333; font-weight: 600; padding: 10px;
     }
     #main-filter-box.filter-box-collapsed .filter-content { display: none; }
 
-    /* Gallery Mobile */
-    .gallery-main-frame { height: 280px; }
-    .gallery-sub-frame { height: 70px; }
+    .gallery-main-frame { 
+        aspect-ratio: 4/3;
+        max-height: 400px;
+    }
+    
+    .gallery-sub-frame { 
+        aspect-ratio: 4/3;
+    }
     .room-card .card-img-top { height: 180px; }
 
-    /* Đẩy body lên tránh thanh bottom bar */
-    body {
-        padding-bottom: 70px !important; 
-    }
+    body { padding-bottom: 70px !important; }
 
-    /* Nút filter mobile cũng dùng màu vàng */
+    /* Nút filter mobile */
     .filter-actions {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
+    }
+    
+    .filter-actions .btn {
+        height: 45px;
+        font-size: 0.9rem;
     }
 }
