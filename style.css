@@ -143,7 +143,7 @@ a { text-decoration: none; }
 /* =========================================
    5. HEADER & FILTER
    ========================================= */
-/* HEADER MÀU VÀNG CHANH (THEO YÊU CẦU MỚI) */
+/* HEADER NỀN TRẮNG SANG TRỌNG */
 .page-header-block {
     background: #ffffff;
     color: #1a1a1a;
@@ -162,6 +162,8 @@ a { text-decoration: none; }
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+/* ✅ FIX VẤN ĐỀ 1: Breadcrumb màu đen dễ nhìn */
 .breadcrumb-custom { 
     font-size: 0.9rem; 
     color: #666; 
@@ -169,12 +171,18 @@ a { text-decoration: none; }
 }
 
 .breadcrumb-custom a { 
-    color: #333; 
+    color: #1a1a1a; /* Màu đen đậm */
+    font-weight: 600;
     transition: color 0.2s;
 }
 
 .breadcrumb-custom a:hover { 
-    color: #f1c40f; /* Màu vàng primary của bạn */
+    color: #f1c40f; /* Hover vàng */
+}
+
+.breadcrumb-custom span { 
+    color: #1a1a1a; /* Chữ cuối cũng màu đen */
+    font-weight: 600;
 }
 
 .breadcrumb-custom i { 
@@ -188,6 +196,47 @@ a { text-decoration: none; }
 .btn-expand-filter { display: none; } 
 #main-filter-box { transition: all 0.3s ease; }
 .amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ✅ FIX VẤN ĐỀ 3: NÚT ÁP DỤNG & ĐẶT LẠI */
+.filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.filter-actions .btn {
+    height: 45px; /* Tăng chiều cao dễ bấm */
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-apply-filter {
+    background: var(--primary) !important; /* Vàng thương hiệu */
+    color: #000 !important;
+    border: 2px solid var(--primary);
+}
+
+.btn-apply-filter:hover {
+    background: var(--primary-dark) !important;
+    border-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-reset-filter {
+    background: #fff !important;
+    color: #666 !important;
+    border: 2px solid #ddd;
+}
+
+.btn-reset-filter:hover {
+    background: #f8f9fa !important;
+    border-color: #999;
+}
 
 /* Sticky Filter Bar */
 .active-filter-bar {
@@ -216,6 +265,16 @@ a { text-decoration: none; }
 .img-smart-fill { width: 100%; height: 100%; object-fit: cover; }
 .agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
+/* ✅ FIX VẤN ĐỀ 4: ICON ĐIỆN THOẠI MÀU VÀNG */
+.navbar .bg-danger {
+    background: var(--primary) !important; /* Đổi sang vàng */
+    color: #000 !important; /* Chữ đen */
+}
+
+.navbar .bg-danger i {
+    color: #000 !important;
+}
+
 /* =========================================
    7. RESPONSIVE (MOBILE)
    ========================================= */
@@ -224,13 +283,30 @@ a { text-decoration: none; }
     background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1090; display: block;
 }
 
+/* ✅ FIX VẤN ĐỀ 5: NÚT GỌI ĐIỆN MOBILE MÀU VÀNG */
+.mobile-bottom-nav .btn-danger {
+    background: var(--primary) !important; /* Vàng thương hiệu */
+    border-color: var(--primary) !important;
+    color: #000 !important; /* Chữ đen */
+    font-weight: 800;
+}
+
+.mobile-bottom-nav .btn-danger:hover {
+    background: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+.mobile-bottom-nav .btn-danger i {
+    color: #000 !important;
+}
+
 @media (min-width: 992px) {
     .mobile-bottom-nav { display: none; }
     body { padding-bottom: 0; }
 }
 
 /* =========================================
-   6. MOBILE RESPONSIVE (ĐÃ SỬA LỖI BẢN ĐỒ CỐ ĐỊNH)
+   8. MOBILE RESPONSIVE (ĐÃ SỬA LỖI BẢN ĐỒ CỐ ĐỊNH)
    ========================================= */
 @media (max-width: 992px) {
     /* Navbar Mobile */
@@ -305,6 +381,10 @@ a { text-decoration: none; }
     body {
         padding-bottom: 70px !important; 
     }
+
+    /* Nút filter mobile cũng dùng màu vàng */
+    .filter-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
 }
-
-
