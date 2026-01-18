@@ -46,7 +46,7 @@ function getOptimizedImg(url, width = 'auto') {
 }
 
 // =========================================================
-// 2. TỰ ĐỘNG TẠO MENU (NAVBAR) - ĐÃ TỐI ƯU MOBILE
+// 2. TỰ ĐỘNG TẠO MENU (NAVBAR) - FIX LỖI DESKTOP
 // =========================================================
 function renderNavbar() {
     const navContainer = document.getElementById('dynamic-navbar');
@@ -56,27 +56,24 @@ function renderNavbar() {
     <nav class="navbar navbar-expand-lg border-bottom sticky-top bg-white">
         <div class="container">
             
-            <div class="d-flex align-items-center justify-content-between w-100 d-lg-block">
-                
-                <a class="navbar-brand d-flex align-items-center gap-2 lh-1" href="index.html">
-                    <img src="logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img">
-                    <div class="brand-text text-uppercase" style="color: #f1c40f; font-weight: 800; font-size: 1.25rem; line-height: 1.2;">
-                        THỌ CHO THUÊ TRỌ
-                        <div style="font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none;">Hệ thống phòng trọ tiện nghi</div>
-                    </div>
-                </a>
+            <a class="navbar-brand d-flex align-items-center gap-2 lh-1 me-auto me-lg-4" href="index.html">
+                <img src="logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img">
+                <div class="brand-text text-uppercase" style="color: #f1c40f; font-weight: 800; font-size: 1.25rem; line-height: 1.2;">
+                    THỌ CHO THUÊ TRỌ
+                    <div style="font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none;">Hệ thống phòng trọ tiện nghi</div>
+                </div>
+            </a>
 
-                <a href="contact.html" class="btn btn-outline-dark btn-sm rounded-pill d-lg-none fw-bold ms-auto d-flex align-items-center gap-1" style="border: 1px solid #1a1a1a;">
-                    <i class="fas fa-headset"></i> Liên hệ
-                </a>
+            <a href="contact.html" class="btn btn-outline-dark btn-sm rounded-pill d-lg-none fw-bold d-flex align-items-center gap-1 ms-2" style="border: 1px solid #1a1a1a;">
+                <i class="fas fa-headset"></i> Liên hệ
+            </a>
 
-                <button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
+            <button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <div class="collapse navbar-collapse mt-2 mt-lg-0" id="navbarContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3">
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3 align-items-lg-center">
                     
                     <li class="nav-item d-none d-lg-block">
                         <a class="nav-link" href="index.html">Trang chủ</a>
@@ -1184,6 +1181,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
