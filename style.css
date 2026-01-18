@@ -155,17 +155,37 @@ a { text-decoration: none; }
    6. CHI TIẾT PHÒNG (GALLERY & MAP)
    ========================================= */
 .page-header-block {
-    background: linear-gradient(135deg, #2c3e50, #4ca1af);
-    color: white;
-    padding: 30px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    /* Màu nền vàng chanh nhạt gradient */
+    background: linear-gradient(135deg, #fff9c4, #fff59d); 
+    
+    /* Màu chữ chuyển sang tối để dễ đọc trên nền vàng */
+    color: #333; 
+    
+    padding: 50px 0; 
+    margin-bottom: 30px; 
+    text-align: center; 
+    border-radius: var(--radius);
+    
+    /* Thêm viền mỏng vàng đậm hơn chút cho sắc nét */
+    border: 1px solid #fff176;
+    box-shadow: 0 10px 30px rgba(241, 196, 15, 0.15); /* Bóng đổ màu vàng nhẹ */
 }
 
-.page-header-title { font-weight: 800; margin-bottom: 10px; }
-.breadcrumb-custom a { color: rgba(255,255,255,0.8); text-decoration: none; }
-.breadcrumb-custom i { font-size: 0.7rem; margin: 0 8px; opacity: 0.6; }
+.page-header-title { 
+    font-size: 2rem; 
+    font-weight: 800; 
+    margin-bottom: 10px;
+    
+    /* Màu chữ tiêu đề: Vàng đậm (Primary Dark) hoặc Đen */
+    color: #d35400; /* Dùng màu cam đất hoặc #333 tùy bạn */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* Chỉnh lại màu đường dẫn (Breadcrumb) cho nổi trên nền vàng */
+.breadcrumb-custom { font-size: 0.9rem; color: #666; font-weight: 500; }
+.breadcrumb-custom a { color: #333; }
+.breadcrumb-custom a:hover { color: #d35400; }
+.breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; opacity: 0.5; color: #333; }
 
 /* Gallery ảnh chuyên nghiệp */
 .gallery-container { display: flex; flex-direction: column; gap: 10px; }
@@ -242,4 +262,5 @@ a { text-decoration: none; }
     
     .room-card .card-img-top { height: 180px; }
 }
+
 
