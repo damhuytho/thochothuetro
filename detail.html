@@ -28,7 +28,14 @@
             background: #fff; z-index: 9999;
             display: flex; justify-content: center; align-items: center; flex-direction: column;
         }
-        .property-header { background: #fff; padding: 20px 0; border-bottom: 1px solid #eee; position: relative; z-index: 1; }
+        .property-header { 
+    background: #fff; 
+    padding: 0 !important; /* XÓA padding */
+    margin: 0 !important;  /* XÓA margin */
+    border-bottom: 1px solid #eee; 
+    position: relative; 
+    z-index: 1; 
+}
         .section-title { font-weight: 700; font-size: 1.25rem; margin-bottom: 20px; color: var(--text-dark); position: relative; padding-left: 15px; }
         .section-title::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 4px; background: var(--primary); border-radius: 2px; }
         .highlight-box { background: #fdfdfd; border: 1px solid #e0e0e0; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -97,7 +104,7 @@
         </div>
     </nav>
 
-    <div class="property-header" style="margin-top: 56px !important; padding-top: 0 !important;">
+    <div class="property-header">
     <div class="container">
         <span class="badge bg-primary text-white mb-2 px-3 py-2 rounded-pill" id="d-type">Căn hộ</span>
         <h1 class="fw-bold mb-2 h2" id="detail-title" style="color: #1a1a1a !important;">Đang tải tên phòng...</h1>
@@ -264,6 +271,7 @@
     </div>
 </body>
 </html>
+
 
 
 
