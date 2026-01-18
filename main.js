@@ -4,7 +4,7 @@
 // Link Sheet "Đang cho thuê" (Data gốc)
 const SHEET_API_ACTIVE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
 
-// [QUAN TRỌNG] Link Sheet "Đã thuê" - HÃY DÁN LINK CỦA BẠN VÀO DƯỚI ĐÂY
+// Link Sheet "Đã thuê"
 const SHEET_API_RENTED = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=1503456441&single=true&output=csv';
 
 // Link Tiện ích
@@ -46,12 +46,70 @@ function getOptimizedImg(url, width = 'auto') {
 }
 
 // =========================================================
-// 2. KHỞI TẠO & FETCH DATA (LẤY CẢ 2 SHEET)
+// 2. TỰ ĐỘNG TẠO MENU (NAVBAR)
+// =========================================================
+function renderNavbar() {
+    const navContainer = document.getElementById('dynamic-navbar');
+    if (!navContainer) return;
+
+    // Đây là code HTML Menu chuẩn, đã thêm mục LIÊN HỆ
+    navContainer.innerHTML = `
+    <nav class="navbar navbar-expand-lg border-bottom sticky-top bg-white">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 lh-1" href="index.html">
+                <img src="logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img">
+                <div class="brand-text text-uppercase" style="color: #f1c40f; font-weight: 800; font-size: 1.25rem; line-height: 1.2;">
+                    THỌ CHO THUÊ TRỌ
+                    <div style="font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none;">Hệ thống phòng trọ tiện nghi</div>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tan-binh.html">Quận Tân Bình</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="phu-nhuan.html">Quận Phú Nhuận</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="map-search.html">
+                            <i class="fas fa-map-marked-alt me-1"></i>Bản đồ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Liên hệ</a>
+                    </li>
+                </ul>
+                
+                <div class="ms-lg-3 d-none d-lg-block">
+                    <a href="tel:0925996992" class="text-decoration-none text-dark fw-bold fs-5 d-flex align-items-center">
+                        <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px;">
+                            <i class="fas fa-phone-alt" style="font-size: 0.9rem;"></i>
+                        </div>
+                        0925 996 992
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>`;
+}
+
+// =========================================================
+// 3. KHỞI TẠO & FETCH DATA
 // =========================================================
 window.addEventListener('DOMContentLoaded', () => {
+    renderNavbar(); // <-- Bơm Menu vào trước
     fetchData();
     setupStickyFilterBar();
-    highlightCurrentMenu();
+    highlightCurrentMenu(); // <-- Sau đó mới tô màu menu đang chọn
 });
 
 // =========================================================
@@ -1112,6 +1170,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
