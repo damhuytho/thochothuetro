@@ -54,30 +54,46 @@ window.addEventListener('DOMContentLoaded', () => {
     highlightCurrentMenu();
 });
 
+// =========================================================
+// CẬP NHẬT: HÀM TẢI DỮ LIỆU AN TOÀN (BỎ QUA LỖI SHEET ĐÃ THUÊ)
+// =========================================================
 async function fetchData() {
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'flex';
 
-    try {
-        const promises = [
-            fetch(SHEET_API_ACTIVE).then(res => res.text()),
-            fetch(AMENITIES_API).then(res => res.text())
-        ];
+    // Hàm tải an toàn: Nếu lỗi thì trả về rỗng chứ không báo lỗi hệ thống
+    const safeFetch = (url) => {
+        if (!url || url.length < 10) return Promise.resolve("");
+        return fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error("Link hỏng hoặc chưa Public");
+                return res.text();
+            })
+            .catch(err => {
+                console.warn(`Bỏ qua nguồn dữ liệu lỗi: ${url}`, err);
+                return ""; // Trả về rỗng để web vẫn chạy tiếp
+            });
+    };
 
-        // Nếu có link Sheet Rented thì tải thêm
-        if (SHEET_API_RENTED && SHEET_API_RENTED.includes('http')) {
-            promises.push(fetch(SHEET_API_RENTED).then(res => res.text()));
+    try {
+        // Tải song song 3 nguồn: Active, Tiện ích, và Rented
+        const [activeCsv, amenitiesCsv, rentedCsv] = await Promise.all([
+            safeFetch(SHEET_API_ACTIVE),
+            safeFetch(AMENITIES_API),
+            safeFetch(SHEET_API_RENTED)
+        ]);
+
+        // Chỉ khi file chính (Active) bị lỗi mới dừng web
+        if (!activeCsv || activeCsv.length < 50) {
+            alert("Không thể tải danh sách phòng. Vui lòng kiểm tra đường truyền hoặc Link Google Sheet.");
+            if (loading) loading.style.display = 'none';
         } else {
-            promises.push(Promise.resolve(""));
+            processData(activeCsv, rentedCsv, amenitiesCsv);
         }
 
-        const [activeCsv, amenitiesCsv, rentedCsv] = await Promise.all(promises);
-        processData(activeCsv, rentedCsv, amenitiesCsv);
-
     } catch (error) {
-        console.error("Lỗi tải dữ liệu:", error);
+        console.error("Lỗi hệ thống:", error);
         if (loading) loading.style.display = 'none'; 
-        alert("Không thể tải dữ liệu. Vui lòng kiểm tra kết nối internet.");
     }
 }
 
@@ -976,6 +992,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
