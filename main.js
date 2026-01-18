@@ -1,7 +1,11 @@
 // =========================================================
 // 1. CẤU HÌNH & DỮ LIỆU
 // =========================================================
-const SHEET_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
+// Link Sheet "Đang cho thuê" (Data gốc)
+const SHEET_API_ACTIVE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=0&single=true&output=csv';
+
+// [QUAN TRỌNG] Link Sheet "Đã thuê" - HÃY DÁN LINK CỦA BẠN VÀO DƯỚI ĐÂY
+const SHEET_API_RENTED = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=1503456441&single=true&output=csv';
 
 // Link Tiện ích
 const AMENITIES_API = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5G7jESC4agyCYLxQ2aVvcft3DwohZ3yqEhSKpLgEsjZZ-akvLVUYBiHIHX3k_TGfTSxgPsG1LhGJh/pub?gid=2072224303&single=true&output=csv';
@@ -32,30 +36,17 @@ let currentLimit = 6;
 const LOAD_MORE_STEP = 9;   
 let currentSortOrder = 'default'; 
 
-// =========================================================
-// [QUAN TRỌNG] HÀM TỐI ƯU ẢNH CLOUDINARY (TIẾT KIỆM CREDIT)
-// =========================================================
+// Hàm tối ưu ảnh
 function getOptimizedImg(url, width = 'auto') {
     if (!url) return "https://placehold.co/600x400?text=No+Image";
-    // Nếu không phải link Cloudinary thì trả về nguyên gốc
     if (!url.includes('res.cloudinary.com')) return url;
-
-    // Logic chèn tham số tối ưu vào URL
-    // URL gốc: .../upload/v123456/folder/image.jpg
-    // URL tối ưu: .../upload/f_auto,q_auto,w_400/v123456/folder/image.jpg
-    
-    // Nếu width là 'auto' thì chỉ tối ưu định dạng và chất lượng
     let params = 'f_auto,q_auto';
-    if (width !== 'auto') {
-        params += `,w_${width}`;
-    }
-
-    // Thay thế đoạn /upload/ bằng /upload/kèm_tham_số/
+    if (width !== 'auto') params += `,w_${width}`;
     return url.replace('/upload/', `/upload/${params}/`);
 }
 
 // =========================================================
-// 2. KHỞI TẠO & FETCH DATA
+// 2. KHỞI TẠO & FETCH DATA (LẤY CẢ 2 SHEET)
 // =========================================================
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
@@ -68,15 +59,20 @@ async function fetchData() {
     if (loading) loading.style.display = 'flex';
 
     try {
-        const [roomsResponse, amenitiesResponse] = await Promise.all([
-            fetch(SHEET_API),
-            fetch(AMENITIES_API)
-        ]);
+        const promises = [
+            fetch(SHEET_API_ACTIVE).then(res => res.text()),
+            fetch(AMENITIES_API).then(res => res.text())
+        ];
 
-        const roomsText = await roomsResponse.text();
-        const amenitiesText = await amenitiesResponse.text();
+        // Nếu có link Sheet Rented thì tải thêm
+        if (SHEET_API_RENTED && SHEET_API_RENTED.includes('http')) {
+            promises.push(fetch(SHEET_API_RENTED).then(res => res.text()));
+        } else {
+            promises.push(Promise.resolve(""));
+        }
 
-        processData(roomsText, amenitiesText);
+        const [activeCsv, amenitiesCsv, rentedCsv] = await Promise.all(promises);
+        processData(activeCsv, rentedCsv, amenitiesCsv);
 
     } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);
@@ -85,114 +81,80 @@ async function fetchData() {
     }
 }
 
-// =========================================================
-// HÀM XỬ LÝ DỮ LIỆU (FINAL VERSION: MÃ + ĐƯỜNG + QUẬN)
-// =========================================================
-
-function processData(roomsCsv, amenitiesCsv) {
+function processData(activeCsv, rentedCsv, amenitiesCsv) {
     try {
-        // --- XỬ LÝ PHÒNG ---
-        const roomRows = parseCSV(roomsCsv);
-        
-        // Biến theo dõi để xử lý trùng lặp ID
         let idTracker = {}; 
 
-        allRooms = roomRows.slice(1).map(row => {
-            // 1. Xử lý tên Quận hiển thị (cho đẹp)
-            let districtRaw = (row[2] || "").trim();
-            if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
-                districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
-            }
-            
-            // 2. Xử lý Keypoint
-            let keypointRaw = (row[5] || "");
-            let keypointClean = keypointRaw.split(',')
-                .map(item => item.trim())
-                .filter(item => !item.includes('🎁') && !item.toLowerCase().includes('km '))
-                .join(', ');
-
-            // --- [LOGIC TẠO ID MỚI THEO YÊU CẦU] ---
-            
-            // B1: Lấy Mã Phòng (Cắt từ Cột E)
-            let rawCodeE = (row[4] || "").trim();
-            let roomNumber = rawCodeE.split('-')[0].trim();
-            
-            // B2: Lấy Tên Đường (Từ Cột D - Đã bỏ số nhà)
-            let rawAddress = (row[3] || "").trim(); 
-            let streetPart = rawAddress.split(',')[0].trim(); // Lấy trước dấu phẩy
-            // Regex xóa số nhà/hẻm ở đầu (Ví dụ: "71/4 Nguyễn Bặc" -> "Nguyễn Bặc")
-            let streetNameOnly = streetPart.replace(/^[0-9a-zA-Z\/\.\-]+\s+/, ""); 
-            if (!streetNameOnly) streetNameOnly = streetPart;
-
-            // B3: Lấy Quận (Từ Cột C)
-            // Lưu ý: Lấy trực tiếp row[2] như bạn yêu cầu
-            let districtForSlug = (row[2] || "").trim(); 
-
-            // B4: Hàm tạo slug (chuyển tiếng Việt sang không dấu, nối gạch ngang)
-            const toSlug = (str) => {
-                return str.toLowerCase()
-                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
-                    .replace(/[đĐ]/g, "d")
-                    .replace(/[^a-z0-9]/g, "-") // Ký tự lạ thành -
-                    .replace(/-+/g, "-") // Xóa gạch thừa
-                    .replace(/^-|-$/g, ""); // Cắt đầu đuôi
-            };
-
-            let slugRoom = toSlug(roomNumber);
-            let slugStreet = toSlug(streetNameOnly);
-            let slugDistrict = toSlug(districtForSlug);
-
-            // B5: Ghép lại thành ID cơ sở
-            // Cấu trúc: p302-nguyen-bac-tan-binh
-            let baseID = `${slugRoom}-${slugStreet}-${slugDistrict}`;
-
-            // Dự phòng nếu dữ liệu rỗng
-            if (baseID.length < 5) baseID = "room-" + Math.random().toString(36).substr(2, 9);
-
-            // B6: Kiểm tra trùng lặp và đánh số tự động
-            let finalID = baseID;
-            
-            if (idTracker[baseID]) {
-                idTracker[baseID] += 1;
-                finalID = `${baseID}-${idTracker[baseID]}`; // Ví dụ: p302-nguyen-bac-tan-binh-2
-            } else {
-                idTracker[baseID] = 1;
-            }
-
-            // -----------------------------------------------------------
-
-            return {
-                id: finalID, // ID chuẩn SEO, bền vững, không trùng
-                room_code: rawCodeE, 
+        // Hàm con parse từng dòng và tạo ID
+        const parseAndTag = (csvText, status) => {
+            if (!csvText || csvText.trim().length === 0) return [];
+            const rows = parseCSV(csvText);
+            return rows.slice(1).map(row => {
+                let districtRaw = (row[2] || "").trim();
+                if (districtRaw.toLowerCase().startsWith("q.") || districtRaw.toLowerCase().startsWith("q ")) {
+                    districtRaw = districtRaw.replace(/q[\.\s]/i, "Quận ");
+                }
                 
-                district: districtRaw,
-                address: rawAddress, 
-                keypoint: keypointClean, 
-                price: parsePrice(row[6]),
-                desc: row[7] || "",
-                type: (row[16] || "").trim(),
-                promotion: (row[23] || "").trim(),
-                lat: parseFloat(row[26]) || 10.801646,
-                lng: parseFloat(row[27]) || 106.663158,
-                video: (row[28] || "").trim(),
-                image_detail: row[29] ? row[29].split('|').map(img => img.trim()).filter(img => img.length > 5) : [], 
-                image_collage: row[30] ? row[30].split('|').map(img => img.trim()).filter(img => img.length > 5) : [],
-                amenities_search: (row[5] || "").toLowerCase()
-            };
-        }).filter(item => item.id && item.price > 0); 
+                let keypointRaw = (row[5] || "");
+                let keypointClean = keypointRaw.split(',')
+                    .map(item => item.trim())
+                    .filter(item => !item.includes('🎁') && !item.toLowerCase().includes('km '))
+                    .join(', ');
 
-        // --- XỬ LÝ TIỆN ÍCH ---
+                // --- LOGIC TẠO ID: MÃ + ĐƯỜNG + QUẬN ---
+                let rawCodeE = (row[4] || "").trim();
+                let roomNumber = rawCodeE.split('-')[0].trim();
+                let rawAddress = (row[3] || "").trim(); 
+                let streetPart = rawAddress.split(',')[0].trim();
+                let streetNameOnly = streetPart.replace(/^[0-9a-zA-Z\/\.\-]+\s+/, ""); 
+                if (!streetNameOnly) streetNameOnly = streetPart;
+                let districtForSlug = (row[2] || "").trim(); 
+
+                const toSlug = (str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                
+                let baseID = `${toSlug(roomNumber)}-${toSlug(streetNameOnly)}-${toSlug(districtForSlug)}`;
+                if (baseID.length < 5) baseID = "room-" + Math.random().toString(36).substr(2, 9);
+
+                let finalID = baseID;
+                if (idTracker[baseID]) {
+                    idTracker[baseID] += 1;
+                    finalID = `${baseID}-${idTracker[baseID]}`;
+                } else {
+                    idTracker[baseID] = 1;
+                }
+
+                return {
+                    id: finalID,
+                    room_code: rawCodeE,
+                    district: districtRaw,
+                    address: rawAddress,
+                    keypoint: keypointClean,
+                    price: parsePrice(row[6]),
+                    desc: row[7] || "",
+                    type: (row[16] || "").trim(),
+                    promotion: (row[23] || "").trim(),
+                    lat: parseFloat(row[26]) || 10.801646,
+                    lng: parseFloat(row[27]) || 106.663158,
+                    video: (row[28] || "").trim(),
+                    image_detail: row[29] ? row[29].split('|').map(img => img.trim()).filter(img => img.length > 5) : [], 
+                    image_collage: row[30] ? row[30].split('|').map(img => img.trim()).filter(img => img.length > 5) : [],
+                    amenities_search: (row[5] || "").toLowerCase(),
+                    status: status // 'active' hoặc 'rented'
+                };
+            }).filter(item => item.id && item.price > 0);
+        };
+
+        const activeRooms = parseAndTag(activeCsv, 'active');
+        const rentedRooms = parseAndTag(rentedCsv, 'rented');
+        allRooms = [...activeRooms, ...rentedRooms]; // Gộp 2 nguồn lại
+
         if (amenitiesCsv && amenitiesCsv.trim().length > 0) {
             const amenityRows = parseCSV(amenitiesCsv);
             allAmenities = amenityRows.slice(1).map(row => {
                 const lat = parseFloat(row[7]);
                 const lng = parseFloat(row[8]);
                 if (isNaN(lat) || isNaN(lng)) return null;
-                return {
-                    name: (row[1] || "Tiện ích").trim(),
-                    type: (row[2] || "Khác").trim(),
-                    lat: lat, lng: lng
-                };
+                return { name: (row[1] || "Tiện ích").trim(), type: (row[2] || "Khác").trim(), lat: lat, lng: lng };
             }).filter(item => item !== null);
         }
 
@@ -367,51 +329,43 @@ function runInternalFilter(districtVal, isFilteredAction) {
     const typeVal = document.getElementById('type-filter')?.value || 'all'; 
     const priceVal = document.getElementById('f-price')?.value || 'all';
     const checkedAmenities = Array.from(document.querySelectorAll('.amenity-check:checked')).map(c => c.value);
-
     const specialReqs = checkedAmenities.filter(am => SPECIAL_AMENITIES_OR.includes(am));
     const normalReqs = checkedAmenities.filter(am => !SPECIAL_AMENITIES_OR.includes(am));
 
     let filtered = allRooms.filter(room => {
         if (districtVal !== 'all' && room.district !== districtVal) return false;
         if (typeVal !== 'all' && !room.type.toLowerCase().includes(typeVal.toLowerCase())) return false;
-        
         if (priceVal !== 'all') {
             const [min, max] = priceVal.split('-').map(v => parseInt(v));
             if (room.price < min || room.price > max) return false;
         }
-        
         if (normalReqs.length > 0) if (!normalReqs.every(req => room.amenities_search.includes(req))) return false;
         if (specialReqs.length > 0) if (!specialReqs.some(req => room.amenities_search.includes(req))) return false;
         return true;
     });
 
-    if (currentSortOrder === 'price-asc') {
-        filtered.sort((a, b) => a.price - b.price);
-    } else if (currentSortOrder === 'price-desc') {
-        filtered.sort((a, b) => b.price - a.price);
-    } else {
-        filtered.sort((a, b) => {
-            const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
-            const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
-            if (aPromo !== bPromo) return bPromo - aPromo;
-            
-            const aHasImage = a.image_detail.length > 0 ? 1 : 0;
-            const bHasImage = b.image_detail.length > 0 ? 1 : 0;
-            return bHasImage - aHasImage;
-        });
-    }
+    // SẮP XẾP: ACTIVE LUÔN LÊN TRƯỚC
+    filtered.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+        
+        if (currentSortOrder === 'price-asc') return a.price - b.price;
+        if (currentSortOrder === 'price-desc') return b.price - a.price;
+        
+        const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
+        const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
+        if (aPromo !== bPromo) return bPromo - aPromo;
+        return b.image_detail.length - a.image_detail.length;
+    });
 
     currentFilteredRooms = filtered;
     currentLimit = 6; 
     
     const path = window.location.pathname;
-    
     if (path.includes("map-search")) {
         renderHalfMapList(filtered);
         renderHalfMapMarkers(filtered);
     } else {
         const isHomePage = !path.includes("tan-binh") && !path.includes("phu-nhuan");
-        
         if (isHomePage && districtVal === 'all') {
             document.getElementById('home-content').style.display = 'none';
             document.getElementById('search-results').style.display = 'block';
@@ -422,13 +376,59 @@ function runInternalFilter(districtVal, isFilteredAction) {
             renderGridWithPagination(listingArea, filtered);
         }
     }
-
     let ignoreDistrictInBar = false;
     if (path.includes('tan-binh') && districtVal === 'Tân Bình') ignoreDistrictInBar = true;
     if (path.includes('phu-nhuan') && districtVal === 'Phú Nhuận') ignoreDistrictInBar = true;
-
     const hasActiveFilter = ((districtVal !== 'all' && !ignoreDistrictInBar) || typeVal !== 'all' || priceVal !== 'all' || checkedAmenities.length > 0);
     updateActiveFilterBar(districtVal, typeVal, priceVal, checkedAmenities, hasActiveFilter);
+}
+
+function renderHomePageGroups() {
+    const container = document.getElementById('home-content');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    // Sắp xếp Active lên trước
+    const sortedRooms = [...allRooms].sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+        
+        const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
+        const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
+        if (aPromo !== bPromo) return bPromo - aPromo;
+        return b.image_detail.length - a.image_detail.length;
+    });
+    
+    const grouped = {};
+    sortedRooms.forEach(room => {
+        const dName = room.district || "Khu vực khác";
+        if (!grouped[dName]) grouped[dName] = [];
+        grouped[dName].push(room);
+    });
+    
+    const sortedDistricts = Object.keys(grouped).sort((a, b) => {
+        const aIdx = PRIORITY_DISTRICTS.indexOf(a);
+        const bIdx = PRIORITY_DISTRICTS.indexOf(b);
+        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+        return aIdx !== -1 ? -1 : (bIdx !== -1 ? 1 : a.localeCompare(b));
+    });
+    
+    sortedDistricts.forEach(district => {
+        const districtRooms = grouped[district];
+        const displayRooms = districtRooms.slice(0, 6); 
+        
+        let html = `
+            <div class="district-group mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold">${district} <span class="text-muted fs-6">(${districtRooms.length} phòng)</span></h3>
+                    <a href="#" onclick="viewAllDistrict('${district}'); return false;" class="btn btn-outline-primary btn-sm rounded-pill">Xem tất cả <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="row g-3">
+                    ${displayRooms.map(room => `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(room)}</div>`).join('')}
+                </div>
+            </div>
+        `;
+        container.innerHTML += html;
+    });
 }
 
 // =========================================================
@@ -689,13 +689,14 @@ function renderHomePageGroups() {
     if (!container) return;
     container.innerHTML = '';
     
+    // Sắp xếp Active lên trước
     const sortedRooms = [...allRooms].sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+        
         const aPromo = a.promotion && a.promotion.trim().length > 0 ? 1 : 0;
         const bPromo = b.promotion && b.promotion.trim().length > 0 ? 1 : 0;
         if (aPromo !== bPromo) return bPromo - aPromo;
-        const aHasImage = a.image_detail.length > 0 ? 1 : 0;
-        const bHasImage = b.image_detail.length > 0 ? 1 : 0;
-        return bHasImage - aHasImage;
+        return b.image_detail.length - a.image_detail.length;
     });
     
     const grouped = {};
@@ -744,21 +745,35 @@ window.viewAllDistrict = function(district) {
 window.resetFilters = function() { window.location.reload(); }
 
 function createCardHTML(room) {
-    // [TỐI ƯU HÓA] Dùng ảnh Thumbnail nhỏ (w=400) để load nhanh ở danh sách
     let rawImg = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
-    let imgUrl = getOptimizedImg(rawImg, 400); // 400px là đủ cho card
+    let imgUrl = getOptimizedImg(rawImg, 400);
 
     const cleanAddr = cleanAddress(room.address);
-    // [SEO - ALT TAG] Tiêu đề được dùng làm alt cho ảnh
     const title = `Cho thuê căn ${room.type} ${cleanAddr}`;
+    
+    let overlayBadge = '';
+    let cardClass = 'room-card';
+    
+    // Nếu Đã Thuê: Thêm class rented và Badge đỏ
+    if (room.status === 'rented') {
+        cardClass += ' rented';
+        overlayBadge = `
+            <div class="rented-overlay">
+                <div class="rented-label">ĐÃ CHO THUÊ</div>
+            </div>`;
+    } 
+    // Nếu Active & Có ưu đãi: Hiện Badge vàng
+    else if (room.promotion) {
+        overlayBadge = `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>`;
+    }
+
     const keypointHTML = room.keypoint ? `<div class="mb-2 text-secondary fst-italic small" style="line-height: 1.4;"><i class="fas fa-star text-warning me-1"></i>${room.keypoint}</div>` : '';
-    const promoBadge = room.promotion ? `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 m-2 rounded fw-bold small shadow"><i class="fas fa-gift me-1"></i> Ưu đãi</span>` : '';
 
     return `
-        <div class="card h-100 shadow-sm border-0 room-card" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
+        <div class="card h-100 shadow-sm border-0 ${cardClass}" onclick="window.location.href='detail.html?id=${encodeURIComponent(room.id)}'" style="cursor:pointer;">
             <div class="position-relative">
                 <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${title}" loading="lazy">
-                ${promoBadge}
+                ${overlayBadge}
             </div>
             <div class="card-body p-3 d-flex flex-column">
                 <h6 class="card-title fw-bold text-primary mb-1" style="font-size: 0.95rem; line-height: 1.4; min-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h6>
@@ -786,42 +801,26 @@ function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
     const room = allRooms.find(r => r.id === roomId);
 
-    // [QUAN TRỌNG] Xử lý khi không tìm thấy phòng (Do đã xóa khỏi Sheet)
     if (!room) {
         document.getElementById('loading').style.display = 'none';
-        
-        // 1. Thông báo cho người dùng
         const container = document.querySelector('.container.py-4');
         if(container) {
-            container.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="mb-3"><i class="fas fa-door-closed text-secondary" style="font-size: 5rem;"></i></div>
-                    <h2 class="fw-bold text-dark">Phòng này đã được thuê hoặc tạm ngưng giao dịch</h2>
-                    <p class="text-muted">Đừng lo, Thọ còn rất nhiều phòng đẹp khác phù hợp với bạn!</p>
-                    <a href="index.html" class="btn btn-primary mt-3 px-4 rounded-pill fw-bold"><i class="fas fa-home me-2"></i>Xem tất cả phòng</a>
-                </div>
-                <div class="mt-4 pt-4 border-top">
-                    <h4 class="fw-bold mb-4 text-center">Gợi ý phòng mới nhất cho bạn</h4>
-                    <div class="row g-3" id="suggestion-grid"></div>
-                </div>
-            `;
-            
-            // 2. Hiển thị gợi ý các phòng khác (Lấy 6 phòng mới nhất)
-            const suggestions = allRooms.slice(0, 6);
-            const grid = document.getElementById('suggestion-grid');
-            if(grid) {
-                grid.innerHTML = suggestions.map(r => 
-                    `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(r)}</div>`
-                ).join('');
-            }
+            container.innerHTML = `<div class="text-center py-5"><h2 class="fw-bold">Không tìm thấy phòng</h2><a href="index.html" class="btn btn-primary mt-3">Về trang chủ</a></div>`;
         }
-        
-        // Đổi tiêu đề tab trình duyệt
-        document.title = "Phòng đã cho thuê - Thọ Cho Thuê Trọ";
-        return; // Dừng hàm tại đây
+        return;
     }
 
-    // --- NẾU TÌM THẤY PHÒNG THÌ CHẠY TIẾP NHƯ CŨ ---
+    // NẾU LÀ PHÒNG ĐÃ THUÊ -> HIỆN CẢNH BÁO
+    if (room.status === 'rented') {
+         const container = document.querySelector('.container.py-4');
+         const alertDiv = document.createElement('div');
+         alertDiv.className = 'alert alert-danger fw-bold text-center mb-4';
+         alertDiv.style.border = '2px solid #dc3545';
+         alertDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> PHÒNG NÀY ĐÃ ĐƯỢC THUÊ. Vui lòng tham khảo các phòng khác bên dưới.';
+         if(container) container.parentNode.insertBefore(alertDiv, container);
+    }
+
+    // Render thông tin
     const headerContainer = document.querySelector('.property-header');
     if (headerContainer) {
         headerContainer.innerHTML = `
@@ -829,16 +828,11 @@ function renderDetailPage(id) {
             <div class="page-header-block rounded-3" style="padding: 40px 0; margin-bottom:0;">
                 <h1 class="page-header-title h2">${room.type} ${cleanAddress(room.address)}</h1>
                 <div class="breadcrumb-custom">
-                    <a href="index.html">Trang chủ</a> 
-                    <i class="fas fa-chevron-right"></i> 
-                    <a href="#" class="text-white">${room.district}</a>
-                    <i class="fas fa-chevron-right"></i>
-                    <span>${room.room_code}</span>
+                    <a href="index.html">Trang chủ</a> <i class="fas fa-chevron-right"></i> <a href="#" class="text-white">${room.district}</a> <i class="fas fa-chevron-right"></i> <span>${room.room_code}</span>
                 </div>
             </div>
         </div>`;
     }
-
     if(document.getElementById('detail-address')) document.getElementById('detail-address').textContent = cleanAddress(room.address);
     if(document.getElementById('d-type')) document.getElementById('d-type').textContent = room.type;
     if(document.getElementById('detail-price')) document.getElementById('detail-price').textContent = formatMoney(room.price);
@@ -853,7 +847,6 @@ function renderDetailPage(id) {
     
     renderProfessionalGallery(room);
     
-    // Tiêu đề SEO động
     const detailTitle = document.getElementById('detail-title');
     if(detailTitle) detailTitle.innerText = `${room.type} ${cleanAddress(room.address)}`;
     document.title = `${room.type} ${cleanAddress(room.address)} - Giá ${formatMoney(room.price)}`;
@@ -862,13 +855,11 @@ function renderDetailPage(id) {
     if (galleryContainer) {
         const existingTitle = document.getElementById('content-title-below-gallery');
         if (existingTitle) existingTitle.remove();
-
         const titleEl = document.createElement('h2');
         titleEl.id = 'content-title-below-gallery';
         titleEl.className = 'fw-bold mb-3 mt-4 text-primary';
         titleEl.style.fontSize = '1.5rem';
         titleEl.textContent = `Cho thuê căn ${room.type} ${cleanAddress(room.address)}`;
-        
         galleryContainer.parentNode.insertBefore(titleEl, galleryContainer.nextSibling);
     }
 
@@ -976,5 +967,6 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
