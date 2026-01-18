@@ -718,11 +718,49 @@ function createCardHTML(room) {
     `;
 }
 
+// =========================================================
+// CẬP NHẬT HÀM RENDER CHI TIẾT (XỬ LÝ KHI PHÒNG ĐÃ XÓA/ĐÃ THUÊ)
+// =========================================================
 function renderDetailPage(id) {
     const roomId = decodeURIComponent(id);
     const room = allRooms.find(r => r.id === roomId);
-    if (!room) return;
 
+    // [QUAN TRỌNG] Xử lý khi không tìm thấy phòng (Do đã xóa khỏi Sheet)
+    if (!room) {
+        document.getElementById('loading').style.display = 'none';
+        
+        // 1. Thông báo cho người dùng
+        const container = document.querySelector('.container.py-4');
+        if(container) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="mb-3"><i class="fas fa-door-closed text-secondary" style="font-size: 5rem;"></i></div>
+                    <h2 class="fw-bold text-dark">Phòng này đã được thuê hoặc tạm ngưng giao dịch</h2>
+                    <p class="text-muted">Đừng lo, Thọ còn rất nhiều phòng đẹp khác phù hợp với bạn!</p>
+                    <a href="index.html" class="btn btn-primary mt-3 px-4 rounded-pill fw-bold"><i class="fas fa-home me-2"></i>Xem tất cả phòng</a>
+                </div>
+                <div class="mt-4 pt-4 border-top">
+                    <h4 class="fw-bold mb-4 text-center">Gợi ý phòng mới nhất cho bạn</h4>
+                    <div class="row g-3" id="suggestion-grid"></div>
+                </div>
+            `;
+            
+            // 2. Hiển thị gợi ý các phòng khác (Lấy 6 phòng mới nhất)
+            const suggestions = allRooms.slice(0, 6);
+            const grid = document.getElementById('suggestion-grid');
+            if(grid) {
+                grid.innerHTML = suggestions.map(r => 
+                    `<div class="col-6 col-md-4 col-lg-4">${createCardHTML(r)}</div>`
+                ).join('');
+            }
+        }
+        
+        // Đổi tiêu đề tab trình duyệt
+        document.title = "Phòng đã cho thuê - Thọ Cho Thuê Trọ";
+        return; // Dừng hàm tại đây
+    }
+
+    // --- NẾU TÌM THẤY PHÒNG THÌ CHẠY TIẾP NHƯ CŨ ---
     const headerContainer = document.querySelector('.property-header');
     if (headerContainer) {
         headerContainer.innerHTML = `
@@ -754,6 +792,11 @@ function renderDetailPage(id) {
     
     renderProfessionalGallery(room);
     
+    // Tiêu đề SEO động
+    const detailTitle = document.getElementById('detail-title');
+    if(detailTitle) detailTitle.innerText = `${room.type} ${cleanAddress(room.address)}`;
+    document.title = `${room.type} ${cleanAddress(room.address)} - Giá ${formatMoney(room.price)}`;
+
     const galleryContainer = document.getElementById('detail-gallery');
     if (galleryContainer) {
         const existingTitle = document.getElementById('content-title-below-gallery');
@@ -872,3 +915,4 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
