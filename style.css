@@ -219,6 +219,16 @@ a { text-decoration: none; }
     color: #1a1a1a !important;
 }
 
+/* ✅ XÓA KHOẢNG TRẮNG GIỮA NAVBAR VÀ PAGE HEADER */
+.property-header {
+    margin-top: 70px !important; /* Chỉ cách navbar 1 khoảng nhỏ */
+    padding-top: 0 !important;
+}
+
+.property-header .page-header-block {
+    margin-bottom: 20px;
+}
+
 /* =========================================
    7. BỘ LỌC
    ========================================= */
