@@ -196,28 +196,34 @@ function detectPageAndRender() {
     const urlParams = new URLSearchParams(window.location.search);
     const detailId = urlParams.get('id');
 
+    // 1. Nếu có ID -> Render trang chi tiết
     if (detailId) {
         renderDetailPage(detailId);
         return;
     }
 
+    // 2. Nếu là trang bản đồ
     if (path.includes("map-search")) {
         renderHalfMapPage();
         return;
     }
     
+    // 3. Xác định Quận dựa trên URL (tân bình / phú nhuận)
     let targetDistrict = null;
     if (path.includes("tan-binh") || path.includes("tanbinh")) targetDistrict = "Tân Bình";
     if (path.includes("phu-nhuan") || path.includes("phunhuan")) targetDistrict = "Phú Nhuận";
     
     if (targetDistrict) {
+        // Set giá trị cho Dropdown Quận để UI khớp với trang hiện tại
         const districtSelect = document.getElementById('f-district');
         if (districtSelect) districtSelect.value = targetDistrict;
         
+        // Lấy tham số từ URL (nếu người dùng vừa bấm lọc từ trang chủ sang)
         const urlType = urlParams.get('type');
         const urlPrice = urlParams.get('price');
         const urlAmenities = urlParams.get('amenities');
         
+        // Điền lại dữ liệu vào bộ lọc
         if (urlType) document.getElementById('type-filter').value = urlType;
         if (urlPrice) document.getElementById('f-price').value = urlPrice;
         if (urlAmenities) {
@@ -227,9 +233,17 @@ function detectPageAndRender() {
             });
         }
 
+        // --- SỬA Ở ĐÂY: Tự động thu gọn bộ lọc nếu có tham số lọc ---
+        // Nếu có bất kỳ tham số nào trên URL, nghĩa là khách đang tìm kiếm
+        // -> Thu gọn bộ lọc để khách xem kết quả ngay.
+        if (urlType || urlPrice || urlAmenities) {
+            collapseFilterBox();
+        }
+
         renderPageHeader(`Phòng trọ ${targetDistrict}`, targetDistrict);
         runInternalFilter(targetDistrict, !!(urlType || urlPrice || urlAmenities)); 
     } else {
+        // 4. Nếu là trang chủ
         renderHomePageGroups();
     }
 }
@@ -767,7 +781,13 @@ window.viewAllDistrict = function(district) {
     }
 }
 
-window.resetFilters = function() { window.location.reload(); }
+window.resetFilters = function() { 
+    // Cách hoạt động mới:
+    // Lấy đường dẫn gốc của trang hiện tại (ví dụ: /tan-binh.html)
+    // Bỏ qua phần params (?type=1PN...)
+    // Trình duyệt sẽ tải lại trang gốc -> code detectPageAndRender sẽ chạy lại -> hiển thị mặc định
+    window.location.href = window.location.pathname; 
+}
 
 function createCardHTML(room) {
     let rawImg = room.image_detail[0] || "https://placehold.co/600x400?text=Phong+Tro";
@@ -1012,6 +1032,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
