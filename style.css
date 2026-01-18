@@ -41,54 +41,43 @@ a { text-decoration: none; }
 .logo-img { height: 45px; width: auto; }
 
 /* =========================================
-   3. LOADING (MÀN HÌNH CHỜ)
-   ========================================= */
-.loading-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #fff;
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-/* =========================================
-   4. CARD (THẺ PHÒNG TRỌ)
+   3. CARD (THẺ PHÒNG TRỌ)
    ========================================= */
 .room-card {
     border-radius: var(--radius);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background: #fff;
+    height: 100%; /* Để card bằng nhau */
+    display: flex; flex-direction: column;
+    border: 1px solid #eee;
 }
+
+.room-card .card-body { flex: 1; display: flex; flex-direction: column; }
 
 .room-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    border-color: var(--primary);
 }
 
 .room-card .card-img-top {
-    height: 220px;
+    height: 200px;
     width: 100%;
     object-fit: cover;
 }
 
-/* --- QUAN TRỌNG: CSS CHO CĂN ĐÃ THUÊ --- */
+/* --- CSS CHO CĂN ĐÃ THUÊ --- */
 .room-card.rented {
-    opacity: 0.85; /* Làm mờ nhẹ */
-    filter: grayscale(40%); /* Làm xám màu đi */
-    cursor: pointer; /* (Tùy chọn) Không cho bấm vào nếu muốn chặn */
+    opacity: 0.9; 
+    filter: grayscale(30%); 
+    cursor: pointer; /* Vẫn cho bấm vào để xem gợi ý khác */
 }
-
-/* Nếu bạn vẫn muốn cho bấm vào để xem chi tiết thì xóa dòng pointer-events ở trên đi */
 
 .rented-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.4); /* Lớp phủ đen mờ */
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,12 +85,12 @@ a { text-decoration: none; }
 }
 
 .rented-label {
-    background-color: #dc3545; /* Màu đỏ */
+    background-color: #dc3545;
     color: white;
     font-weight: 800;
     font-size: 1.1rem;
     padding: 8px 15px;
-    transform: rotate(-15deg); /* Xoay chéo chữ */
+    transform: rotate(-15deg);
     border: 2px solid white;
     text-transform: uppercase;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -109,128 +98,115 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   5. BỘ LỌC (FILTER SIDEBAR)
+   4. LAYOUT BẢN ĐỒ (QUAN TRỌNG - ĐÃ FIX)
    ========================================= */
-.btn-expand-filter { display: none; } /* Ẩn nút mở filter trên PC */
-
-#main-filter-box {
-    transition: all 0.3s ease;
-}
-
-.amenities-grid {
+.map-layout-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    /* Sidebar trái 450px, Bản đồ bên phải chiếm hết phần còn lại */
+    grid-template-columns: 450px 1fr; 
+    /* Chiều cao = 100% màn hình - Chiều cao Navbar (khoảng 76px) */
+    height: calc(100vh - 76px); 
+    width: 100%;
+    overflow: hidden; /* Ẩn thanh cuộn ngoài */
 }
 
-/* Thanh filter đang kích hoạt (hiện khi cuộn trang) */
-.active-filter-bar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 1040;
-    padding: 10px 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    border-bottom: 1px solid #eee;
-    display: none; /* Mặc định ẩn */
-    animation: slideDown 0.3s ease;
+.half-map-list {
+    height: 100%;
+    overflow-y: auto; /* Chỉ cuộn danh sách, không cuộn bản đồ */
+    background: #f8f9fa;
+    border-right: 1px solid #ddd;
+    display: flex; flex-direction: column;
 }
-@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
-.filter-tag {
-    background: #fff3cd;
-    color: #856404;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
-    margin-right: 5px;
-    border: 1px solid #ffeeba;
-    cursor: pointer;
+.half-map-view {
+    height: 100%; /* Bắt buộc phải có height */
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* Style cho Marker trên bản đồ */
+.custom-map-marker { display: flex; justify-content: center; align-items: center; }
+.marker-pin {
+    width: 40px; height: 40px; border-radius: 50% 50% 50% 0;
+    background: var(--primary); position: absolute; transform: rotate(-45deg);
+    left: 50%; top: 50%; margin: -20px 0 0 -20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3); border: 2px solid #fff;
+    display: flex; justify-content: center; align-items: center;
+}
+.marker-pin i { transform: rotate(45deg); color: #fff; font-size: 18px; }
+.btn-popup-custom {
+    display: block; width: 100%; background-color: var(--primary) !important; color: #000 !important;
+    font-weight: 700; text-align: center; padding: 6px 0; border-radius: 4px; margin-top: 8px;
 }
 
 /* =========================================
-   6. CHI TIẾT PHÒNG (GALLERY & MAP)
+   5. HEADER & FILTER
    ========================================= */
+/* HEADER MÀU VÀNG CHANH (THEO YÊU CẦU MỚI) */
 .page-header-block {
-    /* Màu nền vàng chanh nhạt gradient */
+    /* Gradient vàng chanh nhạt */
     background: linear-gradient(135deg, #fff9c4, #fff59d); 
-    
-    /* Màu chữ chuyển sang tối để dễ đọc trên nền vàng */
-    color: #333; 
-    
-    padding: 50px 0; 
-    margin-bottom: 30px; 
-    text-align: center; 
-    border-radius: var(--radius);
-    
-    /* Thêm viền mỏng vàng đậm hơn chút cho sắc nét */
+    color: #333; /* Chữ màu tối để dễ đọc */
+    padding: 40px 0;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(241, 196, 15, 0.15);
+    text-align: center;
     border: 1px solid #fff176;
-    box-shadow: 0 10px 30px rgba(241, 196, 15, 0.15); /* Bóng đổ màu vàng nhẹ */
 }
 
 .page-header-title { 
-    font-size: 2rem; 
     font-weight: 800; 
-    margin-bottom: 10px;
-    
-    /* Màu chữ tiêu đề: Vàng đậm (Primary Dark) hoặc Đen */
-    color: #d35400; /* Dùng màu cam đất hoặc #333 tùy bạn */
+    margin-bottom: 10px; 
+    color: #d35400; /* Tiêu đề màu cam đậm cho nổi bật */
     text-transform: uppercase;
-    letter-spacing: 1px;
 }
-/* Chỉnh lại màu đường dẫn (Breadcrumb) cho nổi trên nền vàng */
 .breadcrumb-custom { font-size: 0.9rem; color: #666; font-weight: 500; }
 .breadcrumb-custom a { color: #333; }
 .breadcrumb-custom a:hover { color: #d35400; }
-.breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; opacity: 0.5; color: #333; }
 
-/* Gallery ảnh chuyên nghiệp */
+/* Filter Box */
+.btn-expand-filter { display: none; } 
+#main-filter-box { transition: all 0.3s ease; }
+.amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Sticky Filter Bar */
+.active-filter-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 1040; padding: 10px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 1px solid #eee;
+    display: none;
+}
+.filter-tag {
+    background: #fff3cd; color: #856404; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 600; white-space: nowrap; margin-right: 5px;
+    border: 1px solid #ffeeba; cursor: pointer;
+}
+
+/* =========================================
+   6. CHI TIẾT & GALLERY
+   ========================================= */
 .gallery-container { display: flex; flex-direction: column; gap: 10px; }
 .gallery-main-frame {
-    width: 100%;
-    height: 450px; /* Chiều cao ảnh chính */
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    cursor: zoom-in;
+    width: 100%; height: 450px; border-radius: 12px; overflow: hidden; position: relative; cursor: zoom-in;
 }
-.gallery-thumbs-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr; /* 3 cột */
-    gap: 10px;
-}
-.gallery-sub-frame {
-    height: 100px; /* Chiều cao ảnh nhỏ */
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: 0.2s;
-}
+.gallery-thumbs-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.gallery-sub-frame { height: 100px; border-radius: 8px; overflow: hidden; cursor: pointer; opacity: 0.8; transition: 0.2s; }
 .gallery-sub-frame:hover { opacity: 1; transform: scale(1.02); }
 .img-smart-fill { width: 100%; height: 100%; object-fit: cover; }
+.agent-card { position: sticky; top: 100px; background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
 /* =========================================
-   7. MOBILE BOTTOM NAV (THANH DƯỚI CÙNG)
+   7. RESPONSIVE (MOBILE)
    ========================================= */
 .mobile-bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
-    height: 60px;
-    background: #fff;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 1090;
-    display: block; /* Luôn hiện trên mọi thiết bị (có thể ẩn trên PC ở media query dưới) */
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+    background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1090; display: block;
 }
 
-/* =========================================
-   8. RESPONSIVE (ĐIỆN THOẠI)
-   ========================================= */
 @media (min-width: 992px) {
-    /* Trên máy tính thì ẩn thanh gọi điện dưới cùng */
     .mobile-bottom-nav { display: none; }
     body { padding-bottom: 0; }
 }
@@ -240,27 +216,34 @@ a { text-decoration: none; }
     .navbar-brand img { height: 40px; }
     .brand-text { font-size: 1rem !important; }
     
-    /* Bộ lọc trên Mobile */
-    .btn-expand-filter {
-        display: block;
-        width: 100%;
-        margin-bottom: 10px;
-        background: #fff;
-        border: 1px solid #ddd;
-        color: #333;
-        font-weight: 600;
-        padding: 10px;
+    /* Map Layout Mobile: Đảo ngược (List dưới, Map trên) */
+    .map-layout-grid {
+        display: flex;
+        flex-direction: column-reverse; /* Map lên trên, List xuống dưới */
+        height: calc(100vh - 60px - 70px); /* Trừ Navbar và Bottom Bar */
+    }
+    
+    .half-map-view { 
+        height: 45vh; /* Map chiếm 45% màn hình */
+        width: 100%; 
+        flex-shrink: 0;
+    }
+    
+    .half-map-list { 
+        flex: 1; /* List chiếm phần còn lại */
+        height: auto;
+        overflow-y: auto;
     }
 
-    #main-filter-box.filter-box-collapsed .filter-content {
-        display: none;
+    /* Bộ lọc Mobile */
+    .btn-expand-filter {
+        display: block; width: 100%; margin-bottom: 10px;
+        background: #fff; border: 1px solid #ddd; color: #333; font-weight: 600; padding: 10px;
     }
+    #main-filter-box.filter-box-collapsed .filter-content { display: none; }
 
     /* Gallery Mobile */
-    .gallery-main-frame { height: 300px; }
+    .gallery-main-frame { height: 280px; }
     .gallery-sub-frame { height: 70px; }
-    
     .room-card .card-img-top { height: 180px; }
 }
-
-
