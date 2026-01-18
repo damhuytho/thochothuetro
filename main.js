@@ -488,7 +488,11 @@ function renderHalfMapList(rooms) {
     if(sortSelect) sortSelect.value = currentSortOrder;
 }
 
+// =========================================================
+// CẬP NHẬT: HÀM VẼ MARKER TRÊN BẢN ĐỒ (BỎ QUA CĂN ĐÃ THUÊ)
+// =========================================================
 function renderHalfMapMarkers(rooms) {
+    // Xóa các marker cũ
     map.eachLayer((layer) => {
         if (layer instanceof L.Marker) map.removeLayer(layer);
     });
@@ -502,10 +506,13 @@ function renderHalfMapMarkers(rooms) {
     });
 
     const bounds = [];
+    
     rooms.forEach(room => {
+        // [MỚI THÊM] Nếu phòng đã thuê thì BỎ QUA, không vẽ lên bản đồ
+        if (room.status === 'rented') return;
+
         const marker = L.marker([room.lat, room.lng], { icon: roomIcon, zIndexOffset: 1000 }).addTo(map);
         
-        // SỬ DỤNG ẢNH TỐI ƯU (NHỎ) CHO POPUP BẢN ĐỒ
         const smallImg = getOptimizedImg(room.image_detail[0], 300);
 
         marker.bindPopup(`
@@ -520,6 +527,7 @@ function renderHalfMapMarkers(rooms) {
         bounds.push([room.lat, room.lng]);
     });
 
+    // Vẽ marker tiện ích (giữ nguyên)
     const amenityIcon = L.divIcon({
         className: 'custom-map-marker-amenity',
         html: '<div style="width:24px; height:24px; background:#3498db; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; color:#fff;"><i class="fas fa-store" style="font-size:10px;"></i></div>',
@@ -538,6 +546,7 @@ function renderHalfMapMarkers(rooms) {
         `);
     });
 
+    // Zoom bản đồ vừa khít các căn đang trống
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
 }
 
@@ -967,6 +976,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
