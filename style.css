@@ -369,29 +369,60 @@ a { text-decoration: none; }
    10. RESPONSIVE MOBILE
    ========================================= */
 @media (max-width: 992px) {
-    .navbar-brand img { height: 40px; }
-    .brand-text { font-size: 1rem !important; }
+    .navbar-brand img { height: 35px; } /* Logo nhỏ lại chút cho cân đối */
+    .brand-text { font-size: 0.9rem !important; }
     
     .navbar-toggler { display: none !important; }
+    
     .navbar-collapse {
         display: block !important;
-        border-top: 1px solid #f0f0f0;
-        padding: 10px 0;
+        border-top: none; 
+        padding: 5px 0 0 0;
         background: #fff;
     }
+
+    /* Thiết kế Grid 3 cột cho 3 nút */
     .navbar-nav {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr; /* Chia 3 cột đều nhau */
+        gap: 8px; /* Khoảng cách giữa các nút */
+        margin-top: 5px;
         flex-direction: row !important;
-        flex-wrap: wrap; 
-        justify-content: center;
-        gap: 8px;
     }
+
     .nav-item { margin: 0; }
+
+    /* Style cho từng nút Mobile */
     .nav-link {
-        font-size: 0.85rem; padding: 6px 15px !important; border-radius: 20px;
-        background: #f8f9fa; color: #555; border: 1px solid #eee; display: inline-block;
+        font-size: 0.75rem !important; /* Chữ nhỏ gọn */
+        padding: 10px 2px !important;
+        border-radius: 8px !important; /* Bo góc nhẹ, hiện đại */
+        background: #f8f9fa; /* Màu nền xám nhẹ */
+        color: #1a1a1a;
+        border: 1px solid #eee;
+        display: flex;
+        flex-direction: column; /* Icon nằm trên chữ */
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        height: 100%;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
-    .nav-link.active {
-        background: var(--primary); color: #000; border-color: var(--primary);
+
+    .nav-link i {
+        font-size: 1.1rem;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    /* Khi nút được chọn hoặc bấm vào */
+    .nav-link.active, .nav-link:active {
+        background: #fff9db; /* Nền vàng nhạt */
+        color: #000;
+        border-color: var(--primary);
+        font-weight: 700;
+        box-shadow: 0 2px 6px rgba(241, 196, 15, 0.2);
     }
 
     /* MAP LAYOUT MOBILE */
@@ -419,46 +450,21 @@ a { text-decoration: none; }
         border-right: none;
     }
 
-    /* --- SỬA LOGIC NÚT HIỂN THỊ BỘ LỌC TẠI ĐÂY --- */
-    
-    /* 1. Mặc định (đang mở full): Ẩn nút đi */
+    /* NÚT BỘ LỌC MOBILE */
     .btn-expand-filter {
         display: none; 
         width: 100%; margin-bottom: 10px;
         background: #fff; border: 1px solid #ddd; color: #333; font-weight: 600; padding: 10px;
     }
 
-    /* 2. Khi có class collapsed (đang đóng): Hiện nút lên */
-    #main-filter-box.filter-box-collapsed .btn-expand-filter {
-        display: block;
-    }
-
-    /* 3. Logic ẩn nội dung khi đóng (giữ nguyên) */
+    #main-filter-box.filter-box-collapsed .btn-expand-filter { display: block; }
     #main-filter-box.filter-box-collapsed .filter-content { display: none; }
 
-    /* ----------------------------------------------- */
-
-    .gallery-main-frame { 
-        aspect-ratio: 4/3;
-        max-height: 400px;
-    }
-    
-    .gallery-sub-frame { 
-        aspect-ratio: 4/3;
-    }
+    /* CÁC PHẦN KHÁC GIỮ NGUYÊN */
+    .gallery-main-frame { aspect-ratio: 4/3; max-height: 400px; }
+    .gallery-sub-frame { aspect-ratio: 4/3; }
     .room-card .card-img-top { height: 180px; }
-
     body { padding-bottom: 70px !important; }
-
-    /* Nút filter mobile */
-    .filter-actions {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-    
-    .filter-actions .btn {
-        height: 45px;
-        font-size: 0.9rem;
-    }
+    .filter-actions { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filter-actions .btn { height: 45px; font-size: 0.9rem; }
 }
-
