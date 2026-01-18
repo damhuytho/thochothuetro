@@ -969,12 +969,32 @@ function renderRelatedApartments(currentRoom) {
 }
 
 function initMap(lat, lng, label) {
-    if (map) { map.remove(); map = null; }
+    if (map) { 
+        map.remove(); 
+        map = null; 
+    }
+    
     const mapContainer = document.getElementById('detail-map');
     if (!mapContainer) return;
+    
     map = L.map('detail-map').setView([lat, lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-    L.marker([lat, lng]).addTo(map).bindPopup(`<b>${label}</b>`).openPopup();
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+        attribution: '&copy; OpenStreetMap' 
+    }).addTo(map);
+    
+    // ✅ DÙNG ICON GIỐNG MAP-SEARCH
+    const roomIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: '<div class="marker-pin"><i class="fas fa-home"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -45]
+    });
+    
+    L.marker([lat, lng], { icon: roomIcon })
+        .addTo(map)
+        .bindPopup(`<b>${label}</b>`)
+        .openPopup();
 }
 
 function cleanAddress(fullAddr) { return fullAddr ? fullAddr.replace(/^[\d\/a-zA-Z]+\s+(?:đường\s+)?/i, '').trim() : ""; }
@@ -992,6 +1012,7 @@ function parseCSV(text) {
 }
 function parsePrice(str) { return str ? parseInt(String(str).replace(/\D/g, '')) || 0 : 0; }
 function formatMoney(num) { if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + ' Tr'; return (num / 1000).toFixed(0) + 'k'; }
+
 
 
 
