@@ -80,7 +80,7 @@ a { text-decoration: none; }
 .room-card.rented {
     opacity: 0.85; /* Làm mờ nhẹ */
     filter: grayscale(40%); /* Làm xám màu đi */
-    pointer-events: none; /* (Tùy chọn) Không cho bấm vào nếu muốn chặn */
+    cursor: pointer; /* (Tùy chọn) Không cho bấm vào nếu muốn chặn */
 }
 
 /* Nếu bạn vẫn muốn cho bấm vào để xem chi tiết thì xóa dòng pointer-events ở trên đi */
@@ -242,3 +242,4 @@ a { text-decoration: none; }
     
     .room-card .card-img-top { height: 180px; }
 }
+
