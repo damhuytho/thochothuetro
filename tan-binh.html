@@ -107,8 +107,14 @@
                             <label class="small fw-bold">Tiện ích</label>
                             <div id="f-amenities-checkboxes" class="amenities-grid"></div>
                         </div>
-                        <button class="btn btn-primary w-100 btn-sm" onclick="applyFilters()">Áp dụng</button>
-                        <button class="btn btn-outline-secondary w-100 btn-sm mt-2" onclick="resetFilters()">Đặt lại</button>
+                        <div class="filter-actions">
+    <button class="btn btn-apply-filter" onclick="applyFilters()">
+        <i class="fas fa-check me-2"></i>Áp dụng
+    </button>
+    <button class="btn btn-reset-filter" onclick="resetFilters()">
+        <i class="fas fa-redo me-2"></i>Đặt lại
+    </button>
+</div>
                     </div>
                 </div>
             </div>
@@ -196,3 +202,4 @@
     </div>
 </body>
 </html>
+
