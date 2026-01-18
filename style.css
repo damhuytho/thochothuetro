@@ -419,11 +419,24 @@ a { text-decoration: none; }
         border-right: none;
     }
 
+    /* --- SỬA LOGIC NÚT HIỂN THỊ BỘ LỌC TẠI ĐÂY --- */
+    
+    /* 1. Mặc định (đang mở full): Ẩn nút đi */
     .btn-expand-filter {
-        display: block; width: 100%; margin-bottom: 10px;
+        display: none; 
+        width: 100%; margin-bottom: 10px;
         background: #fff; border: 1px solid #ddd; color: #333; font-weight: 600; padding: 10px;
     }
+
+    /* 2. Khi có class collapsed (đang đóng): Hiện nút lên */
+    #main-filter-box.filter-box-collapsed .btn-expand-filter {
+        display: block;
+    }
+
+    /* 3. Logic ẩn nội dung khi đóng (giữ nguyên) */
     #main-filter-box.filter-box-collapsed .filter-content { display: none; }
+
+    /* ----------------------------------------------- */
 
     .gallery-main-frame { 
         aspect-ratio: 4/3;
@@ -448,3 +461,4 @@ a { text-decoration: none; }
         font-size: 0.9rem;
     }
 }
+
