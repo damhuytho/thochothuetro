@@ -14,14 +14,16 @@ function formatPrice(price) {
 function getDistrictSlug(district) {
     return district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
 }
+// 1. Đổi room.images thành room.image_detail
+const images = room.image_detail || []; 
 
-// 1. LOGIC ẢNH THUMB (Ưu tiên ảnh có chữ '_thumb', nếu không thì lấy ảnh đầu tiên)
 let displayImage = '/logo.png';
-if (room.images && room.images.length > 0) {
-    const thumbImg = room.images.find(img => img.includes('_thumb'));
-    displayImage = thumbImg ? thumbImg : room.images[0];
-}
 
+if (images.length > 0) {
+    // 2. Thêm logic ưu tiên tìm ảnh _thumb
+    const thumbImg = images.find(img => img.includes('_thumb'));
+    displayImage = thumbImg ? thumbImg : images[0];
+}
 const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;
 const detailLink = `/${getDistrictSlug(room.district)}/${room.id}`;
 const isRented = room.status === 'rented';

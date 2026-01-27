@@ -5,7 +5,7 @@ import CardRoom from '../../components/CardRoom.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// 1. TẠO PATH
+// 1. TẠO PATH (SERVER SIDE)
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
@@ -20,9 +20,31 @@ export async function getStaticPaths() {
   });
 }
 
+// 2. LẤY DỮ LIỆU TỪ PROPS
 const { room, allRooms } = Astro.props;
 
-// --- XỬ LÝ DỮ LIỆU ---
+// 3. XỬ LÝ HÌNH ẢNH
+const sourceDetail = (room.image_detail || []).filter(img => img.includes('_web'));
+const sourceCollage = (room.image_collage || []).filter(img => img.includes('_web'));
+let images = [...sourceDetail];
+
+if (images.length < 6) {
+    const missingCount = 6 - images.length;
+    const moreImages = sourceCollage.slice(0, missingCount);
+    images = [...images, ...moreImages];
+}
+images = images.slice(0, 6);
+
+// Xử lý ảnh Collage Đơn
+const collageList = room.image_collage || [];
+let collageImage = collageList.find(img => img.includes('_web'));
+if (!collageImage && collageList.length > 0) collageImage = collageList[0];
+if (!collageImage && images.length > 1) collageImage = images[1];
+
+// Ảnh SEO
+const seoImage = (images.length > 0) ? images[0] : '/logo.png';
+
+// 4. CÁC HÀM TIỆN ÍCH
 function hideNumber(address) {
     if (!address) return "";
     return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
@@ -34,39 +56,41 @@ function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN').format(price);
 }
 
-// XỬ LÝ KEYPOINT: Loại bỏ phần "| 🎁 KM:..." và cắt chuỗi
+// Xử lý tiện ích (Keypoint)
 const keypointsList = room.keypoint 
     ? room.keypoint.split(',')
-        .map(k => k.split('|')[0].trim()) // Cắt bỏ phần sau dấu | (chứa KM)
+        .map(k => k.split('|')[0].trim())
         .filter(k => k !== '') 
     : [];
 
-// LỌC PHÒNG TƯƠNG TỰ & SẮP XẾP (Ưu tiên có ảnh)
+// 5. LỌC PHÒNG TƯƠNG TỰ
 const relatedRooms = allRooms.filter(r => 
     r.district === room.district && 
     r.id !== room.id && 
     Math.abs(r.price - room.price) <= 1500000
 ).sort((a, b) => {
-    // Logic: Căn nào có ảnh (length > 0) thì xếp lên trước
-    const aHasImg = (a.images && a.images.length > 0) ? 1 : 0;
-    const bHasImg = (b.images && b.images.length > 0) ? 1 : 0;
-    return bHasImg - aHasImg; // Giảm dần (1 -> 0)
+    const aHasImg = (a.image_detail && a.image_detail.length > 0) ? 1 : 0;
+    const bHasImg = (b.image_detail && b.image_detail.length > 0) ? 1 : 0;
+    return bHasImg - aHasImg; 
 }).slice(0, 6);
 
+// 6. XỬ LÝ VIDEO SHORTS & STANDARD
 let videoId = null;
-if (room.video && (room.video.includes('youtube.com') || room.video.includes('youtu.be'))) {
-    if (room.video.includes('v=')) {
+if (room.video) {
+    if (room.video.includes('/shorts/')) {
+        // Trường hợp link shorts: youtube.com/shorts/ID?si=...
+        videoId = room.video.split('/shorts/')[1].split('?')[0];
+    } else if (room.video.includes('v=')) {
+        // Trường hợp link thường: youtube.com/watch?v=ID
         videoId = room.video.split('v=')[1].split('&')[0];
-    } else {
-        videoId = room.video.split('/').pop().split('?')[0];
+    } else if (room.video.includes('youtu.be/')) {
+        // Trường hợp link share: youtu.be/ID
+        videoId = room.video.split('youtu.be/')[1].split('?')[0];
     }
 }
 
-const collageImage = (room.images && room.images.length > 1) ? room.images[1] : ((room.images && room.images.length > 0) ? room.images[0] : null);
-
 const pageTitle = `Cho thuê căn ${room.type} ${cleanAddress}`;
 const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${room.district}. Giá ${formatPrice(room.price)}/tháng. ${room.keypoint || 'Full nội thất'}. LH: 0925 996 992.`;
-const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/logo.png';
 ---
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -94,13 +118,13 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
             <div class="col-lg-8">
                 
                 <div class="mb-4 bg-light rounded-3 overflow-hidden position-relative border shadow-sm">
-                    {room.images && room.images.length > 0 ? (
+                    {images.length > 0 ? (
                         <div id="gallery-container">
-                            <img src={room.images[0]} id="main-image" class="w-100 d-block" 
+                            <img src={images[0]} id="main-image" class="w-100 d-block" 
                                  style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
                                  alt={pageTitle}>
                             <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar">
-                                {room.images.map((img, index) => (
+                                {images.map((img, index) => (
                                     <img src={img} 
                                          class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
                                          style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
@@ -122,9 +146,7 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
                             {formatPrice(room.price)}
                         </div>
                         <div class="text-muted pb-1 fst-italic">/tháng (Thương lượng)</div>
-                        
-                        </div>
-
+                    </div>
                     {room.promotion && (
                         <div class="mb-3">
                             <div class="px-3 py-2 rounded-3 text-dark fw-bold d-inline-block shadow-sm" 
@@ -133,9 +155,7 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
                             </div>
                         </div>
                     )}
-
                     <hr class="text-muted opacity-25 my-3">
-
                     <div class="row g-2">
                         {keypointsList.map(k => (
                             <div class="col-6">
@@ -162,6 +182,26 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
                         {room.desc}
                     </div>
                 </div>
+
+                {videoId && (
+                    <div class="d-block d-lg-none mb-4">
+                        <div class="card shadow-sm border-0 overflow-hidden">
+                            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
+                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
+                            </div>
+                            <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
+    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover opacity-75" alt="Video Thumbnail">
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
+             style="width: 60px; height: 60px;">
+            <i class="fas fa-play fs-4 ms-1"></i>
+        </div>
+    </div>
+</div>
+                        </div>
+                    </div>
+                )}
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4 border-warning position-relative overflow-hidden">
                     <div class="position-absolute top-0 start-0 h-100 bg-warning" style="width: 5px;"></div>
@@ -194,49 +234,35 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
                     <div class="d-flex align-items-center mb-3 border-start border-4 border-warning ps-3">
-                        <h3 class="h6 fw-bold text-uppercase text-dark mb-0">
-                            Vị trí căn hộ
-                        </h3>
+                        <h3 class="h6 fw-bold text-uppercase text-dark mb-0">Vị trí căn hộ</h3>
                     </div>
                     
                     <div id="map-container" class="rounded overflow-hidden position-relative bg-light border" style="height: 350px;">
                         <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" 
                              onclick={`loadMap(${room.lat}, ${room.lng}, '${cleanAddress}')`}>
-                            
                             <div class="position-absolute top-0 start-0 w-100 h-100" 
-                                 style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat;">
-                            </div>
-                            
+                                 style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat;"></div>
                             <div class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0.6;"></div>
-
                             <div class="position-relative text-center z-1 p-3">
-                                <i class="fas fa-map-marker-alt text-danger fs-1 mb-2 drop-shadow"></i>
+                                <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle bg-warning shadow-sm border border-2 border-white" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-home text-dark fs-4"></i>
+                                </div>
                                 <h4 class="h6 fw-bold text-dark mb-1">{cleanAddress}</h4>
                                 <div class="small text-muted mb-3">Khu vực {room.district}</div>
-                                
-                                <button class="btn btn-white fw-bold text-primary rounded-pill px-4 py-2 shadow-sm border">
-                                    <i class="fas fa-map-marked-alt me-2"></i> Bấm để xem bản đồ
+                                <button class="btn btn-white fw-bold text-dark rounded-pill px-4 py-2 shadow-sm border border-warning">
+                                    <i class="fas fa-map-marked-alt me-2 text-warning"></i> Bấm để xem bản đồ
                                 </button>
                             </div>
                         </div>
-
                         <div id="real-map" class="w-100 h-100 d-none"></div>
                     </div>
                 </div>
 
-                <div class="d-block d-lg-none mb-4">
-                    <CommitmentSidebar />
-                </div>
-
                 <div class="mt-5">
-                    <h3 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">
-                        Phòng tương tự gần đây
-                    </h3>
+                    <h3 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">Phòng tương tự gần đây</h3>
                     <div class="row g-2 g-md-3">
                         {relatedRooms.length > 0 ? relatedRooms.map((r) => (
-                            <div class="col-6 col-md-4">
-                                <CardRoom room={r} />
-                            </div>
+                            <div class="col-6 col-md-4"><CardRoom room={r} /></div>
                         )) : (
                             <div class="col-12 text-center text-muted fst-italic py-3">Chưa có phòng tương tự cùng mức giá.</div>
                         )}
@@ -245,19 +271,33 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
             </div>
 
             <div class="col-lg-4 d-none d-lg-block">
-                <div>
+                <div class="mb-4">
                     <CommitmentSidebar />
-                    {videoId && (
-                        <div class="card shadow-sm border-0 overflow-hidden mb-4">
-                            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
-                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
-                            </div>
-                            <div class="ratio ratio-16x9">
-                                <iframe src={`https://www.youtube.com/embed/${videoId}?rel=0`} title="Video phòng" allowfullscreen loading="lazy"></iframe>
-                            </div>
-                        </div>
-                    )}
                 </div>
+                
+                {videoId && (
+    <div style="position: sticky; top: 60px; z-index: 10;">
+        <div class="card shadow-sm border-0 overflow-hidden mb-4">
+            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
+                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
+            </div>
+            
+            <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
+                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+                     class="w-100 h-100 object-fit-cover opacity-75" 
+                     alt="Video Thumbnail">
+                
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
+                         style="width: 60px; height: 60px;">
+                        <i class="fas fa-play fs-4 ms-1"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+)}
             </div>
         </div>
     </div>
@@ -271,41 +311,82 @@ const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/lo
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     @media (min-width: 768px) { .border-end-md { border-right: 1px dashed #dee2e6; } }
 
-    /* Button bản đồ */
+    /* Video Dọc */
+    .ratio-9x16 { --bs-aspect-ratio: 177.78%; }
+    
+    /* Map & UI */
     .btn-white { background: white; transition: all 0.3s; }
     .btn-white:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .drop-shadow { filter: drop-shadow(0 3px 2px rgba(0,0,0,0.3)); }
+    
+    /* Icon Map Vàng */
+    .custom-map-marker-yellow { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
 
-    /* Bề ngang chuẩn */
     @media (min-width: 1200px) {
-        .detail-container-standard {
-            max-width: 1140px !important; 
-        }
+        .detail-container-standard { max-width: 1140px !important; }
     }
 </style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script is:inline>
+    // 1. Chuyển ảnh Gallery
     function changeImage(src, thumb) {
         document.getElementById('main-image').src = src;
         document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
     }
 
-    function loadMap(lat, lng, popupText) {
-        const placeholder = document.getElementById('map-placeholder');
-        const realMap = document.getElementById('real-map');
-        placeholder.style.display = 'none';
-        realMap.classList.remove('d-none');
-        
-        if (typeof L !== 'undefined') {
-            const map = L.map('real-map').setView([lat, lng], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-            const homeIcon = L.icon({
-                iconUrl: 'https://cdn-icons-png.flaticon.com/512/25/25694.png',
-                iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -30]
-            });
-            L.marker([lat, lng], {icon: homeIcon}).addTo(map).bindPopup(`<b>${popupText}</b>`).openPopup();
-        }
+    // 2. Load Video khi click (SEO Friendly)
+    function loadVideo(container, id) {
+        container.onclick = null; // Bỏ click event để không bị click lại
+        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
     }
+
+    // 3. Load Map khi click (Fix lỗi Map)
+    // Thay thế hàm loadMap cũ bằng hàm này
+function loadMap(lat, lng, popupText) {
+    const placeholder = document.getElementById('map-placeholder');
+    const realMap = document.getElementById('real-map');
+    
+    // 1. Ép ẩn Placeholder bằng mọi giá
+    placeholder.style.setProperty('display', 'none', 'important');
+    
+    // 2. Hiện khung Map
+    realMap.classList.remove('d-none');
+    realMap.style.display = 'block'; // Thêm dòng này cho chắc
+    
+    // 3. Khởi tạo Leaflet
+    if (typeof L !== 'undefined') {
+        // Kiểm tra nếu map đã khởi tạo rồi thì thôi (tránh lỗi reset)
+        if (realMap._leaflet_id) return; 
+
+        const map = L.map('real-map').setView([lat, lng], 16);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+            attribution: '&copy; OpenStreetMap' 
+        }).addTo(map);
+
+        // QUAN TRỌNG: Fix lỗi map không full khung
+        setTimeout(() => { map.invalidateSize(); }, 200);
+
+        // Icon Vàng đồng bộ
+        const brandIcon = L.divIcon({ 
+            className: 'custom-map-marker-yellow', 
+            html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
+            iconSize: [34, 34], 
+            iconAnchor: [17, 34],
+            popupAnchor: [0, -40]
+        });
+
+        const popupContent = `
+            <div class="text-center p-1">
+                <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${popupText}</div>
+                <div class="text-danger small fw-bold">Vị trí chính xác</div>
+            </div>
+        `;
+
+        L.marker([lat, lng], {icon: brandIcon}).addTo(map).bindPopup(popupContent).openPopup();
+    } else {
+        alert("Lỗi: Không tải được thư viện bản đồ. Vui lòng tải lại trang.");
+    }
+}
 </script>
