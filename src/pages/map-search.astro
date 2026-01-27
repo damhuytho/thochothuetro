@@ -1,0 +1,432 @@
+---
+import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Load Data Server-Side
+const dataPath = path.join(process.cwd(), 'public', 'data.json');
+const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+
+// Lấy cả phòng Active và Rented để xử lý logic hiển thị
+const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+---
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<Layout title="Bản đồ tìm phòng - Thọ Cho Thuê Trọ">
+    
+    <div class="map-layout-wrapper">
+        
+        <div id="full-map-view" class="map-viewport bg-white border-start position-relative"></div>
+
+        <div class="map-sidebar bg-light d-flex flex-column">
+            
+            <div class="p-3 border-bottom bg-white shadow-sm" style="z-index: 10;">
+                <h6 class="fw-bold mb-2 small text-uppercase d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-filter text-warning me-1"></i> Bộ lọc & Sắp xếp</span>
+                    <span class="badge bg-light text-secondary border fw-normal cursor-pointer" onclick="resetMapFilters()">Xóa lọc</span>
+                </h6>
+                
+                <div class="row g-2">
+                    <div class="col-6">
+                        <select class="form-select form-select-sm fw-bold border-warning" id="map-district">
+                            <option value="all">Tất cả Khu vực</option>
+                            <option value="Tân Bình">Tân Bình</option>
+                            <option value="Phú Nhuận">Phú Nhuận</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <select class="form-select form-select-sm" id="map-sort">
+                            <option value="default">Sắp xếp: Mặc định</option>
+                            <option value="price-asc">Giá: Thấp đến Cao</option>
+                            <option value="price-desc">Giá: Cao đến Thấp</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <select class="form-select form-select-sm" id="map-type">
+                            <option value="all">Loại phòng: Tất cả</option>
+                            <option value="Studio">Studio</option>
+                            <option value="1PN">1 Phòng ngủ</option>
+                            <option value="2PN">2 Phòng ngủ</option>
+                            <option value="Duplex">Duplex</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <select class="form-select form-select-sm" id="map-price">
+                            <option value="all">Mức giá: Tất cả</option>
+                            <option value="under5">Dưới 5 Triệu</option>
+                            <option value="5to7">5 - 7 Triệu</option>
+                            <option value="over7">Trên 7 Triệu</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 mt-1">
+                        <div class="row g-2" id="map-amenities">
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start">
+                                    <input type="checkbox" class="form-check-input me-1 amenity-cb" value="ban công"> Ban công
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start">
+                                    <input type="checkbox" class="form-check-input me-1 amenity-cb" value="cửa sổ"> Cửa sổ
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start">
+                                    <input type="checkbox" class="form-check-input me-1 amenity-cb" value="máy giặt"> Máy giặt
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start">
+                                    <input type="checkbox" class="form-check-input me-1 amenity-cb" value="thang máy"> Thang máy
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start">
+                                    <input type="checkbox" class="form-check-input me-1 amenity-cb" value="pet"> Nuôi Pet
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-grow-1 p-2 p-md-3 list-scroll-container" id="map-list-container">
+                <div class="row g-2" id="map-grid"></div>
+                
+                <div id="map-loading" class="text-center py-4 text-muted d-none">
+                    <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                </div>
+                <div id="map-no-result" class="text-center py-5 d-none">
+                    <p class="text-muted small">Không tìm thấy phòng phù hợp vùng này.</p>
+                </div>
+
+                <div class="text-center py-3" id="map-load-more-container" style="display: none;">
+                    <button class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-4" onclick="loadMoreMapItems()">
+                        Xem thêm 6 phòng <i class="fas fa-chevron-down ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</Layout>
+
+<style>
+    /* 1. XÓA FOOTER RIÊNG TRANG NÀY */
+    :global(footer) { display: none !important; }
+
+    /* 2. CẤU TRÚC LAYOUT DESKTOP (SPLIT SCREEN) */
+    .map-layout-wrapper {
+        display: flex;
+        height: calc(100vh - 76px); /* Trừ đi chiều cao Header */
+        overflow: hidden; /* Desktop không cho body cuộn */
+    }
+
+    /* Sidebar bên trái */
+    .map-sidebar {
+        width: 400px;
+        flex-shrink: 0;
+        border-right: 1px solid #dee2e6;
+        height: 100%;
+        overflow: hidden; /* Nội dung bên trong tự cuộn */
+    }
+    
+    .list-scroll-container {
+        overflow-y: auto; /* Cho phép cuộn danh sách */
+        height: 100%;
+    }
+
+    /* Map bên phải */
+    .map-viewport {
+        flex-grow: 1;
+        height: 100%;
+        z-index: 1;
+    }
+
+    /* 3. CẤU TRÚC LAYOUT MOBILE (CUỘN TỰ DO) */
+    @media (max-width: 991px) {
+        .map-layout-wrapper {
+            flex-direction: column; /* Map trên, List dưới */
+            height: auto !important; /* Cho phép cao tự do */
+            overflow: visible !important; /* Cho phép cuộn trang */
+        }
+
+        .map-viewport {
+            height: 50vh; /* Map chiếm 50% màn hình */
+            width: 100%;
+            position: relative; /* Không sticky để cuộn đi được */
+            flex-shrink: 0;
+        }
+
+        .map-sidebar {
+            width: 100%;
+            height: auto !important; /* Sidebar cao theo nội dung */
+            overflow: visible !important;
+        }
+
+        .list-scroll-container {
+            overflow: visible !important;
+            height: auto !important;
+        }
+    }
+    
+    /* Custom Scrollbar cho Desktop */
+    .list-scroll-container::-webkit-scrollbar { width: 6px; }
+    .list-scroll-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    /* Custom Style cho Popup Map & Nút Xem Phòng */
+    .btn-popup-yellow {
+        background-color: #f1c40f !important; /* Vàng thương hiệu */
+        color: #1a1a1a !important; /* Chữ đen */
+        font-weight: 700;
+        border: none;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        transition: all 0.2s;
+    }
+    .btn-popup-yellow:hover {
+        background-color: #e0b40a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .custom-map-marker-yellow {
+        filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+    }
+</style>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script is:inline define:vars={{ initialRooms: allRooms }}>
+    // Biến toàn cục
+    const allRoomsData = initialRooms;
+    let map = null;
+    let markersLayer = null;
+    let currentFiltered = [];
+    let visibleCount = 6; // Mặc định hiện 6
+    const LOAD_STEP = 6;
+    
+    // --- 1. HÀM RENDER CARD ---
+    function renderCardHTML(room) {
+        // Logic tìm ảnh thumb
+        let displayImg = '/logo.png';
+        if (room.images && room.images.length > 0) {
+            const thumb = room.images.find(img => img.includes('_thumb'));
+            displayImg = thumb ? thumb : room.images[0];
+        }
+
+        const cleanAddr = room.address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+        const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
+        const link = `/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}/${room.id}`;
+        
+        const isRented = room.status === 'rented';
+        
+        let overlay = '';
+        if (isRented) {
+            overlay = `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.6); z-index: 5;">
+                <span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase" style="font-size: 0.7rem;">Đã thuê</span>
+            </div>`;
+        } else if (room.promotion) {
+            overlay = `<span class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 small fw-bold m-2 rounded shadow-sm"><i class="fas fa-gift me-1"></i> Ưu đãi</span>`;
+        }
+
+        const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
+
+        // Template string - Class col-6 cho Mobile
+        return `
+        <div class="col-6"> 
+            <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative" onclick="window.location.href='${link}'" style="cursor: pointer; ${isRented ? 'opacity: 0.75;' : ''}">
+                <div class="position-relative">
+                    <img src="${displayImg}" class="card-img-top" style="aspect-ratio: 4/3; object-fit: cover; width: 100%;" loading="lazy">
+                    ${overlay}
+                </div>
+                <div class="card-body p-2 d-flex flex-column">
+                    <h6 class="fw-bold text-dark mb-1 text-truncate small" title="${room.type} ${cleanAddr}">Cho thuê ${room.type} ${cleanAddr}</h6>
+                    <div class="mb-1"><span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.65rem;">${room.room_code}</span></div>
+                    <div class="mb-1"><span class="${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'} fw-bold small">${priceText}/th</span></div>
+                    <div class="mb-2 text-muted small text-truncate"><i class="fas fa-star text-warning me-1"></i> ${keypoint}</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // --- 2. LOGIC LỌC & SẮP XẾP ---
+    function filterAndRender() {
+        const district = document.getElementById('map-district').value;
+        const type = document.getElementById('map-type').value;
+        const price = document.getElementById('map-price').value;
+        const sortMode = document.getElementById('map-sort').value;
+        
+        // Lấy danh sách tiện ích đã check
+        const amenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
+
+        // B1: Lọc dữ liệu
+        let filtered = allRoomsData.filter(room => {
+            if (district !== 'all' && room.district !== district) return false;
+            if (type !== 'all' && room.type !== type) return false;
+            
+            // Lọc giá
+            const p = room.price;
+            if (price === 'under5' && p >= 5000000) return false;
+            if (price === '5to7' && (p < 5000000 || p >= 7000000)) return false;
+            if (price === 'over7' && p < 7000000) return false;
+
+            // Lọc tiện ích (AND logic)
+            if (amenities.length > 0) {
+                const roomKey = (room.keypoint || "").toLowerCase();
+                const hasAll = amenities.every(am => roomKey.includes(am) || (am === 'pet' && room.pet));
+                if (!hasAll) return false;
+            }
+
+            return true;
+        });
+
+        // B2: Sắp xếp
+        filtered.sort((a, b) => {
+            // Ưu tiên 1: Active lên đầu, Rented xuống đáy
+            if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+
+            // Ưu tiên 2: Sắp xếp theo Giá (nếu user chọn)
+            if (sortMode === 'price-asc') {
+                if (a.price !== b.price) return a.price - b.price;
+            } else if (sortMode === 'price-desc') {
+                if (a.price !== b.price) return b.price - a.price;
+            }
+
+            // Ưu tiên 3: Có ảnh lên trước
+            const aImg = (a.images && a.images.length > 0) ? 1 : 0;
+            const bImg = (b.images && b.images.length > 0) ? 1 : 0;
+            return bImg - aImg; // 1 lên trước
+        });
+
+        // B3: Xử lý giới hạn Rented (Chỉ lấy tối đa 9 căn Rented cuối cùng)
+        const activeRooms = filtered.filter(r => r.status === 'active');
+        let rentedRooms = filtered.filter(r => r.status === 'rented');
+        if (rentedRooms.length > 9) rentedRooms = rentedRooms.slice(0, 9);
+        
+        // Gộp lại danh sách cuối cùng
+        currentFiltered = [...activeRooms, ...rentedRooms];
+
+        // Reset lại pagination khi lọc
+        visibleCount = 6;
+        
+        renderListDOM();
+        renderMapMarkers();
+    }
+
+    // --- 3. RENDER RA MÀN HÌNH ---
+    function renderListDOM() {
+        const grid = document.getElementById('map-grid');
+        const loadMoreBtn = document.getElementById('map-load-more-container');
+        const noResult = document.getElementById('map-no-result');
+
+        // Cắt danh sách theo visibleCount
+        const visibleItems = currentFiltered.slice(0, visibleCount);
+        
+        grid.innerHTML = visibleItems.map(renderCardHTML).join('');
+
+        // Xử lý hiển thị Load More
+        if (currentFiltered.length > visibleCount) {
+            loadMoreBtn.style.display = 'block';
+            loadMoreBtn.querySelector('button').innerHTML = `Xem thêm ${Math.min(LOAD_STEP, currentFiltered.length - visibleCount)} phòng <i class="fas fa-chevron-down ms-1"></i>`;
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
+
+        // Xử lý No Result
+        if (currentFiltered.length === 0) {
+            noResult.classList.remove('d-none');
+        } else {
+            noResult.classList.add('d-none');
+        }
+    }
+
+    // --- 4. RENDER MAP MARKERS ---
+    function renderMapMarkers() {
+        if (!map) return;
+        
+        // Xóa marker cũ
+        if (markersLayer) map.removeLayer(markersLayer);
+        markersLayer = L.layerGroup().addTo(map);
+
+        // Icon Vàng Thương Hiệu
+        const brandIcon = L.divIcon({ 
+            className: 'custom-map-marker-yellow', 
+            html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
+            iconSize: [34, 34], 
+            iconAnchor: [17, 34],
+            popupAnchor: [0, -40]
+        });
+
+        const bounds = [];
+        
+        // Vẽ marker cho tất cả phòng lọc được (kể cả chưa hiện nút xem thêm)
+        currentFiltered.forEach(room => {
+            if (room.lat && room.lng) {
+                // SỬA LỖI POPUP: Lấy ảnh thumb cho Popup
+                let popupImg = '/logo.png';
+                if (room.images && room.images.length > 0) {
+                     const thumb = room.images.find(img => img.includes('_thumb'));
+                     popupImg = thumb ? thumb : room.images[0];
+                }
+                const link = `/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}/${room.id}`;
+                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
+
+                const marker = L.marker([room.lat, room.lng], {icon: brandIcon}).addTo(markersLayer);
+                
+                // Nút "Xem phòng" chữ đen nền vàng (Đã style đẹp)
+                const popupContent = `
+                    <div style="width:200px;">
+                        <img src="${popupImg}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">
+                        <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${room.room_code}</div>
+                        <div class="text-danger fw-bold mb-2">${priceText}/th</div>
+                        <a href="${link}" class="btn btn-sm w-100 btn-popup-yellow rounded-pill">Xem phòng</a>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+                bounds.push([room.lat, room.lng]);
+            }
+        });
+
+        // Fit view
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+
+    // --- EVENTS ---
+    window.loadMoreMapItems = function() {
+        visibleCount += LOAD_STEP;
+        renderListDOM();
+    }
+
+    window.resetMapFilters = function() {
+        document.getElementById('map-district').value = 'all';
+        document.getElementById('map-type').value = 'all';
+        document.getElementById('map-price').value = 'all';
+        document.getElementById('map-sort').value = 'default';
+        document.querySelectorAll('.amenity-cb').forEach(cb => cb.checked = false);
+        filterAndRender();
+    }
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', () => {
+        // Init Map
+        map = L.map('full-map-view').setView([10.801646, 106.663158], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+        // Gán sự kiện change
+        const inputs = document.querySelectorAll('select, .amenity-cb');
+        inputs.forEach(input => {
+            input.addEventListener('change', filterAndRender);
+        });
+
+        // Chạy lần đầu
+        filterAndRender();
+    });
+</script>

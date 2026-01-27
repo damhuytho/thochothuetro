@@ -1,0 +1,59 @@
+---
+import Navbar from '../components/Header.astro'; // Import Header mới
+import Footer from '../components/Footer.astro'; // Import Footer mới
+
+const { title, description, image } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <title>{title}</title>
+    <meta name="description" content={description || "Hệ thống phòng trọ tiện nghi, giá tốt tại Tân Bình & Phú Nhuận"} />
+    <meta property="og:image" content={image || "/logo.png"} />
+
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style is:global>
+        body { font-family: 'Lexend', sans-serif; background-color: #f8f9fa; }
+        
+        /* FIX LỖI HEADER CHE FILTER TRÊN MOBILE & DESKTOP */
+        /* Chiều cao Header khoảng 76px-80px */
+        
+        /* 1. Với Sidebar Filter (Desktop) */
+        .sidebar-sticky-inner {
+            position: sticky;
+            top: 90px !important; /* Đẩy xuống thấp hơn chiều cao Header để không bị che */
+            z-index: 1020;
+        }
+
+        /* 2. Với Header Title ở Trang Quận (Nếu có sticky) */
+        .sticky-top {
+            top: 0;
+            z-index: 1030; /* Header luôn nằm trên cùng */
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    
+    <Navbar />
+
+    <main class="flex-grow-1">
+        <slot />
+    </main>
+
+    <Footer />
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

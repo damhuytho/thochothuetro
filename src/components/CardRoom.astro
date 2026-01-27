@@ -1,0 +1,109 @@
+---
+const { room } = Astro.props;
+
+function hideNumber(address) {
+    if (!address) return "";
+    return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+}
+
+function formatPrice(price) {
+    if (price >= 1000000) return (price / 1000000).toString() + " Triệu";
+    return new Intl.NumberFormat('vi-VN').format(price);
+}
+
+function getDistrictSlug(district) {
+    return district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+}
+
+// 1. LOGIC ẢNH THUMB (Ưu tiên ảnh có chữ '_thumb', nếu không thì lấy ảnh đầu tiên)
+let displayImage = '/logo.png';
+if (room.images && room.images.length > 0) {
+    const thumbImg = room.images.find(img => img.includes('_thumb'));
+    displayImage = thumbImg ? thumbImg : room.images[0];
+}
+
+const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;
+const detailLink = `/${getDistrictSlug(room.district)}/${room.id}`;
+const isRented = room.status === 'rented';
+---
+
+<div class={`card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}`}>
+    
+    <div class="position-relative">
+        <img src={displayImage} 
+             class="card-img-top room-img" 
+             alt={room.room_code}
+             loading="lazy"
+             style="aspect-ratio: 4/3; object-fit: cover; width: 100%;">
+        
+        {isRented && (
+            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;">
+                <span class="text-white fw-bold border border-white px-3 py-2 rounded text-uppercase" style="letter-spacing: 1px;">
+                    Đã cho thuê
+                </span>
+            </div>
+        )}
+
+        {!isRented && room.promotion && (
+            <span class="position-absolute top-0 end-0 bg-warning text-dark px-1 px-md-2 py-1 fw-bold m-1 m-md-2 rounded shadow-sm d-flex align-items-center badge-promo" style="z-index: 2;">
+                <i class="fas fa-gift me-1 text-dark"></i> Ưu đãi
+            </span>
+        )}
+    </div>
+    
+    <div class="card-body p-2 p-md-3 d-flex flex-column">
+        <h6 class="fw-bold text-dark mb-1 mb-md-2 room-title">
+            {cardTitle}
+        </h6>
+        <div class="mb-1 mb-md-2">
+            <span class="badge bg-light text-secondary border fw-normal room-code">
+                {room.room_code}
+            </span>
+        </div>
+        <div class="mb-1 mb-md-2">
+            <span class={`fw-bold room-price ${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'}`}>
+                {formatPrice(room.price)}/tháng
+            </span>
+        </div>
+        <div class="mb-2 mb-md-3 text-muted room-keypoint text-truncate-2">
+            <i class="fas fa-star text-warning me-1"></i> {room.keypoint ? room.keypoint.split('|')[0] : ''}
+        </div>
+        <div class="mt-auto">
+            <hr class="my-1 my-md-2 opacity-25">
+            <div class="d-flex align-items-center text-muted fw-bold room-district">
+                <i class="fas fa-map-marker-alt me-1 me-md-2 text-warning"></i> 
+                Quận {room.district}
+            </div>
+        </div>
+    </div>
+
+    <a href={detailLink} class="stretched-link"></a>
+</div>
+
+<style>
+    /* Hiệu ứng hover chỉ khi CHƯA thuê */
+    .room-card:not(.rented-card):hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transition: all 0.3s ease; }
+    
+    /* Card đã thuê thì mờ đi chút */
+    .rented-card { opacity: 0.85; pointer-events: none; } /* Có thể bỏ pointer-events nếu vẫn muốn cho khách click vào xem */
+    .rented-card .stretched-link { pointer-events: auto; } /* Vẫn cho click để xem chi tiết */
+
+    .room-title { font-size: 0.95rem; line-height: 1.4; }
+    .room-price { font-size: 1.1rem; }
+    .room-keypoint { font-size: 0.85rem; }
+    .room-code { font-size: 0.75rem; }
+    .room-district { font-size: 0.8rem; }
+    .badge-promo { font-size: 0.75rem; }
+
+    @media (max-width: 576px) {
+        .room-title { font-size: 0.8rem; margin-bottom: 4px; }
+        .room-price { font-size: 0.9rem; }
+        .room-keypoint { font-size: 0.8rem; }
+        .room-code { font-size: 0.65rem; }
+        .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
+        .room-district { font-size: 0.7rem; }
+    }
+    
+    .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    @media(min-width: 768px) { .text-truncate-2 { -webkit-line-clamp: 3; } }
+</style>

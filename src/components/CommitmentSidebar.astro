@@ -1,0 +1,38 @@
+---
+const commitments = [
+    { icon: "fas fa-hand-holding-usd", color: "success", title: "Miễn phí xem nhà", desc: "100% không mất chi phí" },
+    { icon: "fas fa-check-circle", color: "primary", title: "Thông tin chính xác", desc: "Hình ảnh & địa chỉ thật" },
+    { icon: "fas fa-tag", color: "warning", title: "Giá minh bạch", desc: "Công khai, không phát sinh" },
+    { icon: "fas fa-hands-helping", color: "info", title: "Hỗ trợ tận tâm", desc: "Đến khi nhận nhà xong" },
+    { icon: "fas fa-sync-alt", color: "secondary", title: "Cập nhật liên tục", desc: "Phòng mới mỗi ngày" },
+    { icon: "fas fa-shield-alt", color: "danger", title: "An toàn và tin cậy", desc: "Hợp đồng rõ ràng" }
+];
+---
+
+<div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-3">
+    <div class="card-header border-0 fw-bold text-uppercase py-3" style="background-color: #dfa33d; color: #1a1a1a; font-size: 0.85rem; letter-spacing: 0.5px;">
+        <i class="fas fa-shield-alt me-2"></i> Cam kết dịch vụ
+    </div>
+    
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {commitments.map((item) => (
+                <li class="list-group-item d-flex align-items-center py-3 px-3 border-bottom-light">
+                    <div class={`rounded bg-${item.color} bg-opacity-10 text-${item.color} d-flex align-items-center justify-content-center me-3`} 
+                         style="width: 38px; height: 38px; min-width: 38px;">
+                        <i class={item.icon}></i>
+                    </div>
+                    <div style="line-height: 1.3;">
+                        <div class="fw-bold text-dark" style="font-size: 0.85rem;">{item.title}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">{item.desc}</small>
+                    </div>
+                </li>
+            ))}
+        </ul>
+    </div>
+</div>
+
+<style>
+    .border-bottom-light { border-bottom: 1px solid #f0f0f0; }
+    .border-bottom-light:last-child { border-bottom: none; }
+</style>

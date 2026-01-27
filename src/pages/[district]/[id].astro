@@ -1,0 +1,311 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CommitmentSidebar from '../../components/CommitmentSidebar.astro';
+import CardRoom from '../../components/CardRoom.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// 1. TẠO PATH
+export async function getStaticPaths() {
+  const dataPath = path.join(process.cwd(), 'public', 'data.json');
+  const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+  const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
+
+  return activeRooms.map((room) => {
+      const districtSlug = room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+      return {
+        params: { district: districtSlug, id: room.id },
+        props: { room, allRooms: activeRooms },
+      };
+  });
+}
+
+const { room, allRooms } = Astro.props;
+
+// --- XỬ LÝ DỮ LIỆU ---
+function hideNumber(address) {
+    if (!address) return "";
+    return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+}
+const cleanAddress = hideNumber(room.address);
+
+function formatPrice(price) {
+    if (price >= 1000000) return (price / 1000000).toString() + " Triệu";
+    return new Intl.NumberFormat('vi-VN').format(price);
+}
+
+// XỬ LÝ KEYPOINT: Loại bỏ phần "| 🎁 KM:..." và cắt chuỗi
+const keypointsList = room.keypoint 
+    ? room.keypoint.split(',')
+        .map(k => k.split('|')[0].trim()) // Cắt bỏ phần sau dấu | (chứa KM)
+        .filter(k => k !== '') 
+    : [];
+
+// LỌC PHÒNG TƯƠNG TỰ & SẮP XẾP (Ưu tiên có ảnh)
+const relatedRooms = allRooms.filter(r => 
+    r.district === room.district && 
+    r.id !== room.id && 
+    Math.abs(r.price - room.price) <= 1500000
+).sort((a, b) => {
+    // Logic: Căn nào có ảnh (length > 0) thì xếp lên trước
+    const aHasImg = (a.images && a.images.length > 0) ? 1 : 0;
+    const bHasImg = (b.images && b.images.length > 0) ? 1 : 0;
+    return bHasImg - aHasImg; // Giảm dần (1 -> 0)
+}).slice(0, 6);
+
+let videoId = null;
+if (room.video && (room.video.includes('youtube.com') || room.video.includes('youtu.be'))) {
+    if (room.video.includes('v=')) {
+        videoId = room.video.split('v=')[1].split('&')[0];
+    } else {
+        videoId = room.video.split('/').pop().split('?')[0];
+    }
+}
+
+const collageImage = (room.images && room.images.length > 1) ? room.images[1] : ((room.images && room.images.length > 0) ? room.images[0] : null);
+
+const pageTitle = `Cho thuê căn ${room.type} ${cleanAddress}`;
+const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${room.district}. Giá ${formatPrice(room.price)}/tháng. ${room.keypoint || 'Full nội thất'}. LH: 0925 996 992.`;
+const seoImage = (room.images && room.images.length > 0) ? room.images[0] : '/logo.png';
+---
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<Layout title={`${pageTitle} - Thọ Cho Thuê Trọ`} description={pageDesc} image={seoImage}>
+    
+    <div class="bg-white py-3 border-bottom mb-4 shadow-sm">
+        <div class="container text-center">
+            <h1 class="h5 fw-bold mb-1 text-dark text-uppercase" style="line-height: 1.4;">
+                {pageTitle}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small justify-content-center">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href={`/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}`} class="text-decoration-none text-muted">{room.district}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{room.room_code}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container pb-5 detail-container-standard">
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                
+                <div class="mb-4 bg-light rounded-3 overflow-hidden position-relative border shadow-sm">
+                    {room.images && room.images.length > 0 ? (
+                        <div id="gallery-container">
+                            <img src={room.images[0]} id="main-image" class="w-100 d-block" 
+                                 style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
+                                 alt={pageTitle}>
+                            <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar">
+                                {room.images.map((img, index) => (
+                                    <img src={img} 
+                                         class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
+                                         style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
+                                         onclick="changeImage(this.src, this)"
+                                         loading="lazy">
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div class="d-flex align-items-center justify-content-center h-100 p-5 text-muted" style="aspect-ratio: 4/3;">
+                            Đang cập nhật hình ảnh
+                        </div>
+                    )}
+                </div>
+
+                <div class="mb-4 bg-white p-4 rounded-3 border shadow-sm">
+                    <div class="d-flex align-items-end mb-3 flex-wrap gap-2">
+                        <div class="fw-bold text-danger" style="font-size: 1.8rem; line-height: 1;">
+                            {formatPrice(room.price)}
+                        </div>
+                        <div class="text-muted pb-1 fst-italic">/tháng (Thương lượng)</div>
+                        
+                        </div>
+
+                    {room.promotion && (
+                        <div class="mb-3">
+                            <div class="px-3 py-2 rounded-3 text-dark fw-bold d-inline-block shadow-sm" 
+                                 style="background-color: #fff8e1; font-size: 1.05rem; border: 1px solid #ffecb3;">
+                                {room.promotion}
+                            </div>
+                        </div>
+                    )}
+
+                    <hr class="text-muted opacity-25 my-3">
+
+                    <div class="row g-2">
+                        {keypointsList.map(k => (
+                            <div class="col-6">
+                                <div class="d-flex align-items-center text-secondary" style="font-size: 0.95rem;">
+                                    <i class="fas fa-check-circle text-success me-2 flex-shrink-0"></i> 
+                                    <span>{k}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {collageImage && (
+                    <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
+                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt="Tiện ích phòng" style="width: 100%; height: auto;">
+                    </div>
+                )}
+
+                <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
+                    <h3 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
+                        <i class="fas fa-align-left me-2"></i> Mô tả chi tiết
+                    </h3>
+                    <div style="white-space: pre-line; line-height: 1.8; color: #333; font-size: 0.95rem;">
+                        {room.desc}
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-3 border shadow-sm mb-4 border-warning position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 h-100 bg-warning" style="width: 5px;"></div>
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center mb-3 mb-md-0 border-end-md">
+                            <div class="position-relative d-inline-block mb-2">
+                                <img src="/logo.png" width="80" height="80" class="rounded-circle border border-2 border-warning p-1 bg-white">
+                                <i class="fas fa-check-circle text-success position-absolute bottom-0 end-0 bg-white rounded-circle" style="font-size: 1.2rem;"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1">Thọ Cho Thuê Trọ</h6>
+                            <span class="badge bg-light text-secondary border rounded-pill px-3">Quản lý vận hành</span>
+                        </div>
+                        <div class="col-md-8 ps-md-4">
+                            <h5 class="fw-bold mb-2">👋 Xin chào bạn,</h5>
+                            <p class="text-muted small mb-3">
+                                Cảm ơn bạn đã quan tâm. Mình cam kết <strong>hình ảnh và giá cả là chính xác 100%</strong>. 
+                                Mình luôn sẵn sàng hỗ trợ bạn xem phòng bất cứ lúc nào (hoàn toàn miễn phí).
+                            </p>
+                            <div class="d-flex gap-2">
+                                <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #dfa33d;">
+                                    <i class="fas fa-phone-alt me-2"></i> 0925 996 992
+                                </a>
+                                <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold flex-grow-1 text-white rounded-pill shadow-sm" style="background-color: #4e80ff; border: none;">
+                                    <i class="fas fa-comment-dots me-2"></i> Chat Zalo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
+                    <div class="d-flex align-items-center mb-3 border-start border-4 border-warning ps-3">
+                        <h3 class="h6 fw-bold text-uppercase text-dark mb-0">
+                            Vị trí căn hộ
+                        </h3>
+                    </div>
+                    
+                    <div id="map-container" class="rounded overflow-hidden position-relative bg-light border" style="height: 350px;">
+                        <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" 
+                             onclick={`loadMap(${room.lat}, ${room.lng}, '${cleanAddress}')`}>
+                            
+                            <div class="position-absolute top-0 start-0 w-100 h-100" 
+                                 style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat;">
+                            </div>
+                            
+                            <div class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0.6;"></div>
+
+                            <div class="position-relative text-center z-1 p-3">
+                                <i class="fas fa-map-marker-alt text-danger fs-1 mb-2 drop-shadow"></i>
+                                <h4 class="h6 fw-bold text-dark mb-1">{cleanAddress}</h4>
+                                <div class="small text-muted mb-3">Khu vực {room.district}</div>
+                                
+                                <button class="btn btn-white fw-bold text-primary rounded-pill px-4 py-2 shadow-sm border">
+                                    <i class="fas fa-map-marked-alt me-2"></i> Bấm để xem bản đồ
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="real-map" class="w-100 h-100 d-none"></div>
+                    </div>
+                </div>
+
+                <div class="d-block d-lg-none mb-4">
+                    <CommitmentSidebar />
+                </div>
+
+                <div class="mt-5">
+                    <h3 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">
+                        Phòng tương tự gần đây
+                    </h3>
+                    <div class="row g-2 g-md-3">
+                        {relatedRooms.length > 0 ? relatedRooms.map((r) => (
+                            <div class="col-6 col-md-4">
+                                <CardRoom room={r} />
+                            </div>
+                        )) : (
+                            <div class="col-12 text-center text-muted fst-italic py-3">Chưa có phòng tương tự cùng mức giá.</div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 d-none d-lg-block">
+                <div>
+                    <CommitmentSidebar />
+                    {videoId && (
+                        <div class="card shadow-sm border-0 overflow-hidden mb-4">
+                            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
+                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
+                            </div>
+                            <div class="ratio ratio-16x9">
+                                <iframe src={`https://www.youtube.com/embed/${videoId}?rel=0`} title="Video phòng" allowfullscreen loading="lazy"></iframe>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .gallery-thumb { transition: all 0.2s; opacity: 0.6; }
+    .gallery-thumb:hover, .gallery-thumb.active { opacity: 1; border-color: #f39c12 !important; border-width: 2px !important; }
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    @media (min-width: 768px) { .border-end-md { border-right: 1px dashed #dee2e6; } }
+
+    /* Button bản đồ */
+    .btn-white { background: white; transition: all 0.3s; }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .drop-shadow { filter: drop-shadow(0 3px 2px rgba(0,0,0,0.3)); }
+
+    /* Bề ngang chuẩn */
+    @media (min-width: 1200px) {
+        .detail-container-standard {
+            max-width: 1140px !important; 
+        }
+    }
+</style>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script is:inline>
+    function changeImage(src, thumb) {
+        document.getElementById('main-image').src = src;
+        document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+    }
+
+    function loadMap(lat, lng, popupText) {
+        const placeholder = document.getElementById('map-placeholder');
+        const realMap = document.getElementById('real-map');
+        placeholder.style.display = 'none';
+        realMap.classList.remove('d-none');
+        
+        if (typeof L !== 'undefined') {
+            const map = L.map('real-map').setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+            const homeIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/25/25694.png',
+                iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -30]
+            });
+            L.marker([lat, lng], {icon: homeIcon}).addTo(map).bindPopup(`<b>${popupText}</b>`).openPopup();
+        }
+    }
+</script>

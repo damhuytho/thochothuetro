@@ -1,17 +1,172 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import SidebarFilter from '../components/SidebarFilter.astro';
+import CardRoom from '../components/CardRoom.astro';
+import CommitmentFooter from '../components/CommitmentFooter.astro'; // Import Footer cam kết
+import fs from 'node:fs';
+import path from 'node:path';
 
+const dataPath = path.join(process.cwd(), 'public', 'data.json');
+const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+const allRooms = jsonData.rooms.filter(r => r.status === 'active');
+
+function sortRooms(rooms) {
+    return rooms.sort((a, b) => {
+        if (a.promotion && !b.promotion) return -1;
+        if (!a.promotion && b.promotion) return 1;
+        return 0;
+    });
+}
+
+const districtNames = [...new Set(allRooms.map(r => r.district))];
+let districtsData = districtNames.map(name => {
+    return { name: name, rooms: sortRooms(allRooms.filter(r => r.district === name)) };
+});
+districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
+
+// Hàm tạo slug cho link Xem thêm
+function createSlug(text) {
+    if (text === 'Tân Bình') return 'tan-binh';
+    if (text === 'Phú Nhuận') return 'phu-nhuan';
+    return text.toLowerCase().replace(/ /g, '-');
+}
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Thọ Cho Thuê Trọ - Trang Chủ">
+    
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="sidebar-sticky-inner" style="top: 90px;">
+                    <SidebarFilter />
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div id="filter-status" class="alert alert-info d-none mb-4">
+                    <i class="fas fa-search me-2"></i> Đang lọc kết quả... <a href="/" class="fw-bold ms-2">Xóa bộ lọc</a>
+                </div>
+
+                <div id="intro-banner" class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+                    <i class="fas fa-info-circle fs-3 me-3 text-dark"></i>
+                    <div>
+                        <strong>Chào mừng bạn đến với Thọ Cho Thuê Trọ!</strong>
+                        <div class="small">Hệ thống phòng trọ tiện nghi, giờ giấc tự do, không chung chủ.</div>
+                    </div>
+                </div>
+
+                {districtsData.map((dData) => (
+                    <div class="district-section mb-5" data-district={dData.name}>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
+                            <h2 class="h5 fw-bold text-dark m-0 text-uppercase">
+                                <span class="text-warning me-2"><i class="fas fa-building"></i></span> 
+                                KHU VỰC {dData.name} <span class="text-muted small fw-normal">({dData.rooms.length})</span>
+                            </h2>
+                            
+                            <a href={`/${createSlug(dData.name)}`} class="text-decoration-none text-dark fw-bold small hover-link">
+                                Xem tất cả <i class="fas fa-chevron-right ms-1 text-warning"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="row g-2 g-md-3 room-list-container">
+                            {dData.rooms.slice(0, 6).map((room) => (
+                                <div class="col-6 col-md-4 room-item"
+                                     data-district={room.district}
+                                     data-price={room.price}
+                                     data-type={room.type}
+                                     data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
+                                     data-pet={room.pet ? "yes" : "no"}>
+                                    
+                                    <CardRoom room={room} />
+                                
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+                
+                <div id="no-result" class="text-center py-5 d-none">
+                    <img src="/logo.png" width="80" class="mb-3 opacity-50" style="filter: grayscale(1);">
+                    <p class="text-muted">Không tìm thấy phòng phù hợp.</p>
+                    <a href="/" class="btn btn-outline-warning text-dark fw-bold btn-sm">Xóa bộ lọc</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <CommitmentFooter />
+
+</Layout>
+
+<script is:inline>
+    // LOGIC LỌC (GIỮ NGUYÊN)
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.toString()) return;
+
+        document.getElementById('filter-status').classList.remove('d-none');
+        document.getElementById('intro-banner').classList.add('d-none');
+
+        const fDistrict = params.get('district');
+        const fType = params.get('type');
+        const fPrice = params.get('price');
+        const fAmenities = params.get('amenities') ? params.get('amenities').split(',') : [];
+        const specialGroup = ['Ban công', 'Cửa sổ'];
+        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+
+        const roomItems = document.querySelectorAll('.room-item');
+        let visibleCount = 0;
+
+        roomItems.forEach(item => {
+            let show = true;
+            if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) show = false;
+            if (show && fType && fType !== 'all' && item.getAttribute('data-type') !== fType) show = false;
+            if (show && fPrice && fPrice !== 'all') {
+                const price = parseInt(item.getAttribute('data-price')) / 1000000;
+                if (fPrice === 'duoi-5' && price >= 5) show = false;
+                if (fPrice === '5-7' && (price < 5 || price >= 7)) show = false;
+                if (fPrice === 'tren-9' && price < 9) show = false;
+            }
+            if (show) {
+                const keypoints = item.getAttribute('data-keypoint');
+                const petAllowed = item.getAttribute('data-pet') === 'yes';
+                // Logic AND
+                for (let ami of selectedNormal) {
+                    if (ami === 'Nuôi Pet') {
+                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { show = false; break; }
+                    } else {
+                        if (!keypoints.includes(ami.toLowerCase())) { show = false; break; }
+                    }
+                }
+                // Logic OR
+                if (show && selectedSpecial.length > 0) {
+                    let hasAtLeastOne = false;
+                    if (selectedSpecial.includes('Ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                    if (selectedSpecial.includes('Cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                    if (!hasAtLeastOne) show = false;
+                }
+            }
+
+            if (show) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.district-section').forEach(section => {
+            const visibleInSec = section.querySelectorAll('.room-item[style="display: block;"]').length;
+            section.style.display = visibleInSec === 0 ? 'none' : 'block';
+        });
+
+        if (visibleCount === 0) document.getElementById('no-result').classList.remove('d-none');
+        else document.getElementById('no-result').classList.add('d-none');
+    });
+</script>
+
+<style>
+    .hover-link:hover { color: #f39c12 !important; text-decoration: underline !important; }
+</style>

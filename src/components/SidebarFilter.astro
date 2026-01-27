@@ -1,0 +1,110 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+
+const dataPath = path.join(process.cwd(), 'public', 'data.json');
+const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+const allRooms = jsonData.rooms.filter(r => r.status === 'active');
+
+const uniqueDistricts = [...new Set(allRooms.map(r => r.district))].sort();
+const uniqueTypes = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
+
+const amenitiesList = [
+    { label: "Ban công", value: "Ban công" },
+    { label: "Cửa sổ", value: "Cửa sổ" },
+    { label: "Tách bếp", value: "Tách bếp" },
+    { label: "Nuôi Pet", value: "Nuôi Pet" },
+    { label: "Máy giặt riêng", value: "Máy giặt riêng" },
+    { label: "Thang máy", value: "Thang máy" }
+];
+---
+
+<div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-3">
+    <div class="card-header bg-warning text-dark fw-bold py-2 px-3" style="font-size: 0.95rem;">
+        <i class="fas fa-filter me-2"></i> TÌM KIẾM
+    </div>
+    
+    <div class="card-body bg-white p-3">
+        <form id="filter-form" onsubmit="event.preventDefault(); applyFilters();" style="font-size: 0.9rem;">
+            
+            <div class="mb-2">
+                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Khu vực</label>
+                <select class="form-select form-select-sm border-warning bg-light" name="district" id="f-district">
+                    <option value="all">-- Tất cả --</option>
+                    {uniqueDistricts.map(d => <option value={d}>{d}</option>)}
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Loại phòng</label>
+                <select class="form-select form-select-sm border-warning bg-light" name="type" id="f-type">
+                    <option value="all">-- Tất cả --</option>
+                    {uniqueTypes.map(t => <option value={t}>{t}</option>)}
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Mức giá</label>
+                <select class="form-select form-select-sm border-warning bg-light" name="price" id="f-price">
+                    <option value="all">-- Tất cả --</option>
+                    <option value="duoi-5">Dưới 5 triệu</option>
+                    <option value="5-7">Từ 5 - 7 triệu</option>
+                    <option value="tren-9">Trên 9 triệu</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Tiện ích</label>
+                <div class="row g-1">
+                    {amenitiesList.map(a => (
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input border-warning" type="checkbox" value={a.value} id={`check-${a.value}`} name="amenities">
+                                <label class="form-check-label" for={`check-${a.value}`} style="font-size: 0.85rem;">{a.label}</label>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div class="row g-2">
+                <div class="col-6">
+                    <button type="submit" class="btn btn-warning fw-bold text-dark w-100 py-2 shadow-sm btn-sm">
+                        ÁP DỤNG
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-light border w-100 py-2 text-secondary fw-bold btn-sm" onclick="resetFilters()">
+                        ĐẶT LẠI
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script is:inline>
+    function applyFilters() {
+        const form = document.getElementById('filter-form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        const district = formData.get('district'); if(district && district !== 'all') params.set('district', district);
+        const type = formData.get('type'); if(type && type !== 'all') params.set('type', type);
+        const price = formData.get('price'); if(price && price !== 'all') params.set('price', price);
+        const amenities = formData.getAll('amenities'); if(amenities.length > 0) params.set('amenities', amenities.join(','));
+
+        window.location.href = '/?' + params.toString();
+    }
+    
+    function resetFilters() { window.location.href = '/'; }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('district')) document.getElementById('f-district').value = params.get('district');
+        if(params.get('type')) document.getElementById('f-type').value = params.get('type');
+        if(params.get('price')) document.getElementById('f-price').value = params.get('price');
+        const ams = params.get('amenities');
+        if(ams) { ams.split(',').forEach(val => { const cb = document.getElementById(`check-${val}`); if(cb) cb.checked = true; }); }
+    });
+</script>

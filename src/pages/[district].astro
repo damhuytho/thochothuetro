@@ -1,0 +1,248 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SidebarFilter from '../components/SidebarFilter.astro';
+import CardRoom from '../components/CardRoom.astro';
+import CommitmentFooter from '../components/CommitmentFooter.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export async function getStaticPaths() {
+  const dataPath = path.join(process.cwd(), 'public', 'data.json');
+  // Lấy TOÀN BỘ phòng (cả active và rented)
+  const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+  
+  // Lọc lấy phòng Active HOẶC Rented để hiển thị
+  const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+
+  return [
+    { params: { district: 'tan-binh' }, props: { districtName: 'Tân Bình', allRooms: validRooms.filter(r => r.district === 'Tân Bình') } },
+    { params: { district: 'phu-nhuan' }, props: { districtName: 'Phú Nhuận', allRooms: validRooms.filter(r => r.district === 'Phú Nhuận') } }
+  ];
+}
+
+const { districtName, allRooms } = Astro.props;
+
+// --- LOGIC SẮP XẾP SERVER-SIDE (MẶC ĐỊNH) ---
+// 1. Tách Active và Rented
+const activeRooms = allRooms.filter(r => r.status === 'active');
+const rentedRooms = allRooms.filter(r => r.status === 'rented');
+
+// 2. Sắp xếp Active: Ưu tiên có Promotion
+activeRooms.sort((a, b) => {
+    if (a.promotion && !b.promotion) return -1;
+    if (!a.promotion && b.promotion) return 1;
+    return 0;
+});
+
+// 3. Giới hạn Rented: Chỉ lấy 9 căn mới nhất (giả sử danh sách gốc đã theo thứ tự mới nhất, nếu ko thì sort theo ID)
+const limitedRentedRooms = rentedRooms.slice(0, 9);
+
+// 4. Gộp lại: Active trước, Rented sau
+const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
+---
+
+<Layout title={`Cho thuê phòng trọ ${districtName} - Thọ Cho Thuê Trọ`}>
+    
+    <div class="container py-4">
+        <div class="row">
+             <div class="col-lg-3 mb-4">
+                <div class="sidebar-sticky-inner" style="top: 90px;">
+                    <SidebarFilter />
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom border-warning pb-2">
+                    <div>
+                        <h1 class="h5 fw-bold text-dark m-0 text-uppercase">
+                            <span class="text-warning me-2"><i class="fas fa-map-marker-alt"></i></span>
+                            KHU VỰC {districtName}
+                        </h1>
+                        <span class="text-muted small">({activeRooms.length} phòng trống)</span>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <label for="sort-select" class="small fw-bold me-2 text-muted d-none d-md-block">Sắp xếp:</label>
+                        <select id="sort-select" class="form-select form-select-sm border-warning shadow-sm" style="width: auto; font-weight: 500;">
+                            <option value="default">Mặc định</option>
+                            <option value="price-asc">Giá thấp đến cao</option>
+                            <option value="price-desc">Giá cao đến thấp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="filter-status" class="alert alert-info d-none mb-3">
+                    <i class="fas fa-filter me-2"></i> Đang lọc kết quả... <a href={`/${districtName === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}`} class="fw-bold ms-2">Xóa bộ lọc</a>
+                </div>
+
+                <div class="row g-2 g-md-3" id="district-room-container">
+                    {initialDisplayRooms.map((room) => (
+                        <div class="col-6 col-md-4 room-item"
+                             data-district={room.district}
+                             data-price={room.price}
+                             data-type={room.type}
+                             data-status={room.status} 
+                             data-promotion={room.promotion ? "yes" : "no"}
+                             data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
+                             data-pet={room.pet ? "yes" : "no"}>
+                            
+                            <CardRoom room={room} />
+                        
+                        </div>
+                    ))}
+                </div>
+                
+                <div id="no-result" class="text-center py-5 d-none">
+                    <img src="/logo.png" width="80" class="mb-3 opacity-50" style="filter: grayscale(1);">
+                    <p class="text-muted">Không tìm thấy phòng phù hợp.</p>
+                    <button class="btn btn-outline-warning text-dark fw-bold btn-sm" onclick="window.location.href=window.location.pathname">Xóa bộ lọc</button>
+                </div>
+
+                <div class="text-center mt-5 mb-4" id="load-more-wrapper">
+                    <button id="btn-load-more" class="btn btn-outline-warning text-dark fw-bold px-5 rounded-pill shadow-sm">
+                        Xem thêm 6 căn nữa <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <CommitmentFooter />
+
+</Layout>
+
+<script is:inline>
+    let itemsToShow = 6; 
+    const ITEMS_PER_LOAD = 6;
+
+    // LẮNG NGHE SỰ KIỆN SẮP XẾP
+    document.getElementById('sort-select').addEventListener('change', () => {
+        renderRooms(); // Gọi lại hàm render khi đổi kiểu sắp xếp
+    });
+
+    function renderRooms() {
+        const params = new URLSearchParams(window.location.search);
+        
+        // 1. LẤY THAM SỐ FILTER
+        const fType = params.get('type');
+        const fPrice = params.get('price');
+        const fAmenities = params.get('amenities') ? params.get('amenities').split(',') : [];
+        const specialGroup = ['Ban công', 'Cửa sổ'];
+        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+        
+        // 2. LẤY KIỂU SẮP XẾP
+        const sortMode = document.getElementById('sort-select').value;
+
+        if (params.toString()) {
+            document.getElementById('filter-status').classList.remove('d-none');
+        }
+
+        // Lấy tất cả các thẻ active và rented (đã render HTML sẵn)
+        const allDomItems = Array.from(document.querySelectorAll('.room-item'));
+        
+        // --- BƯỚC 1: LỌC (FILTER) ---
+        let filteredItems = allDomItems.filter(item => {
+            let matches = true;
+            // Filter logic cũ...
+            if (fType && fType !== 'all' && item.getAttribute('data-type') !== fType) matches = false;
+            if (matches && fPrice && fPrice !== 'all') {
+                const price = parseInt(item.getAttribute('data-price')) / 1000000;
+                if (fPrice === 'duoi-5' && price >= 5) matches = false;
+                if (fPrice === '5-7' && (price < 5 || price >= 7)) matches = false;
+                if (fPrice === 'tren-9' && price < 9) matches = false;
+            }
+            if (matches && fAmenities.length > 0) {
+                const keypoints = item.getAttribute('data-keypoint');
+                const petAllowed = item.getAttribute('data-pet') === 'yes';
+                for (let ami of selectedNormal) {
+                    if (ami === 'Nuôi Pet') {
+                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
+                    } else {
+                        if (!keypoints.includes(ami.toLowerCase())) { matches = false; break; }
+                    }
+                }
+                if (matches && selectedSpecial.length > 0) {
+                    let hasAtLeastOne = false;
+                    if (selectedSpecial.includes('Ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                    if (selectedSpecial.includes('Cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                    if (!hasAtLeastOne) matches = false;
+                }
+            }
+            return matches;
+        });
+
+        // --- BƯỚC 2: TÁCH ACTIVE VÀ RENTED ---
+        // (Để đảm bảo Rented luôn ở dưới đáy, dù sort kiểu gì)
+        let activeItems = filteredItems.filter(item => item.getAttribute('data-status') === 'active');
+        let rentedItems = filteredItems.filter(item => item.getAttribute('data-status') === 'rented');
+
+        // --- BƯỚC 3: SẮP XẾP (SORT) ACTIVE ITEMS ---
+        if (sortMode === 'price-asc') {
+            activeItems.sort((a, b) => parseInt(a.getAttribute('data-price')) - parseInt(b.getAttribute('data-price')));
+        } else if (sortMode === 'price-desc') {
+            activeItems.sort((a, b) => parseInt(b.getAttribute('data-price')) - parseInt(a.getAttribute('data-price')));
+        } else {
+            // Default: Ưu tiên Promotion
+            activeItems.sort((a, b) => {
+                const aPromo = a.getAttribute('data-promotion') === 'yes' ? 1 : 0;
+                const bPromo = b.getAttribute('data-promotion') === 'yes' ? 1 : 0;
+                return bPromo - aPromo;
+            });
+        }
+
+        // --- BƯỚC 4: GIỚI HẠN RENTED (MAX 9) ---
+        // Lưu ý: Server đã limit 9 rồi, nhưng client filter lại thì cũng cần cắt lại cho chắc
+        if (rentedItems.length > 9) {
+            rentedItems = rentedItems.slice(0, 9);
+        }
+
+        // --- BƯỚC 5: GỘP LẠI VÀ HIỂN THỊ (PAGING) ---
+        const finalSortedList = [...activeItems, ...rentedItems];
+
+        // Ẩn tất cả trước khi render lại thứ tự
+        allDomItems.forEach(item => item.style.display = 'none');
+
+        // Sắp xếp lại DOM (Visual order) bằng Flex order hoặc appendChild
+        const container = document.getElementById('district-room-container');
+        finalSortedList.forEach(item => {
+            container.appendChild(item); // Đẩy xuống cuối container theo thứ tự mới
+        });
+
+        // Hiển thị theo Load More
+        let visibleCount = 0;
+        finalSortedList.forEach((item, index) => {
+            if (index < itemsToShow) {
+                item.style.display = 'block';
+                item.classList.add('animate__animated', 'animate__fadeIn');
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Xử lý nút Load More
+        const btnLoadMore = document.getElementById('load-more-wrapper');
+        if (finalSortedList.length > itemsToShow) {
+            btnLoadMore.style.display = 'block';
+        } else {
+            btnLoadMore.style.display = 'none';
+        }
+
+        if (finalSortedList.length === 0) {
+            document.getElementById('no-result').classList.remove('d-none');
+        } else {
+            document.getElementById('no-result').classList.add('d-none');
+        }
+    }
+
+    document.getElementById('btn-load-more').addEventListener('click', () => {
+        itemsToShow += ITEMS_PER_LOAD;
+        renderRooms();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderRooms();
+    });
+
+</script>

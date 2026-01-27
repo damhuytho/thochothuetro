@@ -1,0 +1,56 @@
+---
+const commitments = [
+    { icon: "fas fa-hand-holding-usd", color: "success", title: "Miễn phí xem nhà", desc: "Không thu phí dẫn khách" },
+    { icon: "fas fa-check-circle", color: "primary", title: "Thông tin chính xác", desc: "Hình ảnh đúng thực tế" },
+    { icon: "fas fa-tag", color: "warning", title: "Giá minh bạch", desc: "Công khai, không phí ẩn" },
+    { icon: "fas fa-hands-helping", color: "info", title: "Hỗ trợ tận tâm", desc: "Đồng hành trọn đời" },
+    { icon: "fas fa-sync-alt", color: "secondary", title: "Cập nhật liên tục", desc: "Phòng mới mỗi ngày" },
+    { icon: "fas fa-shield-alt", color: "danger", title: "An toàn pháp lý", desc: "Hợp đồng rõ ràng" }
+];
+---
+
+<div class="bg-white py-4 border-top mt-4">
+    <div class="container">
+        <h5 class="text-center fw-bold text-uppercase mb-4 text-dark" style="letter-spacing: 1px;">
+            <span class="text-warning me-1"><i class="fas fa-star"></i></span> Cam Kết Dịch Vụ
+        </h5>
+        
+        <div class="row g-3">
+            {commitments.map((item) => (
+                <div class="col-md-6 col-lg-4">
+                    <div class="d-flex align-items-center h-100 p-2 border rounded bg-light-subtle">
+                        
+                        <div class={`icon-box bg-${item.color} bg-opacity-10 text-${item.color} me-3`}>
+                            <i class={item.icon}></i>
+                        </div>
+                        
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">
+                                {item.title}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.8rem;">
+                                {item.desc}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Icon box tĩnh, không hover */
+    .icon-box {
+        width: 45px;      /* Giảm từ 60px xuống 45px */
+        height: 45px;     /* Giảm từ 60px xuống 45px */
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem; /* Giảm cỡ icon */
+        flex-shrink: 0;
+    }
+    
+    /* Bỏ hoàn toàn các hiệu ứng hover transform/shadow cũ */
+</style>

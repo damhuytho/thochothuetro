@@ -1,0 +1,50 @@
+---
+const pathname = Astro.url.pathname;
+---
+<nav class="navbar navbar-expand-lg border-bottom sticky-top bg-white shadow-sm" style="z-index: 1030; min-height: 76px;">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2 lh-1 me-auto me-lg-4" href="/">
+            <img src="/logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img" width="50" height="50" style="object-fit: contain;">
+            <div class="d-flex flex-column">
+                <span class="text-uppercase brand-name">THỌ CHO THUÊ TRỌ</span>
+                <span class="brand-slogan">Hệ thống phòng trọ tiện nghi</span>
+            </div>
+        </a>
+
+        <a href="tel:0925996992" class="btn btn-outline-dark btn-sm rounded-pill d-lg-none fw-bold d-flex align-items-center gap-1 ms-2" style="border: 1px solid #1a1a1a;">
+            <i class="fas fa-headset"></i> Liên hệ
+        </a>
+
+        <button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3 align-items-lg-center">
+                <li class="nav-item"><a class={`nav-link ${pathname === '/' ? 'active' : ''}`} href="/">Trang chủ</a></li>
+                <li class="nav-item"><a class={`nav-link ${pathname.includes('tan-binh') ? 'active' : ''}`} href="/tan-binh">Quận Tân Bình</a></li>
+                <li class="nav-item"><a class={`nav-link ${pathname.includes('phu-nhuan') ? 'active' : ''}`} href="/phu-nhuan">Quận Phú Nhuận</a></li>
+                
+                <li class="nav-item"><a class={`nav-link ${pathname === '/map-search' ? 'active' : ''}`} href="/map-search"><i class="fas fa-map-marked-alt me-1"></i>Bản đồ</a></li>
+                <li class="nav-item d-none d-lg-block"><a class={`nav-link ${pathname === '/contact' ? 'active' : ''}`} href="/contact">Liên hệ</a></li>
+                
+                <li class="nav-item d-none d-lg-block ms-lg-3">
+                    <a href="tel:0925996992" class="text-decoration-none text-dark fw-bold fs-5 d-flex align-items-center bg-light px-3 py-2 rounded-pill border">
+                        <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-phone-alt" style="font-size: 0.8rem;"></i>
+                        </div>
+                        0925 996 992
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .brand-name { color: #DFA33D; font-weight: 800; font-size: 1.3rem; line-height: 1.2; }
+    .brand-slogan { font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none; }
+    .nav-link { color: #333; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: #DFA33D; }
+    @media (max-width: 576px) { .brand-name { font-size: 1.1rem; } .logo-img { width: 40px; height: 40px; } }
+</style>
