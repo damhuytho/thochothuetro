@@ -71,10 +71,6 @@ const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
                     </div>
                 </div>
 
-                <div id="filter-status" class="alert alert-info d-none mb-3">
-                    <i class="fas fa-filter me-2"></i> Đang lọc kết quả... <a href={`/${districtName === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}`} class="fw-bold ms-2">Xóa bộ lọc</a>
-                </div>
-
                 <div class="row g-2 g-md-3" id="district-room-container">
                     {initialDisplayRooms.map((room) => (
                         <div class="col-6 col-md-4 room-item"

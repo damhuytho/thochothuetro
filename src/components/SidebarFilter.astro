@@ -1,110 +1,399 @@
 ---
+// src/components/SidebarFilter.astro
 import fs from 'node:fs';
 import path from 'node:path';
 
-const dataPath = path.join(process.cwd(), 'public', 'data.json');
-const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-const allRooms = jsonData.rooms.filter(r => r.status === 'active');
+// 1. DATA SERVER-SIDE
+let uniqueDistricts = [];
+try {
+    const dataPath = path.join(process.cwd(), 'public', 'data.json');
+    const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    uniqueDistricts = [...new Set(jsonData.rooms.map(r => r.district).filter(d => d))].sort();
+} catch (error) {
+    console.error("Lỗi đọc data.json:", error);
+    uniqueDistricts = ["Tân Bình", "Phú Nhuận"]; 
+}
 
-const uniqueDistricts = [...new Set(allRooms.map(r => r.district))].sort();
-const uniqueTypes = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
-
-const amenitiesList = [
-    { label: "Ban công", value: "Ban công" },
-    { label: "Cửa sổ", value: "Cửa sổ" },
-    { label: "Tách bếp", value: "Tách bếp" },
-    { label: "Nuôi Pet", value: "Nuôi Pet" },
-    { label: "Máy giặt riêng", value: "Máy giặt riêng" },
-    { label: "Thang máy", value: "Thang máy" }
+// 2. DANH SÁCH CỐ ĐỊNH
+const listTypes = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
+const listPrices = [
+    { label: "Dưới 5 triệu", value: "under5" },
+    { label: "Từ 5 - 8 triệu", value: "5to8" },
+    { label: "Trên 8 triệu", value: "over8" }
 ];
+const listAmenities = ["ban công", "cửa sổ", "tách bếp", "nuôi pet", "máy giặt riêng", "thang máy"];
+
+// 3. LẤY PARAMS HIỆN TẠI
+const { searchParams } = Astro.url;
+const currentDist = searchParams.get('district') || 'all';
+const currentType = searchParams.get('type') || 'all';
+const currentPrice = searchParams.get('price') || 'all';
+const currentAms = searchParams.get('amenities') ? searchParams.get('amenities').split(',') : [];
+
+// Kiểm tra có đang lọc không (để xử lý logic mobile)
+const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || currentPrice !== 'all' || currentAms.length > 0);
 ---
 
-<div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-3">
-    <div class="card-header bg-warning text-dark fw-bold py-2 px-3" style="font-size: 0.95rem;">
-        <i class="fas fa-filter me-2"></i> TÌM KIẾM
-    </div>
-    
-    <div class="card-body bg-white p-3">
-        <form id="filter-form" onsubmit="event.preventDefault(); applyFilters();" style="font-size: 0.9rem;">
-            
-            <div class="mb-2">
-                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Khu vực</label>
-                <select class="form-select form-select-sm border-warning bg-light" name="district" id="f-district">
-                    <option value="all">-- Tất cả --</option>
-                    {uniqueDistricts.map(d => <option value={d}>{d}</option>)}
-                </select>
+<div id="mobile-filter-bar" class="mobile-filter-bar d-lg-none">
+    <div class="container d-flex align-items-center justify-content-between h-100">
+        <div class="filter-tags-scroll" id="filter-tags-container">
             </div>
-
-            <div class="mb-2">
-                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Loại phòng</label>
-                <select class="form-select form-select-sm border-warning bg-light" name="type" id="f-type">
-                    <option value="all">-- Tất cả --</option>
-                    {uniqueTypes.map(t => <option value={t}>{t}</option>)}
-                </select>
-            </div>
-
-            <div class="mb-2">
-                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Mức giá</label>
-                <select class="form-select form-select-sm border-warning bg-light" name="price" id="f-price">
-                    <option value="all">-- Tất cả --</option>
-                    <option value="duoi-5">Dưới 5 triệu</option>
-                    <option value="5-7">Từ 5 - 7 triệu</option>
-                    <option value="tren-9">Trên 9 triệu</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Tiện ích</label>
-                <div class="row g-1">
-                    {amenitiesList.map(a => (
-                        <div class="col-6">
-                            <div class="form-check">
-                                <input class="form-check-input border-warning" type="checkbox" value={a.value} id={`check-${a.value}`} name="amenities">
-                                <label class="form-check-label" for={`check-${a.value}`} style="font-size: 0.85rem;">{a.label}</label>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div class="row g-2">
-                <div class="col-6">
-                    <button type="submit" class="btn btn-warning fw-bold text-dark w-100 py-2 shadow-sm btn-sm">
-                        ÁP DỤNG
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button type="button" class="btn btn-light border w-100 py-2 text-secondary fw-bold btn-sm" onclick="resetFilters()">
-                        ĐẶT LẠI
-                    </button>
-                </div>
-            </div>
-        </form>
+        <button type="button" class="btn-clear-filter" onclick="handleResetFilter()">
+            <i class="fas fa-times text-secondary"></i>
+        </button>
     </div>
 </div>
 
-<script is:inline>
-    function applyFilters() {
-        const form = document.getElementById('filter-form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams();
-        
-        const district = formData.get('district'); if(district && district !== 'all') params.set('district', district);
-        const type = formData.get('type'); if(type && type !== 'all') params.set('type', type);
-        const price = formData.get('price'); if(price && price !== 'all') params.set('price', price);
-        const amenities = formData.getAll('amenities'); if(amenities.length > 0) params.set('amenities', amenities.join(','));
+<div class="sidebar-sticky-wrapper">
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+        <div class="card-header text-dark fw-bold text-uppercase py-3 d-flex align-items-center" 
+             style="background-color: #f1c40f; border-bottom: 1px solid #e0b40a;">
+            <i class="fas fa-filter me-2"></i> TÌM KIẾM
+        </div>
 
-        window.location.href = '/?' + params.toString();
+        <div class="card-body p-3 bg-white">
+            <form id="astro-filter-form">
+                
+                <div class="mb-3">
+                    <label class="filter-label">KHU VỰC</label>
+                    <select class="form-select custom-select fw-bold" id="sb-district">
+                        <option value="all">-- Tất cả --</option>
+                        {uniqueDistricts.map((dist) => (
+                            <option value={dist} selected={currentDist === dist}>Quận {dist}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="filter-label">LOẠI PHÒNG</label>
+                    <select class="form-select custom-select" id="sb-type">
+                        <option value="all">-- Tất cả --</option>
+                        {listTypes.map((type) => (
+                            <option value={type} selected={currentType === type}>{type}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="filter-label">MỨC GIÁ</label>
+                    <select class="form-select custom-select" id="sb-price">
+                        <option value="all">-- Tất cả --</option>
+                        {listPrices.map((p) => (
+                            <option value={p.value} selected={currentPrice === p.value}>{p.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="filter-label">TIỆN ÍCH</label>
+                    <div class="row g-2">
+                        {listAmenities.map((am) => (
+                            <div class="col-6">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="sb-amenity" value={am} checked={currentAms.includes(am)}>
+                                    <span class="checkmark"></span> 
+                                    <span class="text-capitalize">{am}</span>
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" id="btn-apply" class="btn btn-warning flex-grow-1 fw-bold text-dark shadow-sm py-2">
+                        ÁP DỤNG
+                    </button>
+                    <button type="button" id="btn-reset" class="btn btn-light border flex-grow-1 fw-bold text-secondary shadow-sm py-2">
+                        ĐẶT LẠI
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- CSS CHO MOBILE FILTER BAR (APP STYLE) --- */
+    .mobile-filter-bar {
+        position: fixed;
+        top: 0; 
+        left: 0;
+        width: 100%;
+        height: 54px; /* Chiều cao vừa phải */
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        z-index: 1000; /* Cao hơn cả Header cũ nếu cần đè lên */
+        border-bottom: 1px solid #f0f0f0;
+        
+        /* Mặc định ẩn bằng transform để làm hiệu ứng trượt */
+        transform: translateY(-100%);
+        transition: transform 0.3s ease-in-out;
     }
     
-    function resetFilters() { window.location.href = '/'; }
+    /* Class kích hoạt hiển thị */
+    .mobile-filter-bar.is-visible {
+        transform: translateY(0);
+    }
+
+    /* Container chứa các Tags (Scroll ngang mượt mà) */
+    .filter-tags-scroll {
+        flex: 1;
+        display: flex;
+        gap: 8px; /* Khoảng cách giữa các nút */
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 10px 0; /* Thêm đệm trên dưới để bóng đổ không bị cắt */
+        padding-right: 15px;
+        align-items: center;
+        height: 100%;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+    }
+    .filter-tags-scroll::-webkit-scrollbar { display: none; }
+
+    /* Style cho từng Tag (Chip) - Giống App */
+    .filter-tag {
+        background-color: #f0f2f5; /* Nền xám nhạt chuẩn App */
+        color: #1c1e21;           /* Chữ màu đen dịu */
+        border: 1px solid transparent; /* Không viền hoặc viền trong suốt */
+        border-radius: 20px;      /* Bo tròn hình viên thuốc */
+        padding: 6px 14px;        /* Độ dày nút */
+        font-size: 0.8rem;        /* Cỡ chữ gọn */
+        font-weight: 600;         /* Chữ đậm vừa phải */
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        /* Hiệu ứng nổi nhẹ */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+    }
+    /* Màu riêng cho tag Giá để nổi bật hơn */
+    .filter-tag.price-tag {
+        background-color: #fff8e1; /* Nền vàng nhạt */
+        color: #d35400;            /* Chữ cam đất */
+        border: 1px solid #ffe082;
+    }
+    /* Nút Xóa Lọc */
+    .btn-clear-filter {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 50%;
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        margin-left: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* --- CSS DESKTOP SIDEBAR (CŨ) --- */
+    .sidebar-sticky-wrapper {
+        position: -webkit-sticky; position: sticky;
+        top: 90px; z-index: 90;
+        height: fit-content; max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    .sidebar-sticky-wrapper::-webkit-scrollbar { width: 0px; background: transparent; }
+
+    .filter-label { font-weight: 700; font-size: 0.8rem; color: #666; margin-bottom: 6px; text-transform: uppercase; }
     
-    document.addEventListener('DOMContentLoaded', () => {
+    .custom-select {
+        border: 1px solid #f1c40f !important; background-color: #fff !important;
+        font-size: 0.9rem; color: #333; box-shadow: none !important; cursor: pointer;
+    }
+    .custom-select:focus { border-color: #d4ac0d !important; background-color: #fffcf5 !important; }
+
+    .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; color: #333; user-select: none; margin-bottom: 4px; }
+    .custom-check input { display: none; }
+    
+    .checkmark {
+        height: 18px; width: 18px; border: 1px solid #f1c40f; background-color: white;
+        border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
+    .custom-check input:checked ~ .checkmark:after { content: '\2713'; color: #212529; font-size: 12px; font-weight: bold; }
+    
+    .text-capitalize { text-transform: capitalize; }
+
+    /* QUAN TRỌNG: Ẩn tuyệt đối thanh Mobile Filter trên Desktop */
+    @media (min-width: 992px) {
+        .mobile-filter-bar { display: none !important; }
+    }
+</style>
+
+<script>
+    // 1. Render Thanh Lọc Mobile (Tags dạng App)
+    function renderMobileActiveTags() {
+        const container = document.getElementById('filter-tags-container');
+        if (!container) return;
+
         const params = new URLSearchParams(window.location.search);
-        if(params.get('district')) document.getElementById('f-district').value = params.get('district');
-        if(params.get('type')) document.getElementById('f-type').value = params.get('type');
-        if(params.get('price')) document.getElementById('f-price').value = params.get('price');
+        let tagsHtml = '';
+        let hasFilter = false;
+
+        // District
+        const d = params.get('district');
+        if(d && d !== 'all') { 
+            tagsHtml += `<span class="filter-tag">Quận ${d}</span>`; hasFilter = true; 
+        }
+
+        // Type
+        const t = params.get('type');
+        if(t && t !== 'all') { 
+            tagsHtml += `<span class="filter-tag">${t}</span>`; hasFilter = true; 
+        }
+
+        // Price
+        const p = params.get('price');
+if(p && p !== 'all') { 
+    let label = p === 'under5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
+    // THÊM CLASS 'price-tag' VÀO ĐÂY
+    tagsHtml += `<span class="filter-tag price-tag">${label}</span>`; 
+    hasFilter = true; 
+}
+
+        // Amenities
         const ams = params.get('amenities');
-        if(ams) { ams.split(',').forEach(val => { const cb = document.getElementById(`check-${val}`); if(cb) cb.checked = true; }); }
+        if(ams) {
+            ams.split(',').forEach(a => {
+                tagsHtml += `<span class="filter-tag text-capitalize">${a}</span>`;
+            });
+            hasFilter = true;
+        }
+
+        container.innerHTML = tagsHtml;
+        return hasFilter;
+    }
+
+    // 2. Logic Scroll: Chỉ hiện thanh lọc khi cuộn qua Logo (Scroll > 80px)
+    function setupMobileScrollLogic(hasFilter) {
+        const bar = document.getElementById('mobile-filter-bar');
+        if (!bar || !hasFilter) return;
+
+        window.addEventListener('scroll', () => {
+            // Ngưỡng 80px là khoảng chiều cao của Header Logo
+            if (window.scrollY > 80) {
+                bar.classList.add('is-visible');
+            } else {
+                bar.classList.remove('is-visible');
+            }
+        });
+    }
+
+    // 3. Hàm Xử lý Lọc & Chuyển Trang
+    function handleApplyFilter() {
+        // @ts-ignore
+        const district = document.getElementById('sb-district').value;
+        // @ts-ignore
+        const type = document.getElementById('sb-type').value;
+        // @ts-ignore
+        const price = document.getElementById('sb-price').value;
+        
+        const amenities = [];
+        document.querySelectorAll('.sb-amenity:checked').forEach((cb) => {
+            // @ts-ignore
+            amenities.push(cb.value);
+        });
+
+        const params = new URLSearchParams();
+        if (type !== 'all') params.set('type', type);
+        if (price !== 'all') params.set('price', price);
+        if (amenities.length > 0) params.set('amenities', amenities.join(','));
+
+        // Logic Chuyển Trang
+        let targetPath = window.location.pathname;
+
+        if (district === 'Tân Bình') {
+            targetPath = '/tan-binh';
+        } else if (district === 'Phú Nhuận') {
+            targetPath = '/phu-nhuan';
+        } else {
+            // Nếu chọn "Tất cả", giữ nguyên trang hiện tại
+            // Trừ khi đang ở trang chủ, giữ nguyên trang chủ
+        }
+
+        const queryString = params.toString();
+        window.location.href = queryString ? `${targetPath}?${queryString}` : targetPath;
+    }
+
+    // 4. Reset Filter
+    // @ts-ignore
+    window.handleResetFilter = function() {
+        window.location.href = window.location.pathname; 
+    }
+
+    // 5. Client-side Filtering Helper (Xử lý chữ hoa/thường)
+    function applyClientSideFiltering() {
+        const params = new URLSearchParams(window.location.search);
+        // Chuyển tất cả về chữ thường để so sánh
+        const reqType = (params.get('type') || 'all').toLowerCase();
+        const reqAms = params.get('amenities') ? params.get('amenities').toLowerCase().split(',') : [];
+
+        // Nếu không có lọc Type hay Amenities thì thôi (để Server lo các cái khác)
+        if (reqType === 'all' && reqAms.length === 0) return;
+
+        const cards = document.querySelectorAll('.card.h-100'); // Selector thẻ Card phòng
+        
+        cards.forEach(card => {
+            if (!card.textContent) return;
+            const textContent = card.textContent.toLowerCase(); 
+            let isVisible = true;
+
+            // Lọc Loại phòng (Không phân biệt hoa thường)
+            if (reqType !== 'all') {
+                if (!textContent.includes(reqType)) isVisible = false;
+            }
+
+            // Lọc Tiện ích
+            if (isVisible && reqAms.length > 0) {
+                const hasAllAms = reqAms.every(am => textContent.includes(am));
+                if (!hasAllAms) isVisible = false;
+            }
+
+            // Ẩn/Hiện thẻ cha (col-6...)
+            const colParent = card.closest('.col-6');
+            if (colParent) {
+                // @ts-ignore
+                colParent.style.display = isVisible ? '' : 'none';
+            }
+        });
+    }
+
+    // Kích hoạt
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnApply = document.getElementById('btn-apply');
+        const btnReset = document.getElementById('btn-reset');
+        if (btnApply) btnApply.addEventListener('click', handleApplyFilter);
+        if (btnReset) btnReset.addEventListener('click', window.handleResetFilter);
+
+        // Khôi phục form
+        const params = new URLSearchParams(window.location.search);
+        const setEl = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+        
+        // Logic chọn quận mặc định thông minh
+        let defaultDist = 'all';
+        if (window.location.pathname.includes('tan-binh')) defaultDist = 'Tân Bình';
+        if (window.location.pathname.includes('phu-nhuan')) defaultDist = 'Phú Nhuận';
+        
+        setEl('sb-district', params.get('district') || defaultDist);
+        setEl('sb-type', params.get('type'));
+        setEl('sb-price', params.get('price'));
+
+        const ams = params.get('amenities');
+        if (ams) {
+            const list = ams.split(',');
+            document.querySelectorAll('.sb-amenity').forEach(cb => {
+                // @ts-ignore
+                if (list.includes(cb.value)) cb.checked = true;
+            });
+        }
+
+        // Render & Setup Scroll Logic cho Mobile
+        const hasFilter = renderMobileActiveTags();
+        setupMobileScrollLogic(hasFilter);
+        
+        // Chạy filter client-side ngay lập tức để fix vụ chữ hoa/thường
+        applyClientSideFiltering();
     });
 </script>
