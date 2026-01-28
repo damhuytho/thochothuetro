@@ -17,7 +17,7 @@ try {
 // 2. DANH SÁCH CỐ ĐỊNH
 const listTypes = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const listPrices = [
-    { label: "Dưới 5 triệu", value: "under5" },
+    { label: "Dưới 5 triệu", value: "duoi-5" },
     { label: "Từ 5 - 8 triệu", value: "5to8" },
     { label: "Trên 8 triệu", value: "over8" }
 ];
@@ -29,32 +29,34 @@ const currentDist = searchParams.get('district') || 'all';
 const currentType = searchParams.get('type') || 'all';
 const currentPrice = searchParams.get('price') || 'all';
 const currentAms = searchParams.get('amenities') ? searchParams.get('amenities').split(',') : [];
-
-// Kiểm tra có đang lọc không (để xử lý logic mobile)
-const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || currentPrice !== 'all' || currentAms.length > 0);
 ---
 
 <div id="mobile-filter-bar" class="mobile-filter-bar d-lg-none">
-    <div class="container d-flex align-items-center justify-content-between h-100">
-        <div class="filter-tags-scroll" id="filter-tags-container">
+    <div class="container d-flex align-items-center h-100 px-3">
+        <div class="filter-status-wrapper d-flex align-items-center flex-grow-1 overflow-hidden">
+            <div class="filter-icon-box me-2">
+                <i class="fas fa-sliders-h"></i>
             </div>
+            <div class="filter-tags-scroll" id="filter-tags-container"></div>
+        </div>
         <button type="button" class="btn-clear-filter" onclick="handleResetFilter()">
-            <i class="fas fa-times text-secondary"></i>
+            <i class="fas fa-redo-alt me-1"></i> <span>Xóa</span>
         </button>
     </div>
 </div>
 
-<div class="sidebar-sticky-wrapper">
+<div class="sidebar-sticky-wrapper" id="sidebar-wrapper">
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
-        <div class="card-header text-dark fw-bold text-uppercase py-3 d-flex align-items-center" 
+        <div class="card-header text-dark fw-bold text-uppercase py-2 d-flex align-items-center" 
              style="background-color: #f1c40f; border-bottom: 1px solid #e0b40a;">
             <i class="fas fa-filter me-2"></i> TÌM KIẾM
         </div>
 
-        <div class="card-body p-3 bg-white">
+        <!-- FORM BODY - CÓ ID ĐỂ ẨNHIỂN -->
+        <div class="card-body p-3 bg-white" id="filter-form-body">
             <form id="astro-filter-form">
                 
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="filter-label">KHU VỰC</label>
                     <select class="form-select custom-select fw-bold" id="sb-district">
                         <option value="all">-- Tất cả --</option>
@@ -64,7 +66,7 @@ const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || curre
                     </select>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="filter-label">LOẠI PHÒNG</label>
                     <select class="form-select custom-select" id="sb-type">
                         <option value="all">-- Tất cả --</option>
@@ -74,7 +76,7 @@ const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || curre
                     </select>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="filter-label">MỨC GIÁ</label>
                     <select class="form-select custom-select" id="sb-price">
                         <option value="all">-- Tất cả --</option>
@@ -110,296 +112,436 @@ const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || curre
 
             </form>
         </div>
+
+        <!-- NÚT TOGGLE FILTER (ẨN KHI EXPANDED) -->
+        <div id="toggle-filter-btn-container" class="p-3 bg-white d-none">
+            <button type="button" id="btn-toggle-filter" class="btn btn-warning w-100 fw-bold text-dark shadow-sm py-2">
+                <i class="fas fa-chevron-down me-2"></i> HIỂN THỊ BỘ LỌC
+            </button>
+        </div>
     </div>
 </div>
 
 <style>
     /* --- CSS CHO MOBILE FILTER BAR (APP STYLE) --- */
-    .mobile-filter-bar {
+.mobile-filter-bar {
         position: fixed;
-        top: 0; 
+        top: 0;
         left: 0;
         width: 100%;
-        height: 54px; /* Chiều cao vừa phải */
-        background: white;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        z-index: 1000; /* Cao hơn cả Header cũ nếu cần đè lên */
-        border-bottom: 1px solid #f0f0f0;
-        
-        /* Mặc định ẩn bằng transform để làm hiệu ứng trượt */
-        transform: translateY(-100%);
+        /* Thay đổi từ height cố định sang min-height để tự nở ra khi nhiều dòng */
+        min-height: 60px; 
+        height: auto; 
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 2000; /* Đảm bảo nằm trên cùng */
+        border-bottom: 1px solid #eee;
+        transform: translateY(-110%);
         transition: transform 0.3s ease-in-out;
+        padding: 10px 0; /* Thêm khoảng cách trên dưới cho đẹp */
     }
-    
-    /* Class kích hoạt hiển thị */
+    .filter-icon-box {
+        width: 32px; height: 32px;
+        background: #f1c40f; color: #212529;
+        border-radius: 8px; display: flex;
+        align-items: center; justify-content: center;
+        flex-shrink: 0; font-size: 0.85rem;
+    }
+
     .mobile-filter-bar.is-visible {
         transform: translateY(0);
     }
 
-    /* Container chứa các Tags (Scroll ngang mượt mà) */
-    .filter-tags-scroll {
+.filter-tags-scroll {
         flex: 1;
         display: flex;
-        gap: 8px; /* Khoảng cách giữa các nút */
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 10px 0; /* Thêm đệm trên dưới để bóng đổ không bị cắt */
-        padding-right: 15px;
-        align-items: center;
-        height: 100%;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+        flex-wrap: wrap; /* Ép xuống dòng nếu không đủ chỗ */
+        gap: 8px; /* Khoảng cách giữa các khung */
+        white-space: normal; /* Cho phép chữ xuống dòng */
+        padding-right: 10px;
     }
     .filter-tags-scroll::-webkit-scrollbar { display: none; }
 
-    /* Style cho từng Tag (Chip) - Giống App */
+/* ĐÓNG KHUNG CHO TỪNG TÙY CHỌN (1PN, Máy giặt...) */
     .filter-tag {
-        background-color: #f0f2f5; /* Nền xám nhạt chuẩn App */
-        color: #1c1e21;           /* Chữ màu đen dịu */
-        border: 1px solid transparent; /* Không viền hoặc viền trong suốt */
-        border-radius: 20px;      /* Bo tròn hình viên thuốc */
-        padding: 6px 14px;        /* Độ dày nút */
-        font-size: 0.8rem;        /* Cỡ chữ gọn */
-        font-weight: 600;         /* Chữ đậm vừa phải */
-        display: inline-flex;
-        align-items: center;
-        white-space: nowrap;
-        flex-shrink: 0;
+        display: inline-flex !important;
+        align-items: center !important;
+        background: #ffffff !important;
+        color: #333 !important;
+        /* Tạo khung viền rõ rệt */
+        border: 1.5px solid #d1d5db !important; 
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         transition: all 0.2s;
-        /* Hiệu ứng nổi nhẹ */
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
     }
-    /* Màu riêng cho tag Giá để nổi bật hơn */
+    
     .filter-tag.price-tag {
-        background-color: #fff8e1; /* Nền vàng nhạt */
-        color: #d35400;            /* Chữ cam đất */
-        border: 1px solid #ffe082;
+        background: #fff9db !important;
+        color: #d35400 !important;
+        border-color: #ffe066 !important;
     }
-    /* Nút Xóa Lọc */
+/* Nút Xóa Lọc hiện đại */
     .btn-clear-filter {
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 50%;
-        width: 32px; height: 32px;
-        display: flex; align-items: center; justify-content: center;
+        background: #fff0f0 !important;
+        border: 1px solid #ffcccc !important;
+        border-radius: 8px !important;
+        width: auto !important;
+        height: 36px !important;
+        padding: 0 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        color: #e74c3c !important;
+        font-weight: 800 !important;
+        font-size: 0.75rem !important;
+        margin-left: 10px;
         flex-shrink: 0;
-        margin-left: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
-    /* --- CSS DESKTOP SIDEBAR (CŨ) --- */
-.sidebar-sticky-wrapper {
-    position: -webkit-sticky; 
-    position: sticky;
-    top: 80px;  /* Giảm xuống để phòng lề */
-    z-index: 90;
-    height: fit-content; 
-    max-height: calc(100vh - 120px);  /* Giới hạn chiều cao */
-    overflow-y: auto;  /* Cho phép cuộn nội dung bên trong nếu quá dài */
-}
-.col-lg-3 {
-    overflow: visible !important;
-}
+    /* --- CSS DESKTOP SIDEBAR --- */
+    .sidebar-sticky-wrapper {
+        position: -webkit-sticky; 
+        position: sticky;
+        top: 80px;
+        z-index: 90;
+        height: fit-content; 
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        transition: all 0.3s ease;
+    }
+
+    .col-lg-3 {
+        overflow: visible !important;
+    }
+
     .sidebar-sticky-wrapper::-webkit-scrollbar { width: 0px; background: transparent; }
 
-    .filter-label { font-weight: 700; font-size: 0.8rem; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+     .filter-label { 
+        font-weight: 700; 
+        font-size: 0.75rem;  /* Thu nhỏ từ 0.8rem */
+        color: #666; 
+        margin-bottom: 4px;  /* Thu nhỏ từ 6px */
+        text-transform: uppercase; 
+    }
     
     .custom-select {
-        border: 1px solid #f1c40f !important; background-color: #fff !important;
-        font-size: 0.9rem; color: #333; box-shadow: none !important; cursor: pointer;
+        border: 1px solid #f1c40f !important; 
+        background-color: #fff !important;
+        font-size: 0.85rem;  /* Thu nhỏ từ 0.9rem */
+        color: #333; 
+        box-shadow: none !important; 
+        cursor: pointer;
     }
-    .custom-select:focus { border-color: #d4ac0d !important; background-color: #fffcf5 !important; }
+    
+    .custom-select:focus { 
+        border-color: #d4ac0d !important; 
+        background-color: #fffcf5 !important; 
+    }
 
-    .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; color: #333; user-select: none; margin-bottom: 4px; }
+    .custom-check { 
+        display: flex; 
+        align-items: center; 
+        cursor: pointer; 
+        font-size: 0.85rem;  /* Thu nhỏ từ 0.9rem */
+        color: #333; 
+        user-select: none; 
+        margin-bottom: 3px;  /* Thu nhỏ từ 4px */
+    }
+    
     .custom-check input { display: none; }
     
     .checkmark {
-        height: 18px; width: 18px; border: 1px solid #f1c40f; background-color: white;
-        border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        height: 16px;  /* Thu nhỏ từ 18px */
+        width: 16px;   /* Thu nhỏ từ 18px */
+        border: 1px solid #f1c40f; 
+        background-color: white;
+        border-radius: 3px;  /* Thu nhỏ từ 4px */
+        margin-right: 6px;   /* Thu nhỏ từ 8px */
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        flex-shrink: 0;
     }
-    .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
-    .custom-check input:checked ~ .checkmark:after { content: '\2713'; color: #212529; font-size: 12px; font-weight: bold; }
+    
+    .custom-check input:checked ~ .checkmark { 
+        background-color: #f1c40f; 
+    }
+    
+    .custom-check input:checked ~ .checkmark:after { 
+        content: '\2713'; 
+        color: #212529; 
+        font-size: 11px;  /* Thu nhỏ từ 12px */
+        font-weight: bold; 
+    }
     
     .text-capitalize { text-transform: capitalize; }
+       /* Ẩn form body khi collapsed (MOBILE ONLY) - SMOOTH ANIMATION */
+    #filter-form-body {
+        opacity: 1;
+        max-height: 1000px;
+        overflow: hidden;
+        padding: 12px !important;  /* Thêm dòng này */
+    }
 
-    /* QUAN TRỌNG: Ẩn tuyệt đối thanh Mobile Filter trên Desktop */
+    #filter-form-body.collapsed {
+        opacity: 0;
+        max-height: 0;
+        padding: 0 !important;  /* Bỏ hết padding khi ẩn */
+        pointer-events: none;
+        transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;  /* Thêm padding vào transition */
+    }
+    #filter-form-body.transitioning {
+        transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;  /* Thêm padding vào transition */
+    }
+        /* Nút toggle filter nằm ngang (MOBILE ONLY) */
+    #toggle-filter-btn-container {
+        border-top: none;  /* Bỏ đường kẻ */
+        display: none !important;
+        transition: all 0.3s ease;
+        padding: 0 !important;  /* Bỏ padding */
+        overflow: hidden;
+        max-height: 0;
+    }
+
+    #toggle-filter-btn-container.visible {
+        display: block !important;
+        max-height: 100px;
+        padding: 8px 12px !important;  /* Chỉ padding nhỏ xung quanh nút */
+    }
+
+    #toggle-filter-btn-container button {
+        font-size: 0.85rem !important;
+        padding: 8px !important;  /* Giảm padding nút */
+        background-color: #f5f5f5 !important;
+        color: #333 !important;
+        border: 1px solid #ddd !important;
+    }
+
+    #toggle-filter-btn-container button:hover {
+        background-color: #efefef !important;
+    }
+
+
     @media (min-width: 992px) {
         .mobile-filter-bar { display: none !important; }
+        /* Trên desktop, luôn hiển thị form */
+        #filter-form-body { 
+            display: block !important;
+            opacity: 1 !important;
+            max-height: none !important;
+            pointer-events: auto !important;
+        }
+        #toggle-filter-btn-container { display: none !important; }
     }
 </style>
 
-<script>
-    // 1. Render Thanh Lọc Mobile (Tags dạng App)
+<script is:inline>
+    // 1. Render Tags Mobile
+        // 1. Render Tags Mobile - HIỂN THỊ NGAY KHI CÓ FILTER
     function renderMobileActiveTags() {
         const container = document.getElementById('filter-tags-container');
-        if (!container) return;
+        const bar = document.getElementById('mobile-filter-bar');
+        if (!container) return false;
 
         const params = new URLSearchParams(window.location.search);
         let tagsHtml = '';
         let hasFilter = false;
 
-        // District
-        const d = params.get('district');
-        if(d && d !== 'all') { 
-            tagsHtml += `<span class="filter-tag">Quận ${d}</span>`; hasFilter = true; 
+        let d = params.get('district');
+        if (!d) {
+            if (window.location.pathname.includes('tan-binh')) d = 'Tân Bình';
+            if (window.location.pathname.includes('phu-nhuan')) d = 'Phú Nhuận';
+        }
+        if (d && d !== 'all') {
+            tagsHtml += `<span class="filter-tag">Q. ${d}</span>`; // Viết tắt Q.
+            hasFilter = true;
         }
 
-        // Type
-        const t = params.get('type');
-        if(t && t !== 'all') { 
-            tagsHtml += `<span class="filter-tag">${t}</span>`; hasFilter = true; 
+        if(params.get('type') && params.get('type') !== 'all') { 
+            tagsHtml += `<span class="filter-tag">${params.get('type')}</span>`;
+            hasFilter = true; 
         }
-
-        // Price
+        
         const p = params.get('price');
-if(p && p !== 'all') { 
-    let label = p === 'under5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
-    // THÊM CLASS 'price-tag' VÀO ĐÂY
-    tagsHtml += `<span class="filter-tag price-tag">${label}</span>`; 
-    hasFilter = true; 
-}
+        if (p && p !== 'all') {
+            let label = p === 'duoi-5' ? '< 5tr' : (p === '5to8' ? '5-8tr' : '> 8tr'); // Viết tắt tr
+            tagsHtml += `<span class="filter-tag price-tag">${label}</span>`;
+            hasFilter = true;
+        }
 
-        // Amenities
         const ams = params.get('amenities');
         if(ams) {
             ams.split(',').forEach(a => {
-                tagsHtml += `<span class="filter-tag text-capitalize">${a}</span>`;
+                tagsHtml += `<span class="filter-tag">${a}</span>`;
             });
             hasFilter = true;
         }
 
         container.innerHTML = tagsHtml;
+        if (hasFilter && window.innerWidth < 992) bar.classList.add('is-visible');
         return hasFilter;
     }
 
-    // 2. Logic Scroll: Chỉ hiện thanh lọc khi cuộn qua Logo (Scroll > 80px)
+    // 2. Setup Scroll Logic + Click to open filter
     function setupMobileScrollLogic(hasFilter) {
         const bar = document.getElementById('mobile-filter-bar');
         if (!bar || !hasFilter) return;
 
-        window.addEventListener('scroll', () => {
-            // Ngưỡng 80px là khoảng chiều cao của Header Logo
+        const handleScroll = () => {
             if (window.scrollY > 80) {
                 bar.classList.add('is-visible');
             } else {
                 bar.classList.remove('is-visible');
             }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        handleScroll();
+
+        // THÊM: Click vào filter bar để scroll lên và mở sidebar
+        bar.addEventListener('click', (e) => {
+            // Nếu click vào nút xóa thì không scroll
+            if (e.target.closest('.btn-clear-filter')) return;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Mở sidebar filter sau khi scroll
+            setTimeout(() => {
+                const formBody = document.getElementById('filter-form-body');
+                const toggleBtn = document.getElementById('toggle-filter-btn-container');
+                
+                if (formBody && formBody.classList.contains('collapsed')) {
+                    formBody.classList.add('transitioning');
+                    formBody.classList.remove('collapsed');
+                    if (toggleBtn) toggleBtn.classList.remove('visible');
+                }
+            }, 600);
         });
     }
 
-    // 3. Hàm Xử lý Lọc & Chuyển Trang
+     // 3. Hàm Áp dụng lọc
     function handleApplyFilter() {
-        // @ts-ignore
         const district = document.getElementById('sb-district').value;
-        // @ts-ignore
         const type = document.getElementById('sb-type').value;
-        // @ts-ignore
         const price = document.getElementById('sb-price').value;
         
         const amenities = [];
         document.querySelectorAll('.sb-amenity:checked').forEach((cb) => {
-            // @ts-ignore
             amenities.push(cb.value);
         });
 
-        const params = new URLSearchParams();
-        if (type !== 'all') params.set('type', type);
-        if (price !== 'all') params.set('price', price);
-        if (amenities.length > 0) params.set('amenities', amenities.join(','));
+        const params = new URLSearchParams(window.location.search);
+        
+        if (type !== 'all') params.set('type', type); else params.delete('type');
+        if (price !== 'all') params.set('price', price); else params.delete('price');
+        if (amenities.length > 0) params.set('amenities', amenities.join(',')); else params.delete('amenities');
+        params.delete('district');
 
-        // Logic Chuyển Trang
-        let targetPath = window.location.pathname;
-
-        if (district === 'Tân Bình') {
-            targetPath = '/tan-binh';
-        } else if (district === 'Phú Nhuận') {
-            targetPath = '/phu-nhuan';
-        } else {
-            // Nếu chọn "Tất cả", giữ nguyên trang hiện tại
-            // Trừ khi đang ở trang chủ, giữ nguyên trang chủ
+        let targetPath = '/';
+        if (district !== 'all') {
+            const slug = district.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+            targetPath = `/${slug}`;
         }
 
-        const queryString = params.toString();
-        window.location.href = queryString ? `${targetPath}?${queryString}` : targetPath;
+        // Chỉ chuyển trang, không ẩn filter box tại đây
+        const finalUrl = params.toString() ? `${targetPath}?${params.toString()}` : targetPath;
+        window.location.href = finalUrl;
     }
 
-    // 4. Reset Filter
-    // @ts-ignore
-    window.handleResetFilter = function() {
-        window.location.href = window.location.pathname; 
-    }
-
-    // 5. Client-side Filtering Helper (Xử lý chữ hoa/thường)
-    function applyClientSideFiltering() {
-        const params = new URLSearchParams(window.location.search);
-        // Chuyển tất cả về chữ thường để so sánh
-        const reqType = (params.get('type') || 'all').toLowerCase();
-        const reqAms = params.get('amenities') ? params.get('amenities').toLowerCase().split(',') : [];
-
-        // Nếu không có lọc Type hay Amenities thì thôi (để Server lo các cái khác)
-        if (reqType === 'all' && reqAms.length === 0) return;
-
-        const cards = document.querySelectorAll('.card.h-100'); // Selector thẻ Card phòng
+    // 4. Đóng/Mở bộ lọc
+    window.toggleFilterVisibility = function() {
+        const formBody = document.getElementById('filter-form-body');
+        const toggleBtn = document.getElementById('toggle-filter-btn-container');
         
-        cards.forEach(card => {
-            if (!card.textContent) return;
-            const textContent = card.textContent.toLowerCase(); 
-            let isVisible = true;
-
-            // Lọc Loại phòng (Không phân biệt hoa thường)
-            if (reqType !== 'all') {
-                if (!textContent.includes(reqType)) isVisible = false;
+        if (formBody && toggleBtn) {
+            // Bật transition khi user click
+            formBody.classList.add('transitioning');
+            
+            const isCollapsed = formBody.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // Mở lại
+                formBody.classList.remove('collapsed');
+                toggleBtn.classList.remove('visible');
+            } else {
+                // Đóng lại
+                formBody.classList.add('collapsed');
+                toggleBtn.classList.add('visible');
             }
-
-            // Lọc Tiện ích
-            if (isVisible && reqAms.length > 0) {
-                const hasAllAms = reqAms.every(am => textContent.includes(am));
-                if (!hasAllAms) isVisible = false;
-            }
-
-            // Ẩn/Hiện thẻ cha (col-6...)
-            const colParent = card.closest('.col-6');
-            if (colParent) {
-                // @ts-ignore
-                colParent.style.display = isVisible ? '' : 'none';
-            }
-        });
+        }
     }
 
-    // Kích hoạt
+    // 5. Reset Filter
+    window.handleResetFilter = function() {
+        window.location.href = window.location.pathname;
+    }
+
+     // 6. Khởi tạo
     document.addEventListener('DOMContentLoaded', () => {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
-        if (btnApply) btnApply.addEventListener('click', handleApplyFilter);
-        if (btnReset) btnReset.addEventListener('click', window.handleResetFilter);
+        const btnToggle = document.getElementById('btn-toggle-filter');
+        
+        if (btnApply) btnApply.onclick = handleApplyFilter;
+        if (btnReset) btnReset.onclick = window.handleResetFilter;
+        if (btnToggle) btnToggle.onclick = window.toggleFilterVisibility;
 
-        // Khôi phục form
         const params = new URLSearchParams(window.location.search);
-        const setEl = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
         
-        // Logic chọn quận mặc định thông minh
-        let defaultDist = 'all';
-        if (window.location.pathname.includes('tan-binh')) defaultDist = 'Tân Bình';
-        if (window.location.pathname.includes('phu-nhuan')) defaultDist = 'Phú Nhuận';
+        // Logic xác định quận hiện tại từ URL
+        let currentPathDist = 'all';
+        if (window.location.pathname.includes('tan-binh')) currentPathDist = 'Tân Bình';
+        if (window.location.pathname.includes('phu-nhuan')) currentPathDist = 'Phú Nhuận';
         
-        setEl('sb-district', params.get('district') || defaultDist);
-        setEl('sb-type', params.get('type'));
-        setEl('sb-price', params.get('price'));
+        // Điền dữ liệu vào Form
+        const distEl = document.getElementById('sb-district');
+        if (distEl) distEl.value = params.get('district') || currentPathDist;
+        
+        const typeEl = document.getElementById('sb-type');
+        if (typeEl) typeEl.value = params.get('type') || 'all';
+
+        const priceEl = document.getElementById('sb-price');
+        if (priceEl) priceEl.value = params.get('price') || 'all';
 
         const ams = params.get('amenities');
         if (ams) {
             const list = ams.split(',');
             document.querySelectorAll('.sb-amenity').forEach(cb => {
-                // @ts-ignore
                 if (list.includes(cb.value)) cb.checked = true;
             });
         }
 
-        // Render & Setup Scroll Logic cho Mobile
+        // TỰ ĐỘNG THU GỌN NẾU CÓ FILTER (MOBILE ONLY)
+        // Chạy ngay khi DOMContentLoaded - trang đã load xong
+        const hasAnyFilter = (params.get('type') && params.get('type') !== 'all') || 
+                             (params.get('price') && params.get('price') !== 'all') || 
+                             (ams) || 
+                             (currentPathDist !== 'all');
+        
+        if (window.innerWidth < 992 && hasAnyFilter) {
+            const formBody = document.getElementById('filter-form-body');
+            const toggleBtn = document.getElementById('toggle-filter-btn-container');
+            
+            if (formBody) {
+                // Bật transition khi ẩn
+                formBody.classList.add('transitioning');
+                // Thêm delay nhỏ để animation chạy sau khi element render
+                setTimeout(() => {
+                    formBody.classList.add('collapsed');
+                }, 50);
+            }
+            if (toggleBtn) toggleBtn.classList.add('visible');
+        }
+
+        // Xóa sessionStorage vì không cần dùng nữa
+        sessionStorage.removeItem('filterCollapsed');
+
+        // Render tags & setup scroll logic
         const hasFilter = renderMobileActiveTags();
         setupMobileScrollLogic(hasFilter);
-        
-        // Chạy filter client-side ngay lập tức để fix vụ chữ hoa/thường
-        applyClientSideFiltering();
     });
 </script>

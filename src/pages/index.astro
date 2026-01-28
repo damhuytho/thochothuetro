@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import SidebarFilter from '../components/SidebarFilter.astro';
 import CardRoom from '../components/CardRoom.astro';
-import CommitmentFooter from '../components/CommitmentFooter.astro'; // Import Footer cam kết
+import CommitmentFooter from '../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -24,7 +24,6 @@ let districtsData = districtNames.map(name => {
 });
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
 
-// Hàm tạo slug cho link Xem thêm
 function createSlug(text) {
     if (text === 'Tân Bình') return 'tan-binh';
     if (text === 'Phú Nhuận') return 'phu-nhuan';
@@ -33,22 +32,62 @@ function createSlug(text) {
 ---
 
 <Layout title="Thọ Cho Thuê Trọ - Trang Chủ">
-    
+        <!-- BANNER HERO FULL WIDTH (NGOÀI CONTAINER) -->
+    <div class="banner-hero-full mb-4 rounded-0 overflow-hidden shadow-lg" style="position: relative; height: 380px; background-image: url('https://img.thochothuetro.com/banner.webp'); background-size: cover; background-position: center; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+        
+        <!-- OVERLAY TỐI -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.45); z-index: 1;"></div>
+        
+        <!-- CONTENT TEXT -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: center;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold text-white mb-3 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out;">
+                            Tìm Phòng Trọ Tiện Nghi & Giá Rẻ Tại TP.HCM
+                        </h1>
+                        <p class="lead text-white mb-4 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out 0.2s backwards;">
+                            Thọ Cho Thuê Trọ - Nền tảng hàng đầu với 100+ phòng trọ chất lượng, an toàn, giá cạnh tranh từ 3-15 triệu/tháng. Không chung chủ, giờ giấc tự do, đầy đủ tiện ích.
+                        </p>
+                        <div class="d-flex flex-wrap gap-3 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out 0.4s backwards;">
+                            <span class="badge bg-success px-3 py-2 fs-6">
+                                <i class="fas fa-check-circle me-2"></i>Tiện nghi
+                            </span>
+                            <span class="badge bg-success px-3 py-2 fs-6">
+                                <i class="fas fa-check-circle me-2"></i>Giá cạnh tranh
+                            </span>
+                            <span class="badge bg-success px-3 py-2 fs-6">
+                                <i class="fas fa-check-circle me-2"></i>Giờ giấc tự do
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
     <div class="container my-4">
         <div class="row">
+            <!-- SIDEBAR FILTER BÊN TRÁI -->
             <div class="col-lg-3">
                <SidebarFilter />
             </div>
 
+            <!-- CARDS CĂNG HỘ BÊN PHẢI -->
             <div class="col-lg-9">
-                <div id="intro-banner" class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
-                    <i class="fas fa-info-circle fs-3 me-3 text-dark"></i>
-                    <div>
-                        <strong>Chào mừng bạn đến với Thọ Cho Thuê Trọ!</strong>
-                        <div class="small">Hệ thống phòng trọ tiện nghi, giờ giấc tự do, không chung chủ.</div>
-                    </div>
-                </div>
-
                 {districtsData.map((dData) => (
                     <div class="district-section mb-5" data-district={dData.name}>
                         
@@ -57,25 +96,29 @@ function createSlug(text) {
                                 <span class="text-warning me-2"><i class="fas fa-building"></i></span> 
                                 KHU VỰC {dData.name} <span class="text-muted small fw-normal">({dData.rooms.length})</span>
                             </h2>
-                            
-                            <a href={`/${createSlug(dData.name)}`} class="text-decoration-none text-dark fw-bold small hover-link">
-                                Xem tất cả <i class="fas fa-chevron-right ms-1 text-warning"></i>
-                            </a>
                         </div>
                         
-                        <div class="row g-2 g-md-3 room-list-container">
-                            {dData.rooms.slice(0, 6).map((room) => (
+                        <div class="row g-2 g-md-3 room-list-container" data-district-slug={createSlug(dData.name)}>
+                            {dData.rooms.map((room, idx) => (
                                 <div class="col-6 col-md-4 room-item"
                                      data-district={room.district}
                                      data-price={room.price}
                                      data-type={room.type}
                                      data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
-                                     data-pet={room.pet ? "yes" : "no"}>
+                                     data-pet={room.pet ? "yes" : "no"}
+                                     data-district-index={idx}>
                                     
                                     <CardRoom room={room} />
                                 
                                 </div>
                             ))}
+                        </div>
+
+                        <div class="text-center mt-3 view-more-wrapper" data-district={dData.name} data-total-rooms={dData.rooms.length}>
+                            <a class="btn btn-outline-warning text-dark fw-bold btn-sm view-more-link" href="#">
+                                Xem thêm <span class="remaining-count">{dData.rooms.length - 6}</span> căn khác
+                                <i class="fas fa-chevron-right ms-2"></i>
+                            </a>
                         </div>
                     </div>
                 ))}
@@ -94,73 +137,177 @@ function createSlug(text) {
 </Layout>
 
 <script is:inline>
-    // LOGIC LỌC (GIỮ NGUYÊN)
-    document.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        if (!params.toString()) return;
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const queryString = params.toString();
+    const viewMoreWrappers = Array.from(document.querySelectorAll('.view-more-wrapper'));
+    const introBanner = document.getElementById('intro-banner');
+    const noResult = document.getElementById('no-result');
 
-        document.getElementById('filter-status').classList.remove('d-none');
-        document.getElementById('intro-banner').classList.add('d-none');
+    const toSlug = (district) => district === 'Tân Bình' ? 'tan-binh' : (district === 'Phú Nhuận' ? 'phu-nhuan' : district.toLowerCase().replace(/ /g, '-'));
 
-        const fDistrict = params.get('district');
-        const fType = params.get('type');
-        const fPrice = params.get('price');
-        const fAmenities = params.get('amenities') ? params.get('amenities').split(',') : [];
-        const specialGroup = ['Ban công', 'Cửa sổ'];
-        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+    function hasImage(el) {
+        const img = el.querySelector('img');
+        if (!img) return false;
+        const src = (img.getAttribute('src') || '').trim();
+        if (!src) return false;
+        if (src.endsWith('/logo.png') || src.includes('logo')) return false;
+        return true;
+    }
 
-        const roomItems = document.querySelectorAll('.room-item');
-        let visibleCount = 0;
+    function sortAndCap(items) {
+        const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
+        const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
+        const byImage = (a, b) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
+        active.sort(byImage);
+        rented.sort(byImage);
+        const rentedCapped = rented.slice(0, 10);
+        return [...active, ...rentedCapped];
+    }
 
-        roomItems.forEach(item => {
-            let show = true;
-            if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) show = false;
-            if (show && fType && fType !== 'all' && item.getAttribute('data-type') !== fType) show = false;
-            if (show && fPrice && fPrice !== 'all') {
-                const price = parseInt(item.getAttribute('data-price')) / 1000000;
-                if (fPrice === 'duoi-5' && price >= 5) show = false;
-                if (fPrice === '5-7' && (price < 5 || price >= 7)) show = false;
-                if (fPrice === 'tren-9' && price < 9) show = false;
-            }
-            if (show) {
-                const keypoints = item.getAttribute('data-keypoint');
-                const petAllowed = item.getAttribute('data-pet') === 'yes';
-                // Logic AND
-                for (let ami of selectedNormal) {
-                    if (ami === 'Nuôi Pet') {
-                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { show = false; break; }
-                    } else {
-                        if (!keypoints.includes(ami.toLowerCase())) { show = false; break; }
-                    }
-                }
-                // Logic OR
-                if (show && selectedSpecial.length > 0) {
-                    let hasAtLeastOne = false;
-                    if (selectedSpecial.includes('Ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                    if (selectedSpecial.includes('Cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                    if (!hasAtLeastOne) show = false;
-                }
-            }
-
-            if (show) {
-                item.style.display = 'block';
-                visibleCount++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-
-        document.querySelectorAll('.district-section').forEach(section => {
-            const visibleInSec = section.querySelectorAll('.room-item[style="display: block;"]').length;
-            section.style.display = visibleInSec === 0 ? 'none' : 'block';
-        });
-
-        if (visibleCount === 0) document.getElementById('no-result').classList.remove('d-none');
-        else document.getElementById('no-result').classList.add('d-none');
+    const allItems = Array.from(document.querySelectorAll('.room-item'));
+    const itemsByDistrict = {};
+    allItems.forEach(item => {
+        const district = item.getAttribute('data-district') || 'unknown';
+        if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
+        itemsByDistrict[district].push(item);
     });
+
+    function hideAllInContainer(container) {
+        if (!container) return;
+        Array.from(container.querySelectorAll('.room-item')).forEach(el => el.style.display = 'none');
+    }
+
+    if (!queryString) {
+        if (introBanner) introBanner.classList.remove('d-none');
+        let anyVisible = false;
+
+        viewMoreWrappers.forEach(wrapper => {
+            const district = wrapper.getAttribute('data-district');
+            const list = itemsByDistrict[district] || [];
+            const sorted = sortAndCap(list);
+            const matchedCount = sorted.length;
+            const remaining = Math.max(0, matchedCount - 6);
+
+            const container = wrapper.parentElement.querySelector('.room-list-container');
+            hideAllInContainer(container);
+            sorted.slice(0, 6).forEach(el => { el.style.display = 'block'; anyVisible = true; });
+
+            if (remaining > 0) {
+                const link = wrapper.querySelector('.view-more-link');
+                const countSpan = wrapper.querySelector('.remaining-count');
+                countSpan.textContent = remaining;
+                link.href = `/${toSlug(district)}`;
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+
+            const section = wrapper.parentElement;
+            if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
+        });
+
+        if (noResult) {
+            if (!anyVisible) noResult.classList.remove('d-none');
+            else noResult.classList.add('d-none');
+        }
+        return;
+    }
+
+    if (introBanner) introBanner.classList.add('d-none');
+
+    const fDistrict = params.get('district');
+    const fType = (params.get('type') || 'all').toLowerCase();
+    const fPrice = params.get('price');
+    const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
+    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
+    const specialGroup = ['ban công', 'cửa sổ'];
+    const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+    const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+
+    const matchedMap = {};
+    let totalMatched = 0;
+
+    allItems.forEach(item => {
+        let matches = true;
+
+        if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) matches = false;
+
+        const itemType = (item.getAttribute('data-type') || '').toLowerCase();
+        if (matches && fType !== 'all' && itemType !== fType) matches = false;
+
+        if (matches && fPrice && fPrice !== 'all') {
+            const price = parseInt(item.getAttribute('data-price')) / 1000000;
+            if (fPrice === 'duoi-5' && price >= 5) matches = false;
+            if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
+            if (fPrice === 'over8' && price < 8) matches = false;
+        }
+
+        if (matches && fAmenities.length > 0) {
+            const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
+            const petAllowed = item.getAttribute('data-pet') === 'yes';
+
+            for (let ami of selectedNormal) {
+                if (!ami) continue;
+                if (ami === 'nuôi pet' || ami === 'nuoi pet') {
+                    if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
+                } else {
+                    if (!keypoints.includes(ami)) { matches = false; break; }
+                }
+            }
+
+            if (matches && selectedSpecial.length > 0) {
+                let hasAtLeastOne = false;
+                if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                if (!hasAtLeastOne) matches = false;
+            }
+        }
+
+        const district = item.getAttribute('data-district') || 'unknown';
+        if (!matchedMap[district]) matchedMap[district] = [];
+        if (matches) {
+            matchedMap[district].push(item);
+            totalMatched++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    viewMoreWrappers.forEach(wrapper => {
+        const district = wrapper.getAttribute('data-district');
+        const matchedList = matchedMap[district] || [];
+        const sorted = sortAndCap(matchedList);
+        const matchedCount = sorted.length;
+        const remaining = Math.max(0, matchedCount - 6);
+
+        const container = wrapper.parentElement.querySelector('.room-list-container');
+        hideAllInContainer(container);
+        sorted.slice(0, 6).forEach(el => el.style.display = 'block');
+
+        if (remaining > 0) {
+            const link = wrapper.querySelector('.view-more-link');
+            const countSpan = wrapper.querySelector('.remaining-count');
+            countSpan.textContent = remaining;
+            link.href = `/${toSlug(district)}?${queryString}`;
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+        }
+
+        const section = wrapper.parentElement;
+        if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
+    });
+
+    if (totalMatched === 0) {
+        if (noResult) noResult.classList.remove('d-none');
+    } else {
+        if (noResult) noResult.classList.add('d-none');
+    }
+});
 </script>
 
 <style>
     .hover-link:hover { color: #f39c12 !important; text-decoration: underline !important; }
+    .view-more-wrapper { margin-top: 15px; }
 </style>
