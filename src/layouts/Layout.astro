@@ -45,10 +45,10 @@ const currentPath = Astro.url.pathname;
 }
 
 /* 1. Thiết lập HTML/Body chuẩn để Sticky hoạt động */
+/* Tìm và đảm bảo html và body có thuộc tính này */
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+
+    height: auto !important;        /* Không được để 100% hay 100vh */
 }
 
 body { 

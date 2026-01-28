@@ -188,12 +188,18 @@ const hasActiveFilter = (currentDist !== 'all' || currentType !== 'all' || curre
     }
 
     /* --- CSS DESKTOP SIDEBAR (CŨ) --- */
-    .sidebar-sticky-wrapper {
-        position: -webkit-sticky; position: sticky;
-        top: 90px; z-index: 90;
-        height: fit-content; max-height: calc(100vh - 100px);
-        overflow-y: auto;
-    }
+.sidebar-sticky-wrapper {
+    position: -webkit-sticky; 
+    position: sticky;
+    top: 80px;  /* Giảm xuống để phòng lề */
+    z-index: 90;
+    height: fit-content; 
+    max-height: calc(100vh - 120px);  /* Giới hạn chiều cao */
+    overflow-y: auto;  /* Cho phép cuộn nội dung bên trong nếu quá dài */
+}
+.col-lg-3 {
+    overflow: visible !important;
+}
     .sidebar-sticky-wrapper::-webkit-scrollbar { width: 0px; background: transparent; }
 
     .filter-label { font-weight: 700; font-size: 0.8rem; color: #666; margin-bottom: 6px; text-transform: uppercase; }

@@ -477,36 +477,38 @@ ul { padding-left: 0; list-style: none; }
     body { padding-bottom: 70px !important; }
 }
 /* =========================================================
-   13. FIX LAYOUT STICKY
+   FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN
    ========================================================= */
 
-/* Class này trong detail.html: <div class="row g-4 row-sticky-parent"> */
-.row-sticky-parent {
-    display: flex !important;
-    align-items: stretch !important; /* Ép Sidebar cao bằng cột Nội dung */
-    flex-wrap: wrap;
+/* 1. Đảm bảo hàng (row) cho phép các cột có chiều cao thực tế theo nội dung */
+.container .row {
+    align-items: flex-start !important; /* Quan trọng: Cho phép các cột có chiều cao khác nhau */
 }
 
-/* Sidebar nhận chiều cao 100% */
-.sidebar-wrapper {
-    height: 100% !important;
+/* 2. Cấu trúc bao ngoài Sidebar (trong file .astro) */
+.col-lg-3 {
+    height: 100%; /* Đảm bảo cột cha có chiều cao để trượt */
     position: relative;
-    min-height: 1px;
 }
 
-/* Sticky Inner: Dính chặt */
+/* 3. Lớp dính thực tế - Áp dụng trực tiếp vào wrapper của SidebarFilter */
+.sidebar-sticky-wrapper, 
 .sidebar-sticky-inner {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 100px !important;
-    z-index: 1020;
-    width: 100%;
+    top: 20px !important; /* Khoảng cách từ mép trên trình duyệt khi dính */
+    z-index: 100;
+    
+    /* KHÔNG được có overflow ở đây nếu muốn dính theo trang web */
+    overflow: visible !important; 
 }
 
-/* Mobile: Tắt sticky */
+/* 4. Tắt dính trên điện thoại để tránh lỗi hiển thị */
 @media (max-width: 991px) {
-    .sidebar-wrapper { height: auto !important; }
-    .sidebar-sticky-inner { position: static !important; }
+    .sidebar-sticky-wrapper,
+    .sidebar-sticky-inner {
+        position: static !important;
+    }
 }
 
 /* =========================================
