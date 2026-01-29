@@ -369,9 +369,17 @@ const schemaBreadcrumb = {
 <script is:inline>
     // 1. Chuyển ảnh Gallery
     function changeImage(src, thumb) {
-        document.getElementById('main-image').src = src;
-        document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
+        const mainImg = document.getElementById('main-image');
+        if (mainImg.src === src) return;
+
+        // Cập nhật ảnh chính trước
+        mainImg.src = src;
+        
+        // Sử dụng requestAnimationFrame để thay đổi class CSS ở khung hình kế tiếp
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+        });
     }
 
     // 2. Load Video
@@ -380,38 +388,43 @@ const schemaBreadcrumb = {
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
     }
 
-    // 3. LOAD MAP THÔNG MINH (Chỉ tải thư viện khi click)
+    // 3. LOAD MAP THÔNG MINH (Tối ưu hiệu suất render)
     function loadMap(lat, lng, popupText) {
         const placeholder = document.getElementById('map-placeholder');
         const realMap = document.getElementById('real-map');
         
-        // 1. Hiệu ứng loading
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"></div></div>';
         
-        // 2. Hàm khởi tạo Map
         const initLeafletMap = () => {
-            placeholder.style.setProperty('display', 'none', 'important');
-            realMap.classList.remove('d-none');
-            realMap.style.display = 'block';
+            // Đọc trạng thái hiển thị trước khi thay đổi DOM
+            requestAnimationFrame(() => {
+                placeholder.style.setProperty('display', 'none', 'important');
+                realMap.classList.remove('d-none');
+                realMap.style.display = 'block';
 
-            if (realMap._leaflet_id) return;
+                if (realMap._leaflet_id) return;
 
-            const map = L.map('real-map').setView([lat, lng], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-            
-            setTimeout(() => { map.invalidateSize(); }, 200);
+                const map = L.map('real-map').setView([lat, lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    attribution: '&copy; OpenStreetMap' 
+                }).addTo(map);
 
-            const brandIcon = L.divIcon({ 
-                className: 'custom-map-marker-yellow', 
-                html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
-                iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -40]
+                // Quan trọng: Dùng requestAnimationFrame thay cho setTimeout 200ms để tránh Forced Reflow
+                requestAnimationFrame(() => {
+                    map.invalidateSize();
+                });
+
+                const brandIcon = L.divIcon({ 
+                    className: 'custom-map-marker-yellow', 
+                    html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
+                    iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -40]
+                });
+
+                L.marker([lat, lng], {icon: brandIcon}).addTo(map)
+                 .bindPopup(`<div class="text-center p-1 fw-bold text-dark small">${popupText}</div>`).openPopup();
             });
-
-            L.marker([lat, lng], {icon: brandIcon}).addTo(map)
-             .bindPopup(`<div class="text-center p-1 fw-bold text-dark small">${popupText}</div>`).openPopup();
         };
 
-        // 3. Kiểm tra xem đã có Leaflet chưa, nếu chưa thì tải động
         if (typeof L === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
