@@ -151,8 +151,9 @@ const schemaBreadcrumb = {
                     {images.length > 0 ? (
                         <div id="gallery-container">
                             <img src={images[0]} id="main-image" class="w-100 d-block" 
-                                 style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
-                                 alt={`Hình ảnh ${pageTitle}`} title={`Hình ảnh ${pageTitle}`}>
+     style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
+     alt={`Hình ảnh ${pageTitle}`} title={`Hình ảnh ${pageTitle}`}
+     fetchpriority="high" loading="eager" decoding="async">
                             
                             <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar">
                                 {images.map((img, index) => (
