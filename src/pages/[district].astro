@@ -8,10 +8,7 @@ import path from 'node:path';
 
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
-  // Lấy TOÀN BỘ phòng (cả active và rented)
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-  
-  // Lọc lấy phòng Active HOẶC Rented để hiển thị
   const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
   return [
@@ -22,44 +19,65 @@ export async function getStaticPaths() {
 
 const { districtName, allRooms } = Astro.props;
 
-// --- LOGIC SẮP XẾP SERVER-SIDE (MẶC ĐỊNH) ---
-// 1. Tách Active và Rented
+// LOGIC SẮP XẾP SERVER-SIDE
 const activeRooms = allRooms.filter(r => r.status === 'active');
 const rentedRooms = allRooms.filter(r => r.status === 'rented');
 
-// 2. Sắp xếp Active: Ưu tiên có Promotion
-activeRooms.sort((a, b) => {
-    if (a.promotion && !b.promotion) return -1;
-    if (!a.promotion && b.promotion) return 1;
-    return 0;
-});
+// Sắp xếp Active: Ưu tiên có Promotion
+activeRooms.sort((a, b) => (b.promotion ? 1 : 0) - (a.promotion ? 1 : 0));
 
-// 3. Giới hạn Rented: Chỉ lấy 9 căn mới nhất (giả sử danh sách gốc đã theo thứ tự mới nhất, nếu ko thì sort theo ID)
-const limitedRentedRooms = rentedRooms.slice(0, 9);
-
-// 4. Gộp lại: Active trước, Rented sau
+// Rented: Lấy 12 căn mới nhất
+const limitedRentedRooms = rentedRooms.slice(0, 12);
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
+
+// Metadata
+const pageTitle = `Cho thuê phòng trọ Quận ${districtName} - Thọ Cho Thuê Trọ`;
+const pageDesc = `Danh sách phòng trọ Quận ${districtName} giá tốt, tiện nghi, giờ giấc tự do. Cập nhật mới nhất.`;
+
+// Schema ItemList
+const schemaItemList = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": initialDisplayRooms.map((room, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "url": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}/${room.id}`,
+    "name": `Cho thuê ${room.type} mã ${room.room_code}`
+  }))
+};
 ---
 
-<Layout title={`Cho thuê phòng trọ ${districtName} - Thọ Cho Thuê Trọ`}>
+<Layout title={pageTitle} description={pageDesc} image="/logo.png">
     
-    <div class="container py-4">
+    <script type="application/ld+json" set:html={JSON.stringify(schemaItemList)} />
+
+    <div class="bg-light border-bottom py-3 mb-4">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Quận {districtName}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold text-uppercase mb-0 text-dark">
+                Phòng trọ Quận <span class="text-warning">{districtName}</span>
+            </h1>
+        </div>
+    </div>
+
+    <div class="container pb-5">
         <div class="row">
-            <div class="col-lg-3">
-    <SidebarFilter />
-</div>
+            <div class="col-lg-3 mb-4 mb-lg-0">
+                <SidebarFilter />
+            </div>
 
             <div class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-end mb-4 border-bottom border-warning pb-2">
-                    <div>
-                        <h1 class="h5 fw-bold text-dark m-0 text-uppercase">
-                            <span class="text-warning me-2"><i class="fas fa-map-marker-alt"></i></span>
-                            KHU VỰC {districtName}
-                        </h1>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-none d-md-block text-muted small fst-italic">
+                        * Hiển thị {initialDisplayRooms.length} kết quả
                     </div>
-
-                    <div class="d-flex align-items-center">
-                        <label for="sort-select" class="small fw-bold me-2 text-muted d-none d-md-block">Sắp xếp:</label>
+                    <div class="d-flex align-items-center ms-auto">
+                        <label for="sort-select" class="small fw-bold me-2 text-muted">Sắp xếp:</label>
                         <select id="sort-select" class="form-select form-select-sm border-warning shadow-sm" style="width: auto; font-weight: 500;">
                             <option value="default">Mặc định</option>
                             <option value="price-asc">Giá thấp đến cao</option>
@@ -71,31 +89,33 @@ const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
                 <div class="row g-2 g-md-3" id="district-room-container">
                     {initialDisplayRooms.map((room, idx) => (
                         <div class="col-6 col-md-4 room-item"
-     data-district={room.district}
-     data-price={room.price}
-     data-type={room.type}
-     data-status={room.status}
-     data-promotion={room.promotion ? "yes" : "no"}
-     data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
-     data-pet={room.pet ? "yes" : "no"}
-     data-has-image={(room.image_detail && room.image_detail.length > 0) ? "yes" : "no"}
-     data-district-index={idx}>
-                            
-                            <CardRoom room={room} />
+                             data-district={room.district}
+                             data-price={room.price}
+                             data-type={room.type}
+                             data-status={room.status}
+                             data-promotion={room.promotion ? "yes" : "no"}
+                             data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
+                             data-pet={room.pet ? "yes" : "no"}
+                             data-has-image={(room.image_detail && room.image_detail.length > 0) ? "yes" : "no"}
+                             data-district-index={idx}>
+                             
+                             <CardRoom room={room} priority={idx < 6} />
                         
                         </div>
                     ))}
                 </div>
                 
                 <div id="no-result" class="text-center py-5 d-none">
-                    <img src="/logo.png" width="80" class="mb-3 opacity-50" style="filter: grayscale(1);">
-                    <p class="text-muted">Không tìm thấy phòng phù hợp.</p>
-                    <button class="btn btn-outline-warning text-dark fw-bold btn-sm" onclick="window.location.href=window.location.pathname">Xóa bộ lọc</button>
+                    <div class="mb-3"><i class="fas fa-search fa-3x text-muted opacity-25"></i></div>
+                    <p class="text-muted small mb-3">Không tìm thấy phòng phù hợp.</p>
+                    <button class="btn btn-warning text-dark fw-bold shadow-sm" onclick="window.location.href=window.location.pathname">
+                        Xóa bộ lọc
+                    </button>
                 </div>
 
                 <div class="text-center mt-5 mb-4" id="load-more-wrapper">
-                    <button id="btn-load-more" class="btn btn-outline-warning text-dark fw-bold px-5 rounded-pill shadow-sm">
-                        Xem thêm 6 căn nữa <i class="fas fa-chevron-down ms-2"></i>
+                    <button id="btn-load-more" class="btn btn-outline-warning text-dark fw-bold px-5 rounded-pill shadow-sm py-2">
+                        Xem thêm phòng <i class="fas fa-chevron-down ms-2"></i>
                     </button>
                 </div>
             </div>
@@ -107,172 +127,163 @@ const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
 </Layout>
 
 <script is:inline>
-let itemsToShow = 6;
-const ITEMS_PER_LOAD = 6;
-let lastFilterParams = '';
+    // Định nghĩa biến toàn cục cho script inline
+    let itemsToShow = 12; // Mặc định hiển thị 12
+    if (window.innerWidth < 768) itemsToShow = 8; // Mobile hiện 8
+    
+    const ITEMS_PER_LOAD = 6;
+    let lastFilterParams = '';
 
-function hasImageEl(el) {
-    return el && el.getAttribute && el.getAttribute('data-has-image') === 'yes';
-}
-
-function handleLoadMore() {
-    itemsToShow += ITEMS_PER_LOAD;
-    renderRooms();
-}
-
-function renderRooms() {
-    const params = new URLSearchParams(window.location.search);
-    const currentFilterParams = params.toString();
-
-    // Reset itemsToShow nếu filter thay đổi
-    if (lastFilterParams !== currentFilterParams) {
-        itemsToShow = 6;
-        lastFilterParams = currentFilterParams;
+    function handleLoadMore() {
+        itemsToShow += ITEMS_PER_LOAD;
+        renderRooms();
     }
 
-    const fType = (params.get('type') || 'all').toLowerCase();
-    const fPrice = params.get('price');
-    const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
-    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
-    const specialGroup = ['ban công', 'cửa sổ'];
-    const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-    const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-
-    const sortMode = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'default';
-
-    const allDomItems = Array.from(document.querySelectorAll('.room-item'));
-
-    // FILTER
-    const filteredItems = allDomItems.filter(item => {
-        let matches = true;
-
-        const itemDistrict = item.getAttribute('data-district');
-        if (params.get('district') && params.get('district') !== 'all' && itemDistrict !== params.get('district')) matches = false;
-
-        const itemType = (item.getAttribute('data-type') || '').toLowerCase();
-        if (matches && fType !== 'all' && itemType !== fType) matches = false;
-
-        if (matches && fPrice && fPrice !== 'all') {
-            const price = parseInt(item.getAttribute('data-price')) / 1000000;
-            if (fPrice === 'duoi-5' && price >= 5) matches = false;
-            if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
-            if (fPrice === 'over8' && price < 8) matches = false;
+    function renderRooms() {
+        const params = new URLSearchParams(window.location.search);
+        const currentFilterParams = params.toString();
+        
+        // Reset phân trang nếu bộ lọc thay đổi
+        if (lastFilterParams !== currentFilterParams) {
+            itemsToShow = (window.innerWidth < 768) ? 8 : 12;
+            lastFilterParams = currentFilterParams;
         }
 
-        if (matches && fAmenities.length > 0) {
-            const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
-            const petAllowed = item.getAttribute('data-pet') === 'yes';
+        const fType = (params.get('type') || 'all').toLowerCase();
+        const fPrice = params.get('price');
+        const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
+        const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
+        
+        const specialGroup = ['ban công', 'cửa sổ'];
+        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+        
+        const sortEl = document.getElementById('sort-select');
+        const sortMode = sortEl ? sortEl.value : 'default';
 
-            for (let ami of selectedNormal) {
-                if (!ami) continue;
-                if (ami === 'nuôi pet' || ami === 'nuoi pet') {
-                    if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
-                } else {
-                    if (!keypoints.includes(ami)) { matches = false; break; }
+        const allDomItems = Array.from(document.querySelectorAll('.room-item'));
+        
+        // 1. LỌC
+        const filteredItems = allDomItems.filter(item => {
+            let matches = true;
+
+            const itemDistrict = item.getAttribute('data-district');
+            if (params.get('district') && params.get('district') !== 'all' && itemDistrict !== params.get('district')) matches = false;
+
+            const itemType = (item.getAttribute('data-type') || '').toLowerCase();
+            if (matches && fType !== 'all' && itemType !== fType) matches = false;
+
+            if (matches && fPrice && fPrice !== 'all') {
+                const priceAttr = item.getAttribute('data-price');
+                const price = priceAttr ? parseInt(priceAttr) / 1000000 : 0;
+                
+                if (fPrice === 'duoi-5' && price >= 5) matches = false;
+                if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
+                if (fPrice === 'over8' && price < 8) matches = false;
+            }
+
+            if (matches && fAmenities.length > 0) {
+                const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
+                const petAllowed = item.getAttribute('data-pet') === 'yes';
+                
+                for (let ami of selectedNormal) {
+                    if (!ami) continue;
+                    if (ami === 'nuôi pet' || ami === 'nuoi pet') {
+                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
+                    } else {
+                        if (!keypoints.includes(ami)) { matches = false; break; }
+                    }
+                }
+
+                if (matches && selectedSpecial.length > 0) {
+                    let hasAtLeastOne = false;
+                    if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                    if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                    if (!hasAtLeastOne) matches = false;
                 }
             }
 
-            if (matches && selectedSpecial.length > 0) {
-                let hasAtLeastOne = false;
-                if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                if (!hasAtLeastOne) matches = false;
+            return matches;
+        });
+
+        // 2. SẮP XẾP
+        const getPrice = (el) => parseInt(el.getAttribute('data-price') || '0');
+        const hasImg = (el) => el.getAttribute('data-has-image') === 'yes';
+        const isPromo = (el) => el.getAttribute('data-promotion') === 'yes';
+
+        // Tách Active/Rented
+        let activeItems = filteredItems.filter(i => i.getAttribute('data-status') === 'active');
+        let rentedItems = filteredItems.filter(i => i.getAttribute('data-status') === 'rented');
+
+        const sortFn = (list) => {
+            if (sortMode === 'price-asc') {
+                list.sort((a, b) => getPrice(a) - getPrice(b));
+            } else if (sortMode === 'price-desc') {
+                list.sort((a, b) => getPrice(b) - getPrice(a));
+            } else {
+                // Mặc định: Promotion lên đầu
+                list.sort((a, b) => (isPromo(b) ? 1 : 0) - (isPromo(a) ? 1 : 0));
+            }
+            // Luôn ưu tiên có ảnh
+            list.sort((a, b) => (hasImg(b) ? 1 : 0) - (hasImg(a) ? 1 : 0));
+        };
+
+        sortFn(activeItems);
+        sortFn(rentedItems);
+
+        // Giới hạn Rented hiển thị
+        if (rentedItems.length > 12) rentedItems = rentedItems.slice(0, 12);
+
+        const finalSortedList = [...activeItems, ...rentedItems];
+
+        // 3. RENDER LẠI DOM
+        const container = document.getElementById('district-room-container');
+        if (container) {
+            // Ẩn hết trước
+            allDomItems.forEach(el => el.style.display = 'none');
+            
+            // Append lại theo thứ tự đã sort
+            finalSortedList.forEach(el => container.appendChild(el));
+
+            // Hiển thị theo Items To Show
+            finalSortedList.forEach((el, index) => {
+                if (index < itemsToShow) {
+                    el.style.display = 'block';
+                    if (!el.classList.contains('animate__fadeIn')) {
+                        el.classList.add('animate__animated', 'animate__fadeIn');
+                    }
+                }
+            });
+        }
+
+        // 4. XỬ LÝ UI PHỤ (Nút Load More, No Result)
+        const btnWrapper = document.getElementById('load-more-wrapper');
+        const btn = document.getElementById('btn-load-more');
+        const noResult = document.getElementById('no-result');
+
+        if (btnWrapper && btn) {
+            const remaining = Math.max(0, finalSortedList.length - itemsToShow);
+            if (finalSortedList.length > itemsToShow) {
+                btn.innerHTML = `Xem thêm ${remaining} căn nữa <i class="fas fa-chevron-down ms-2"></i>`;
+                btnWrapper.style.display = 'block';
+                btn.onclick = handleLoadMore; // Gán sự kiện trực tiếp
+            } else if (finalSortedList.length > 0) {
+                btnWrapper.style.display = 'block';
+                btnWrapper.innerHTML = '<span class="text-muted small fst-italic">Đã hiển thị hết danh sách</span>';
+            } else {
+                btnWrapper.style.display = 'none';
             }
         }
 
-        return matches;
-    });
-
-    // TÁCH ACTIVE VÀ RENTED
-    let activeItems = filteredItems.filter(i => i.getAttribute('data-status') === 'active');
-    let rentedItems = filteredItems.filter(i => i.getAttribute('data-status') === 'rented');
-
-    // SẮP XẾP: theo sortMode cho active (price asc/desc hoặc promotion), sau đó đẩy có ảnh lên trước
-    if (sortMode === 'price-asc') {
-        activeItems.sort((a, b) => parseInt(a.getAttribute('data-price')) - parseInt(b.getAttribute('data-price')));
-    } else if (sortMode === 'price-desc') {
-        activeItems.sort((a, b) => parseInt(b.getAttribute('data-price')) - parseInt(a.getAttribute('data-price')));
-    } else {
-        activeItems.sort((a, b) => {
-            const aPromo = a.getAttribute('data-promotion') === 'yes' ? 1 : 0;
-            const bPromo = b.getAttribute('data-promotion') === 'yes' ? 1 : 0;
-            return bPromo - aPromo;
-        });
-    }
-    // Đảm bảo các item có ảnh đứng trên (giữ relative order)
-    activeItems.sort((a, b) => (hasImageEl(b) ? 1 : 0) - (hasImageEl(a) ? 1 : 0));
-
-    // Tương tự cho rented
-    if (sortMode === 'price-asc') {
-        rentedItems.sort((a, b) => parseInt(a.getAttribute('data-price')) - parseInt(b.getAttribute('data-price')));
-    } else if (sortMode === 'price-desc') {
-        rentedItems.sort((a, b) => parseInt(b.getAttribute('data-price')) - parseInt(a.getAttribute('data-price')));
-    } else {
-        rentedItems.sort((a, b) => {
-            const aPromo = a.getAttribute('data-promotion') === 'yes' ? 1 : 0;
-            const bPromo = b.getAttribute('data-promotion') === 'yes' ? 1 : 0;
-            return bPromo - aPromo;
-        });
-    }
-    rentedItems.sort((a, b) => (hasImageEl(b) ? 1 : 0) - (hasImageEl(a) ? 1 : 0));
-
-    // GIỚI HẠN RENTED = max 10
-    if (rentedItems.length > 10) rentedItems = rentedItems.slice(0, 10);
-
-    // GỘP LẠI VÀ HIỂN THỊ (PAGING)
-    const finalSortedList = [...activeItems, ...rentedItems];
-
-    // Ẩn tất cả trước khi render lại thứ tự
-    allDomItems.forEach(item => item.style.display = 'none');
-
-    // Sắp xếp lại DOM (Visual order)
-    const container = document.getElementById('district-room-container');
-    finalSortedList.forEach(item => {
-        container.appendChild(item);
-    });
-
-    // Hiển thị theo itemsToShow (mỗi lần click thêm 6)
-    finalSortedList.forEach((item, index) => {
-        if (index < itemsToShow) {
-            item.style.display = 'block';
-            item.classList.add('animate__animated', 'animate__fadeIn');
-        } else {
-            item.style.display = 'none';
+        if (noResult) {
+            if (finalSortedList.length === 0) noResult.classList.remove('d-none');
+            else noResult.classList.add('d-none');
         }
-    });
-
-    // Update nút Load More: show remaining = finalSortedList.length - itemsToShow
-    const btnLoadMore = document.getElementById('load-more-wrapper');
-    const remaining = Math.max(0, finalSortedList.length - itemsToShow);
-    if (finalSortedList.length > itemsToShow) {
-        btnLoadMore.innerHTML = `<button id="btn-load-more" class="btn btn-outline-warning text-dark fw-bold px-5 rounded-pill shadow-sm">Xem thêm ${remaining} căn nữa <i class="fas fa-chevron-down ms-2"></i></button>`;
-        btnLoadMore.style.display = 'block';
-        const newBtn = document.getElementById('btn-load-more');
-        if (newBtn) {
-            newBtn.removeEventListener('click', handleLoadMore);
-            newBtn.addEventListener('click', handleLoadMore);
-        }
-    } else if (finalSortedList.length > 0 && finalSortedList.length <= itemsToShow) {
-        btnLoadMore.innerHTML = '<p class="text-muted small">Đã xem hết danh sách</p>';
-        btnLoadMore.style.display = 'block';
-    } else {
-        btnLoadMore.style.display = 'none';
     }
 
-    // No result
-    if (finalSortedList.length === 0) {
-        document.getElementById('no-result').classList.remove('d-none');
-    } else {
-        document.getElementById('no-result').classList.add('d-none');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    renderRooms();
-    document.addEventListener('click', (e) => {
-        if (e.target && (e.target.id === 'btn-load-more' || e.target.closest('#btn-load-more'))) {
-            handleLoadMore();
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        renderRooms();
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) sortSelect.addEventListener('change', renderRooms);
     });
-});
 </script>

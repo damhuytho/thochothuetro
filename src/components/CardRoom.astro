@@ -1,16 +1,28 @@
 ---
-import { formatPrice, hideNumber, getDistrictSlug, getThumbnail } from '../utils/helpers.js';
-const { room } = Astro.props;
-// 1. Đổi room.images thành room.image_detail
-const images = room.image_detail || []; 
+const { room, priority = false } = Astro.props; // THÊM priority = false
 
+function hideNumber(address) {
+    if (!address) return "";
+    return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+}
+
+function formatPrice(price) {
+    if (price >= 1000000) return (price / 1000000).toString() + " Triệu";
+    return new Intl.NumberFormat('vi-VN').format(price);
+}
+
+function getDistrictSlug(district) {
+    return district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+}
+
+const images = room.image_detail || []; 
 let displayImage = '/logo.png';
 
 if (images.length > 0) {
-    // 2. Thêm logic ưu tiên tìm ảnh _thumb
     const thumbImg = images.find(img => img.includes('_thumb'));
     displayImage = thumbImg ? thumbImg : images[0];
 }
+
 const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;
 const detailLink = `/${getDistrictSlug(room.district)}/${room.id}`;
 const isRented = room.status === 'rented';
@@ -19,12 +31,14 @@ const isRented = room.status === 'rented';
 <div class={`card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}`}>
     
     <div class="position-relative">
-      <img src={displayImage} 
+        <img src={displayImage} 
              class="card-img-top room-img" 
-             alt={room.room_code}
-             loading="lazy" decoding="async"
+             alt={`Cho thuê ${room.type} ${room.address}, ${room.district}`}
              width="400" height="300"
-             style="aspect-ratio: 4/3; object-fit: cover; width: 100%; height: auto;" />
+             loading={priority ? "eager" : "lazy"} 
+             fetchpriority={priority ? "high" : "auto"}
+             decoding="async"
+             style="aspect-ratio: 4/3; object-fit: cover; width: 100%; height: auto;">
         
         {isRented && (
             <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;">
@@ -60,7 +74,7 @@ const isRented = room.status === 'rented';
         </div>
         <div class="mt-auto">
             <hr class="my-1 my-md-2 opacity-25">
-            <div class="d-flex align-items-center text-muted room-district">
+            <div class="d-flex align-items-center text-muted fw-bold room-district">
                 <i class="fas fa-map-marker-alt me-1 me-md-2 text-warning"></i> 
                 Quận {room.district}
             </div>
