@@ -4,13 +4,15 @@ import CommitmentSidebar from '../../components/CommitmentSidebar.astro';
 import CardRoom from '../../components/CardRoom.astro';
 import fs from 'node:fs';
 import path from 'node:path';
+// Import các hàm tiện ích từ file helpers.js đã tạo
+import { formatPrice, hideNumber } from '../../utils/helpers.js';
 
 // 1. TẠO PATH (SERVER SIDE)
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
-
+  
   return activeRooms.map((room) => {
       const districtSlug = room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
       return {
@@ -23,11 +25,10 @@ export async function getStaticPaths() {
 // 2. LẤY DỮ LIỆU TỪ PROPS
 const { room, allRooms } = Astro.props;
 
-// 3. XỬ LÝ HÌNH ẢNH
+// 3. XỬ LÝ HÌNH ẢNH (Logic cũ vẫn giữ để xử lý Collage)
 const sourceDetail = (room.image_detail || []).filter(img => img.includes('_web'));
 const sourceCollage = (room.image_collage || []).filter(img => img.includes('_web'));
 let images = [...sourceDetail];
-
 if (images.length < 6) {
     const missingCount = 6 - images.length;
     const moreImages = sourceCollage.slice(0, missingCount);
@@ -35,27 +36,21 @@ if (images.length < 6) {
 }
 images = images.slice(0, 6);
 
-// Xử lý ảnh Collage Đơn
+// Ảnh Collage Đơn
 const collageList = room.image_collage || [];
 let collageImage = collageList.find(img => img.includes('_web'));
 if (!collageImage && collageList.length > 0) collageImage = collageList[0];
 if (!collageImage && images.length > 1) collageImage = images[1];
 
-// Ảnh SEO
 const seoImage = (images.length > 0) ? images[0] : '/logo.png';
-
-// 4. CÁC HÀM TIỆN ÍCH
-import { formatPrice, hideNumber } from '../../utils/helpers.js';
 const cleanAddress = hideNumber(room.address);
 
 // Xử lý tiện ích (Keypoint)
 const keypointsList = room.keypoint 
-    ? room.keypoint.split(',')
-        .map(k => k.split('|')[0].trim())
-        .filter(k => k !== '') 
+    ? room.keypoint.split(',').map(k => k.split('|')[0].trim()).filter(k => k !== '') 
     : [];
 
-// 5. LỌC PHÒNG TƯƠNG TỰ
+// 4. LỌC PHÒNG TƯƠNG TỰ
 const relatedRooms = allRooms.filter(r => 
     r.district === room.district && 
     r.id !== room.id && 
@@ -66,36 +61,79 @@ const relatedRooms = allRooms.filter(r =>
     return bHasImg - aHasImg; 
 }).slice(0, 6);
 
-// 6. XỬ LÝ VIDEO SHORTS & STANDARD
+// 5. XỬ LÝ VIDEO
 let videoId = null;
 if (room.video) {
-    if (room.video.includes('/shorts/')) {
-        // Trường hợp link shorts: youtube.com/shorts/ID?si=...
-        videoId = room.video.split('/shorts/')[1].split('?')[0];
-    } else if (room.video.includes('v=')) {
-        // Trường hợp link thường: youtube.com/watch?v=ID
-        videoId = room.video.split('v=')[1].split('&')[0];
-    } else if (room.video.includes('youtu.be/')) {
-        // Trường hợp link share: youtu.be/ID
-        videoId = room.video.split('youtu.be/')[1].split('?')[0];
-    }
+    if (room.video.includes('/shorts/')) videoId = room.video.split('/shorts/')[1].split('?')[0];
+    else if (room.video.includes('v=')) videoId = room.video.split('v=')[1].split('&')[0];
+    else if (room.video.includes('youtu.be/')) videoId = room.video.split('youtu.be/')[1].split('?')[0];
 }
 
-const pageTitle = `Cho thuê căn ${room.type} ${cleanAddress}`;
-const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${room.district}. Giá ${formatPrice(room.price)}/tháng. ${room.keypoint || 'Full nội thất'}. LH: 0925 996 992.`;
+// --- [SEO MỚI] TỐI ƯU META DATA ---
+// Title có từ khóa mạnh: Cho thuê + Loại + Địa chỉ + Đặc điểm
+const pageTitle = `Cho thuê ${room.type} ${cleanAddress} - ${formatPrice(room.price)}`;
+// Description đưa giá và tiện ích lên đầu
+const pageDesc = `Phòng trọ ${room.district} giá ${formatPrice(room.price)}. ${room.keypoint || 'Full nội thất, giờ giấc tự do'}. Địa chỉ: ${cleanAddress}. Liên hệ chính chủ Thọ: 0925 996 992.`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
+
+// --- [SEO MỚI] SCHEMA.ORG (JSON-LD) ---
+const schemaProduct = {
+  "@context": "https://schema.org",
+  "@type": "Apartment",
+  "name": pageTitle,
+  "description": room.desc ? room.desc.replace(/\n/g, ' ') : pageDesc,
+  "image": images,
+  "numberOfRooms": room.type.includes('2PN') ? 2 : 1,
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": cleanAddress,
+    "addressLocality": room.district === 'Tân Bình' ? 'Quận Tân Bình' : 'Quận Phú Nhuận',
+    "addressRegion": "Thành phố Hồ Chí Minh",
+    "addressCountry": "VN"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": room.lat,
+    "longitude": room.lng
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": canonicalURL,
+    "priceCurrency": "VND",
+    "price": room.price,
+    "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    "seller": {
+      "@type": "Person",
+      "name": "Thọ Cho Thuê Trọ"
+    }
+  }
+};
+
+const schemaBreadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://thochothuetro.com/" },
+    { "@type": "ListItem", "position": 2, "name": room.district, "item": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}` },
+    { "@type": "ListItem", "position": 3, "name": room.room_code, "item": canonicalURL }
+  ]
+};
 ---
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<Layout title={`${pageTitle} - Thọ Cho Thuê Trọ`} description={pageDesc} image={seoImage}>
+<Layout title={pageTitle} description={pageDesc} image={seoImage}>
     
+    <script type="application/ld+json" set:html={JSON.stringify(schemaProduct)} />
+    <script type="application/ld+json" set:html={JSON.stringify(schemaBreadcrumb)} />
+
     <div class="bg-white py-3 border-bottom mb-4 shadow-sm">
         <div class="container text-center">
-            <h1 class="h5 fw-bold mb-1 text-dark text-uppercase" style="line-height: 1.4;">
+            <h1 class="h4 fw-bold mb-1 text-dark text-uppercase" style="line-height: 1.4;">
                 {pageTitle}
             </h1>
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0 small justify-content-center">
+                 <ol class="breadcrumb mb-0 small justify-content-center">
                     <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
                     <li class="breadcrumb-item"><a href={`/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}`} class="text-decoration-none text-muted">{room.district}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{room.room_code}</li>
@@ -114,14 +152,16 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                         <div id="gallery-container">
                             <img src={images[0]} id="main-image" class="w-100 d-block" 
                                  style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
-                                 alt={pageTitle}>
+                                 alt={`Hình ảnh ${pageTitle}`} title={`Hình ảnh ${pageTitle}`}>
+                            
                             <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar">
                                 {images.map((img, index) => (
                                     <img src={img} 
                                          class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
                                          style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
                                          onclick="changeImage(this.src, this)"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         alt={`Chi tiết phòng ${room.room_code} - Ảnh ${index + 1}`}>
                                 ))}
                             </div>
                         </div>
@@ -134,7 +174,7 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
 
                 <div class="mb-4 bg-white p-4 rounded-3 border shadow-sm">
                     <div class="d-flex align-items-end mb-3 flex-wrap gap-2">
-                        <div class="fw-bold text-danger" style="font-size: 1.8rem; line-height: 1;">
+                         <div class="fw-bold text-danger" style="font-size: 1.8rem; line-height: 1;">
                             {formatPrice(room.price)}
                         </div>
                         <div class="text-muted pb-1 fst-italic">/tháng (Thương lượng)</div>
@@ -145,7 +185,7 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                                  style="background-color: #fff8e1; font-size: 1.05rem; border: 1px solid #ffecb3;">
                                 {room.promotion}
                             </div>
-                        </div>
+                         </div>
                     )}
                     <hr class="text-muted opacity-25 my-3">
                     <div class="row g-2">
@@ -162,14 +202,14 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
 
                 {collageImage && (
                     <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
-                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt="Tiện ích phòng" style="width: 100%; height: auto;">
+                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt={`Tiện ích phòng trọ ${cleanAddress}`} style="width: 100%; height: auto;">
                     </div>
                 )}
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
-                    <h3 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
+                    <h2 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
                         <i class="fas fa-align-left me-2"></i> Mô tả chi tiết
-                    </h3>
+                    </h2>
                     <div style="white-space: pre-line; line-height: 1.8; color: #333; font-size: 0.95rem;">
                         {room.desc}
                     </div>
@@ -182,25 +222,23 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                                 <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
                             </div>
                             <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover opacity-75" alt="Video Thumbnail">
-    
-    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
-             style="width: 60px; height: 60px;">
-            <i class="fas fa-play fs-4 ms-1"></i>
-        </div>
-    </div>
-</div>
+                                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover opacity-75" alt={`Video review phòng ${room.room_code}`}>
+                                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+                                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
+                                        <i class="fas fa-play fs-4 ms-1"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
 
-                <div class="bg-white p-4 rounded-3 border shadow-sm mb-4 border-warning position-relative overflow-hidden">
+                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4 border-warning position-relative overflow-hidden">
                     <div class="position-absolute top-0 start-0 h-100 bg-warning" style="width: 5px;"></div>
                     <div class="row align-items-center">
                         <div class="col-md-4 text-center mb-3 mb-md-0 border-end-md">
                             <div class="position-relative d-inline-block mb-2">
-                                <img src="/logo.png" width="80" height="80" class="rounded-circle border border-2 border-warning p-1 bg-white">
+                                <img src="/logo.png" width="80" height="80" class="rounded-circle border border-2 border-warning p-1 bg-white" alt="Thọ Cho Thuê Trọ Logo">
                                 <i class="fas fa-check-circle text-success position-absolute bottom-0 end-0 bg-white rounded-circle" style="font-size: 1.2rem;"></i>
                             </div>
                             <h6 class="fw-bold mb-1">Thọ Cho Thuê Trọ</h6>
@@ -208,16 +246,16 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                         </div>
                         <div class="col-md-8 ps-md-4">
                             <h5 class="fw-bold mb-2">👋 Xin chào bạn,</h5>
-                            <p class="text-muted small mb-3">
-                                Cảm ơn bạn đã quan tâm. Mình cam kết <strong>hình ảnh và giá cả là chính xác 100%</strong>. 
+                               <p class="text-muted small mb-3">
+                                Cảm ơn bạn đã quan tâm. Mình cam kết <strong>hình ảnh và giá cả là chính xác 100%</strong>.
                                 Mình luôn sẵn sàng hỗ trợ bạn xem phòng bất cứ lúc nào (hoàn toàn miễn phí).
-                            </p>
+                                </p>
                             <div class="d-flex gap-2">
                                 <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #dfa33d;">
-                                    <i class="fas fa-phone-alt me-2"></i> 0925 996 992
+                                     <i class="fas fa-phone-alt me-2"></i> 0925 996 992
                                 </a>
                                 <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold flex-grow-1 text-white rounded-pill shadow-sm" style="background-color: #4e80ff; border: none;">
-                                    <i class="fas fa-comment-dots me-2"></i> Chat Zalo
+                                     <i class="fas fa-comment-dots me-2"></i> Chat Zalo
                                 </a>
                             </div>
                         </div>
@@ -226,7 +264,7 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
                     <div class="d-flex align-items-center mb-3 border-start border-4 border-warning ps-3">
-                        <h3 class="h6 fw-bold text-uppercase text-dark mb-0">Vị trí căn hộ</h3>
+                        <h2 class="h6 fw-bold text-uppercase text-dark mb-0">Vị trí căn hộ</h2>
                     </div>
                     
                     <div id="map-container" class="rounded overflow-hidden position-relative bg-light border" style="height: 350px;">
@@ -242,7 +280,7 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                                 <h4 class="h6 fw-bold text-dark mb-1">{cleanAddress}</h4>
                                 <div class="small text-muted mb-3">Khu vực {room.district}</div>
                                 <button class="btn btn-white fw-bold text-dark rounded-pill px-4 py-2 shadow-sm border border-warning">
-                                    <i class="fas fa-map-marked-alt me-2 text-warning"></i> Bấm để xem bản đồ
+                                     <i class="fas fa-map-marked-alt me-2 text-warning"></i> Bấm để xem bản đồ
                                 </button>
                             </div>
                         </div>
@@ -251,7 +289,7 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                 </div>
 
                 <div class="mt-5">
-                    <h3 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">Phòng tương tự gần đây</h3>
+                    <h2 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">Phòng tương tự gần đây</h2>
                     <div class="row g-2 g-md-3">
                         {relatedRooms.length > 0 ? relatedRooms.map((r) => (
                             <div class="col-6 col-md-4"><CardRoom room={r} /></div>
@@ -268,28 +306,25 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
                 </div>
                 
                 {videoId && (
-    <div style="position: sticky; top: 60px; z-index: 10;">
-        <div class="card shadow-sm border-0 overflow-hidden mb-4">
-            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
-                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
-            </div>
-            
-            <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
-                     class="w-100 h-100 object-fit-cover opacity-75" 
-                     alt="Video Thumbnail">
-                
-                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
-                         style="width: 60px; height: 60px;">
-                        <i class="fas fa-play fs-4 ms-1"></i>
+                <div style="position: sticky; top: 60px; z-index: 10;">
+                    <div class="card shadow-sm border-0 overflow-hidden mb-4">
+                        <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
+                            <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
+                        </div>
+                        
+                        <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
+                            <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+                                 class="w-100 h-100 object-fit-cover opacity-75" 
+                                 alt="Video Thumbnail">
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-play fs-4 ms-1"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-        </div>
-    </div>
-)}
+                )}
             </div>
         </div>
     </div>
@@ -303,14 +338,11 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     @media (min-width: 768px) { .border-end-md { border-right: 1px dashed #dee2e6; } }
 
-    /* Video Dọc */
     .ratio-9x16 { --bs-aspect-ratio: 177.78%; }
     
-    /* Map & UI */
     .btn-white { background: white; transition: all 0.3s; }
     .btn-white:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     
-    /* Icon Map Vàng */
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
 
     @media (min-width: 1200px) {
@@ -327,58 +359,48 @@ const pageDesc = `Chính chủ cho thuê ${room.type} tại ${cleanAddress}, ${r
         thumb.classList.add('active');
     }
 
-    // 2. Load Video khi click (SEO Friendly)
+    // 2. Load Video
     function loadVideo(container, id) {
-        container.onclick = null; // Bỏ click event để không bị click lại
+        container.onclick = null;
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
     }
 
-    // 3. Load Map khi click (Fix lỗi Map)
-    // Thay thế hàm loadMap cũ bằng hàm này
-function loadMap(lat, lng, popupText) {
-    const placeholder = document.getElementById('map-placeholder');
-    const realMap = document.getElementById('real-map');
-    
-    // 1. Ép ẩn Placeholder bằng mọi giá
-    placeholder.style.setProperty('display', 'none', 'important');
-    
-    // 2. Hiện khung Map
-    realMap.classList.remove('d-none');
-    realMap.style.display = 'block'; // Thêm dòng này cho chắc
-    
-    // 3. Khởi tạo Leaflet
-    if (typeof L !== 'undefined') {
-        // Kiểm tra nếu map đã khởi tạo rồi thì thôi (tránh lỗi reset)
-        if (realMap._leaflet_id) return; 
-
-        const map = L.map('real-map').setView([lat, lng], 16);
+    // 3. Load Map
+    function loadMap(lat, lng, popupText) {
+        const placeholder = document.getElementById('map-placeholder');
+        const realMap = document.getElementById('real-map');
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-            attribution: '&copy; OpenStreetMap' 
-        }).addTo(map);
+        placeholder.style.setProperty('display', 'none', 'important');
+        realMap.classList.remove('d-none');
+        realMap.style.display = 'block';
+        
+        if (typeof L !== 'undefined') {
+            if (realMap._leaflet_id) return;
+            const map = L.map('real-map').setView([lat, lng], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                attribution: '&copy; OpenStreetMap' 
+            }).addTo(map);
+            
+            setTimeout(() => { map.invalidateSize(); }, 200);
 
-        // QUAN TRỌNG: Fix lỗi map không full khung
-        setTimeout(() => { map.invalidateSize(); }, 200);
+            const brandIcon = L.divIcon({ 
+                className: 'custom-map-marker-yellow', 
+                html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
+                iconSize: [34, 34], 
+                iconAnchor: [17, 34],
+                popupAnchor: [0, -40]
+            });
 
-        // Icon Vàng đồng bộ
-        const brandIcon = L.divIcon({ 
-            className: 'custom-map-marker-yellow', 
-            html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
-            iconSize: [34, 34], 
-            iconAnchor: [17, 34],
-            popupAnchor: [0, -40]
-        });
-
-        const popupContent = `
-            <div class="text-center p-1">
-                <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${popupText}</div>
-                <div class="text-danger small fw-bold">Vị trí chính xác</div>
-            </div>
-        `;
-
-        L.marker([lat, lng], {icon: brandIcon}).addTo(map).bindPopup(popupContent).openPopup();
-    } else {
-        alert("Lỗi: Không tải được thư viện bản đồ. Vui lòng tải lại trang.");
+            const popupContent = `
+                <div class="text-center p-1">
+                    <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${popupText}</div>
+                    <div class="text-danger small fw-bold">Vị trí chính xác</div>
+                </div>
+            `;
+            L.marker([lat, lng], {icon: brandIcon}).addTo(map).bindPopup(popupContent).openPopup();
+        } else {
+            alert("Lỗi: Không tải được thư viện bản đồ. Vui lòng tải lại trang.");
+        }
     }
-}
 </script>
