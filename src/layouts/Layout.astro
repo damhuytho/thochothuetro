@@ -3,19 +3,17 @@ export interface Props {
     title: string;
     description?: string;
     image?: string;
-    preloadImage?: string; // Thêm dòng này
+    preloadImage?: string; /* Thêm biến này để Preload */
 }
 
 const { 
     title, 
     description = "Hệ thống phòng trọ tiện nghi, giờ giấc tự do tại Tân Bình & Phú Nhuận. Cam kết hình thật, giá thật.",
     image = "/logo.png",
-    preloadImage // Lấy ra sử dụng (Nhớ là dòng trên phải có dấu phẩy ở cuối)
+    preloadImage 
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
-// Tạo Canonical URL chuẩn SEO
-const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
 ---
 
 <!DOCTYPE html>

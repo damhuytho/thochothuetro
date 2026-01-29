@@ -149,23 +149,26 @@ const schemaBreadcrumb = {
                 
                 <div class="mb-4 bg-light rounded-3 overflow-hidden position-relative border shadow-sm">
                     {images.length > 0 ? (
-                        <div id="gallery-container">
-                            <img src={images[0]} id="main-image" class="w-100 d-block" 
-     style="aspect-ratio: 4/3; object-fit: contain; background: #000;" 
-     alt={`Hình ảnh ${pageTitle}`} title={`Hình ảnh ${pageTitle}`}
-     fetchpriority="high" loading="eager" decoding="async">
-                            
-                            <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar">
-                                {images.map((img, index) => (
-                                    <img src={img} 
-                                         class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
-                                         style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
-                                         onclick="changeImage(this.src, this)"
-                                         loading="lazy"
-                                         alt={`Chi tiết phòng ${room.room_code} - Ảnh ${index + 1}`}>
-                                ))}
-                            </div>
-                        </div>
+                        // Thay thế dòng 281 đến 286 bằng đoạn này
+<div id="gallery-container" class="position-relative bg-light rounded overflow-hidden" style="aspect-ratio: 4/3;">
+    <img src={images[0]} id="main-image" class="w-100 h-100 d-block position-absolute top-0 start-0" 
+         style="object-fit: contain; background: #000;" 
+         alt={pageTitle}
+         fetchpriority="high" loading="eager" decoding="async"
+         width="800" height="600">
+    
+    <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar position-absolute bottom-0 start-0 w-100" style="z-index: 2;">
+        {images.map((img, index) => (
+            <img src={img} 
+                 class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
+                 style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
+                 onclick="changeImage(this.src, this)"
+                 loading="lazy" decoding="async"
+                 width="80" height="60"
+                 alt={`Ảnh nhỏ ${index}`}>
+        ))}
+    </div>
+</div>
                     ) : (
                         <div class="d-flex align-items-center justify-content-center h-100 p-5 text-muted" style="aspect-ratio: 4/3;">
                             Đang cập nhật hình ảnh
@@ -365,71 +368,51 @@ const schemaBreadcrumb = {
         container.onclick = null;
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
     }
-    let isLeafletLoaded = false;
-    // 3. Load Map
+
+    // 3. LOAD MAP THÔNG MINH (Chỉ tải thư viện khi click)
     function loadMap(lat, lng, popupText) {
         const placeholder = document.getElementById('map-placeholder');
         const realMap = document.getElementById('real-map');
-        const loadingSpinner = document.createElement('div');
         
-        // Hiệu ứng loading trong lúc tải thư viện
-        loadingSpinner.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-warning" role="status"></div><div class="mt-2 small text-muted">Đang tải bản đồ...</div></div>';
+        // 1. Hiệu ứng loading
+        placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"></div></div>';
         
-        // 1. Ẩn ảnh bìa, hiện khung map
-        placeholder.style.setProperty('display', 'none', 'important');
-        realMap.classList.remove('d-none');
-        realMap.style.display = 'block';
-        realMap.appendChild(loadingSpinner);
+        // 2. Hàm khởi tạo Map
+        const initLeafletMap = () => {
+            placeholder.style.setProperty('display', 'none', 'important');
+            realMap.classList.remove('d-none');
+            realMap.style.display = 'block';
 
-        // 2. Hàm khởi tạo map (chạy sau khi thư viện tải xong)
-        const initMap = () => {
-            if (realMap._leaflet_id) return; // Nếu map đã có rồi thì thôi
-            loadingSpinner.remove(); // Xóa spinner
+            if (realMap._leaflet_id) return;
 
             const map = L.map('real-map').setView([lat, lng], 16);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                attribution: '&copy; OpenStreetMap' 
-            }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
             
             setTimeout(() => { map.invalidateSize(); }, 200);
 
             const brandIcon = L.divIcon({ 
                 className: 'custom-map-marker-yellow', 
                 html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
-                iconSize: [34, 34], 
-                iconAnchor: [17, 34],
-                popupAnchor: [0, -40]
+                iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -40]
             });
 
-            const popupContent = `
-                <div class="text-center p-1">
-                    <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${popupText}</div>
-                    <div class="text-danger small fw-bold">Vị trí chính xác</div>
-                </div>
-            `;
-            L.marker([lat, lng], {icon: brandIcon}).addTo(map).bindPopup(popupContent).openPopup();
+            L.marker([lat, lng], {icon: brandIcon}).addTo(map)
+             .bindPopup(`<div class="text-center p-1 fw-bold text-dark small">${popupText}</div>`).openPopup();
         };
 
-        // 3. Logic tải thư viện động (Dynamic Import)
+        // 3. Kiểm tra xem đã có Leaflet chưa, nếu chưa thì tải động
         if (typeof L === 'undefined') {
-            // Tải CSS
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(cssLink);
-
-            // Tải JS
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.onload = () => {
-                isLeafletLoaded = true;
-                initMap(); // Tải xong thì chạy map
-            };
-            document.body.appendChild(script);
+            script.onload = initLeafletMap;
+            document.head.appendChild(script);
+
+            const style = document.createElement('link');
+            style.rel = 'stylesheet';
+            style.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(style);
         } else {
-            // Nếu đã tải rồi thì chạy luôn
-            initMap();
+            initLeafletMap();
         }
     }
 </script>
