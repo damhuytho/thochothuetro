@@ -49,7 +49,7 @@ const cleanAddress = hideNumber(room.address);
 const keypointsList = room.keypoint 
     ? room.keypoint.split(',').map(k => k.split('|')[0].trim()).filter(k => k !== '') 
     : [];
-
+const firstThreeKeypoints = keypointsList.slice(0, 3).join(', ');
 // 4. LỌC PHÒNG TƯƠNG TỰ
 const relatedRooms = allRooms.filter(r => 
     r.district === room.district && 
@@ -71,7 +71,7 @@ if (room.video) {
 
 // --- [SEO MỚI] TỐI ƯU META DATA ---
 // Title có từ khóa mạnh: Cho thuê + Loại + Địa chỉ + Đặc điểm
-const pageTitle = `Cho thuê ${room.type} ${cleanAddress} - ${formatPrice(room.price)}`;
+const pageTitle = `Cho thuê ${room.type} ${cleanAddress}, ${room.district} - ${formatPrice(room.price)}`;
 // Description đưa giá và tiện ích lên đầu
 const pageDesc = `Phòng trọ ${room.district} giá ${formatPrice(room.price)}. ${room.keypoint || 'Full nội thất, giờ giấc tự do'}. Địa chỉ: ${cleanAddress}. Liên hệ chính chủ Thọ: 0925 996 992.`;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
@@ -150,22 +150,33 @@ const schemaBreadcrumb = {
                 <div class="mb-4 bg-light rounded-3 overflow-hidden position-relative border shadow-sm">
                     {images.length > 0 ? (
                         // Thay thế dòng 281 đến 286 bằng đoạn này
-<div id="gallery-container" class="position-relative bg-light rounded overflow-hidden" style="aspect-ratio: 4/3;">
-    <img src={images[0]} id="main-image" class="w-100 h-100 d-block position-absolute top-0 start-0" 
-         style="object-fit: contain; background: #000;" 
-         alt={pageTitle}
-         fetchpriority="high" loading="eager" decoding="async"
-         width="800" height="600">
+<div id="gallery-container" class="position-relative bg-light rounded overflow-hidden" 
+     style="aspect-ratio: 4/3; contain-intrinsic-size: 800px 600px; content-visibility: auto;">
+    {images[0] && (
+        <img 
+            src={images[0]} 
+            id="main-image" 
+            class="w-100 h-100 d-block position-absolute top-0 start-0" 
+            style="object-fit: contain; background: #000;" 
+            alt={pageTitle}
+            fetchpriority="high" 
+            loading="eager" 
+            decoding="sync"
+            width="800" 
+            height="600"
+        />
+    )}
+    </div>
     
     <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar position-absolute bottom-0 start-0 w-100" style="z-index: 2;">
-        {images.map((img, index) => (
-            <img src={img} 
-                 class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
-                 style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
-                 onclick="changeImage(this.src, this)"
-                 loading="lazy" decoding="async"
-                 width="80" height="60"
-                 alt={`Ảnh nhỏ ${index}`}>
+            {images.map((img, index) => (
+                <img src={img} 
+                     class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
+                     style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
+                     onclick="changeImage(this.src, this)"
+                     loading="lazy" decoding="async"
+                     width="80" height="60"
+                     alt={`${room.type} ${cleanAddress} - Ảnh ${index + 1}`} />
         ))}
     </div>
 </div>
