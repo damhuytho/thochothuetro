@@ -114,316 +114,144 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         </div>
 
         <!-- NÚT TOGGLE FILTER (ẨN KHI EXPANDED) -->
-        <div id="toggle-filter-btn-container" class="p-3 bg-white d-none">
-            <button type="button" id="btn-toggle-filter" class="btn btn-warning w-100 fw-bold text-dark shadow-sm py-2">
-                <i class="fas fa-chevron-down me-2"></i> HIỂN THỊ BỘ LỌC
-            </button>
-        </div>
+        <div id="toggle-filter-btn-container" class="p-3 bg-white">
+    <button type="button" id="btn-toggle-filter" class="btn btn-warning w-100 fw-bold text-dark shadow-sm py-2">
+        <i class="fas fa-chevron-down me-2"></i> HIỂN THỊ BỘ LỌC
+    </button>
+</div>
     </div>
 </div>
 
 <style>
-    /* --- CSS CHO MOBILE FILTER BAR (APP STYLE) --- */
-.mobile-filter-bar {
+    /* --- CSS MOBILE FILTER BAR (THANH LỌC NGANG TRÊN CÙNG) --- */
+    .mobile-filter-bar {
         position: fixed;
-        top: 0;
+        top: 0; 
         left: 0;
         width: 100%;
-        /* Thay đổi từ height cố định sang min-height để tự nở ra khi nhiều dòng */
-        min-height: 60px; 
-        height: auto; 
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        z-index: 2000; /* Đảm bảo nằm trên cùng */
+        background: #fff;
+        z-index: 2000; /* Cao hơn Navbar */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 8px 15px;
+        display: none; /* Mặc định ẩn, hiện bằng JS */
         border-bottom: 1px solid #eee;
-        transform: translateY(-110%);
-        transition: transform 0.3s ease-in-out;
-        padding: 10px 0; /* Thêm khoảng cách trên dưới cho đẹp */
-    }
-    .filter-icon-box {
-        width: 32px; height: 32px;
-        background: #f1c40f; color: #212529;
-        border-radius: 8px; display: flex;
-        align-items: center; justify-content: center;
-        flex-shrink: 0; font-size: 0.85rem;
+        height: 60px; /* Chiều cao cố định */
     }
 
+    /* Khi active thì hiện flex */
     .mobile-filter-bar.is-visible {
-        transform: translateY(0);
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        animation: slideDown 0.3s ease-out;
     }
 
-.filter-tags-scroll {
+    @keyframes slideDown {
+        from { transform: translateY(-100%); }
+        to { transform: translateY(0); }
+    }
+
+    .filter-tags-scroll {
         flex: 1;
         display: flex;
-        flex-wrap: wrap; /* Ép xuống dòng nếu không đủ chỗ */
-        gap: 8px; /* Khoảng cách giữa các khung */
-        white-space: normal; /* Cho phép chữ xuống dòng */
-        padding-right: 10px;
+        overflow-x: auto; /* Cuộn ngang */
+        white-space: nowrap;
+        gap: 8px;
+        margin-right: 10px;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+        /* Ẩn scrollbar */
+        scrollbar-width: none; 
     }
     .filter-tags-scroll::-webkit-scrollbar { display: none; }
 
-/* ĐÓNG KHUNG CHO TỪNG TÙY CHỌN (1PN, Máy giặt...) */
     .filter-tag {
-        display: inline-flex !important;
-        align-items: center !important;
-        background: #ffffff !important;
-        color: #333 !important;
-        /* Tạo khung viền rõ rệt */
-        border: 1.5px solid #d1d5db !important; 
-        border-radius: 8px !important;
-        padding: 6px 12px !important;
-        font-size: 0.75rem !important;
-        font-weight: 700 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-        transition: all 0.2s;
-    }
-    
-    .filter-tag.price-tag {
-        background: #fff9db !important;
-        color: #d35400 !important;
-        border-color: #ffe066 !important;
-    }
-/* Nút Xóa Lọc hiện đại */
-    .btn-clear-filter {
-        background: #fff0f0 !important;
-        border: 1px solid #ffcccc !important;
-        border-radius: 8px !important;
-        width: auto !important;
-        height: 36px !important;
-        padding: 0 12px !important;
-        display: flex !important;
-        align-items: center !important;
-        color: #e74c3c !important;
-        font-weight: 800 !important;
-        font-size: 0.75rem !important;
-        margin-left: 10px;
-        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 50px; /* Bo tròn viên thuốc */
+        padding: 4px 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        flex-shrink: 0; /* Không bị co lại */
     }
 
-    /* --- CSS DESKTOP SIDEBAR --- */
+    /* Tag giá màu nổi bật */
+    .filter-tag.price-tag {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffeeba;
+    }
+
+    .btn-clear-filter {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+    }
+
+    /* --- GIỮ NGUYÊN CSS DESKTOP CŨ --- */
     .sidebar-sticky-wrapper {
-        position: -webkit-sticky; 
+        position: -webkit-sticky;
         position: sticky;
         top: 80px;
         z-index: 90;
-        height: fit-content; 
+        height: fit-content;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
-        transition: all 0.3s ease;
     }
-
-    .col-lg-3 {
-        overflow: visible !important;
-    }
-
-    .sidebar-sticky-wrapper::-webkit-scrollbar { width: 0px; background: transparent; }
-
-     .filter-label { 
-        font-weight: 700; 
-        font-size: 0.75rem;  /* Thu nhỏ từ 0.8rem */
-        color: #666; 
-        margin-bottom: 4px;  /* Thu nhỏ từ 6px */
-        text-transform: uppercase; 
-    }
-    
-    .custom-select {
-        border: 1px solid #f1c40f !important; 
-        background-color: #fff !important;
-        font-size: 0.85rem;  /* Thu nhỏ từ 0.9rem */
-        color: #333; 
-        box-shadow: none !important; 
-        cursor: pointer;
-    }
-    
-    .custom-select:focus { 
-        border-color: #d4ac0d !important; 
-        background-color: #fffcf5 !important; 
-    }
-
-    .custom-check { 
-        display: flex; 
-        align-items: center; 
-        cursor: pointer; 
-        font-size: 0.85rem;  /* Thu nhỏ từ 0.9rem */
-        color: #333; 
-        user-select: none; 
-        margin-bottom: 3px;  /* Thu nhỏ từ 4px */
-    }
-    
+    .col-lg-3 { overflow: visible !important; }
+    .filter-label { font-weight: 700; font-size: 0.75rem; color: #666; margin-bottom: 4px; text-transform: uppercase; }
+    .custom-select { border: 1px solid #f1c40f !important; font-size: 0.85rem; cursor: pointer; }
+    .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 0.95rem; margin-bottom: 3px; }
     .custom-check input { display: none; }
+    .checkmark { height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
+    .custom-check input:checked ~ .checkmark:after { content: '\2713'; color: #212529; font-size: 11px; font-weight: bold; }
     
-    .checkmark {
-        height: 16px;  /* Thu nhỏ từ 18px */
-        width: 16px;   /* Thu nhỏ từ 18px */
-        border: 1px solid #f1c40f; 
-        background-color: white;
-        border-radius: 3px;  /* Thu nhỏ từ 4px */
-        margin-right: 6px;   /* Thu nhỏ từ 8px */
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        flex-shrink: 0;
+    /* Ẩn form mặc định trên mobile để cho gọn */
+    #filter-form-body { 
+        opacity: 1; 
+        max-height: 1000px; 
+        overflow: hidden; 
+        transition: all 0.3s ease; 
     }
     
-    .custom-check input:checked ~ .checkmark { 
-        background-color: #f1c40f; 
-    }
-    
-    .custom-check input:checked ~ .checkmark:after { 
-        content: '\2713'; 
-        color: #212529; 
-        font-size: 11px;  /* Thu nhỏ từ 12px */
-        font-weight: bold; 
-    }
-    
-    .text-capitalize { text-transform: capitalize; }
-       /* Ẩn form body khi collapsed (MOBILE ONLY) - SMOOTH ANIMATION */
-    #filter-form-body {
-        opacity: 1;
-        max-height: 1000px;
-        overflow: hidden;
-        padding: 12px !important;  /* Thêm dòng này */
+    /* Khi có class collapsed thì ẩn form đi */
+    #filter-form-body.collapsed { 
+        opacity: 0; 
+        max-height: 0; 
+        padding: 0 !important; 
+        pointer-events: none; 
     }
 
-    #filter-form-body.collapsed {
-        opacity: 0;
-        max-height: 0;
-        padding: 0 !important;  /* Bỏ hết padding khi ẩn */
-        pointer-events: none;
-        transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;  /* Thêm padding vào transition */
-    }
-    #filter-form-body.transitioning {
-        transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;  /* Thêm padding vào transition */
-    }
-        /* Nút toggle filter nằm ngang (MOBILE ONLY) */
-    #toggle-filter-btn-container {
-        border-top: none;  /* Bỏ đường kẻ */
-        display: none !important;
-        transition: all 0.3s ease;
-        padding: 0 !important;  /* Bỏ padding */
-        overflow: hidden;
-        max-height: 0;
+    /* Mặc định ẨN nút toggle (để desktop không thấy) */
+    #toggle-filter-btn-container { 
+        display: none; 
     }
 
-    #toggle-filter-btn-container.visible {
-        display: block !important;
-        max-height: 100px;
-        padding: 8px 12px !important;  /* Chỉ padding nhỏ xung quanh nút */
+    /* Chỉ hiện nút toggle khi có class visible (Mobile sẽ thêm class này bằng JS) */
+    #toggle-filter-btn-container.visible { 
+        display: block !important; 
+        padding: 10px 15px !important;
     }
 
-    #toggle-filter-btn-container button {
-        font-size: 0.85rem !important;
-        padding: 8px !important;  /* Giảm padding nút */
-        background-color: #f5f5f5 !important;
-        color: #333 !important;
-        border: 1px solid #ddd !important;
-    }
-
-    #toggle-filter-btn-container button:hover {
-        background-color: #efefef !important;
-    }
-
-
+    /* Desktop: Luôn hiện form, luôn ẩn nút toggle */
     @media (min-width: 992px) {
-        .mobile-filter-bar { display: none !important; }
-        /* Trên desktop, luôn hiển thị form */
-        #filter-form-body { 
-            display: block !important;
-            opacity: 1 !important;
-            max-height: none !important;
-            pointer-events: auto !important;
-        }
+        #filter-form-body { display: block !important; opacity: 1 !important; max-height: none !important; }
         #toggle-filter-btn-container { display: none !important; }
     }
 </style>
 
 <script is:inline>
-    // 1. Render Tags Mobile
-        // 1. Render Tags Mobile - HIỂN THỊ NGAY KHI CÓ FILTER
-    function renderMobileActiveTags() {
-        const container = document.getElementById('filter-tags-container');
-        const bar = document.getElementById('mobile-filter-bar');
-        if (!container) return false;
-
-        const params = new URLSearchParams(window.location.search);
-        let tagsHtml = '';
-        let hasFilter = false;
-
-        let d = params.get('district');
-        if (!d) {
-            if (window.location.pathname.includes('tan-binh')) d = 'Tân Bình';
-            if (window.location.pathname.includes('phu-nhuan')) d = 'Phú Nhuận';
-        }
-        if (d && d !== 'all') {
-            tagsHtml += `<span class="filter-tag">Q. ${d}</span>`; // Viết tắt Q.
-            hasFilter = true;
-        }
-
-        if(params.get('type') && params.get('type') !== 'all') { 
-            tagsHtml += `<span class="filter-tag">${params.get('type')}</span>`;
-            hasFilter = true; 
-        }
-        
-        const p = params.get('price');
-        if (p && p !== 'all') {
-            let label = p === 'duoi-5' ? '< 5tr' : (p === '5to8' ? '5-8tr' : '> 8tr'); // Viết tắt tr
-            tagsHtml += `<span class="filter-tag price-tag">${label}</span>`;
-            hasFilter = true;
-        }
-
-        const ams = params.get('amenities');
-        if(ams) {
-            ams.split(',').forEach(a => {
-                tagsHtml += `<span class="filter-tag">${a}</span>`;
-            });
-            hasFilter = true;
-        }
-
-        container.innerHTML = tagsHtml;
-        if (hasFilter && window.innerWidth < 992) bar.classList.add('is-visible');
-        return hasFilter;
-    }
-
-    // 2. Setup Scroll Logic + Click to open filter
-    function setupMobileScrollLogic(hasFilter) {
-        const bar = document.getElementById('mobile-filter-bar');
-        if (!bar || !hasFilter) return;
-
-        const handleScroll = () => {
-            if (window.scrollY > 80) {
-                bar.classList.add('is-visible');
-            } else {
-                bar.classList.remove('is-visible');
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        handleScroll();
-
-        // THÊM: Click vào filter bar để scroll lên và mở sidebar
-        bar.addEventListener('click', (e) => {
-            // Nếu click vào nút xóa thì không scroll
-            if (e.target.closest('.btn-clear-filter')) return;
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Mở sidebar filter sau khi scroll
-            setTimeout(() => {
-                const formBody = document.getElementById('filter-form-body');
-                const toggleBtn = document.getElementById('toggle-filter-btn-container');
-                
-                if (formBody && formBody.classList.contains('collapsed')) {
-                    formBody.classList.add('transitioning');
-                    formBody.classList.remove('collapsed');
-                    if (toggleBtn) toggleBtn.classList.remove('visible');
-                }
-            }, 600);
-        });
-    }
-
-     // 3. Hàm Áp dụng lọc
+    // 1. Logic Điều hướng & Lọc (Yêu cầu 1 của bạn)
     function handleApplyFilter() {
         const district = document.getElementById('sb-district').value;
         const type = document.getElementById('sb-type').value;
@@ -436,51 +264,89 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 
         const params = new URLSearchParams(window.location.search);
         
+        // Cập nhật params
         if (type !== 'all') params.set('type', type); else params.delete('type');
         if (price !== 'all') params.set('price', price); else params.delete('price');
         if (amenities.length > 0) params.set('amenities', amenities.join(',')); else params.delete('amenities');
-        params.delete('district');
+        
+        // --- LOGIC QUAN TRỌNG: CHUYỂN TRANG THEO QUẬN ---
+        // Xóa param district vì nó sẽ nằm trên đường dẫn
+        params.delete('district'); 
 
         let targetPath = '/';
         if (district !== 'all') {
-            const slug = district.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
-            targetPath = `/${slug}`;
+            // Chuyển tên quận thành slug (Ví dụ: Tân Bình -> tan-binh)
+            if (district === 'Tân Bình') targetPath = '/tan-binh';
+            else if (district === 'Phú Nhuận') targetPath = '/phu-nhuan';
+            else targetPath = '/' + district.toLowerCase().replace(/ /g, '-');
         }
 
-        // Chỉ chuyển trang, không ẩn filter box tại đây
-        const finalUrl = params.toString() ? `${targetPath}?${params.toString()}` : targetPath;
+        // Tạo URL đích
+        const queryString = params.toString();
+        const finalUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
+        
         window.location.href = finalUrl;
     }
 
-    // 4. Đóng/Mở bộ lọc
-    window.toggleFilterVisibility = function() {
-        const formBody = document.getElementById('filter-form-body');
-        const toggleBtn = document.getElementById('toggle-filter-btn-container');
+    // 2. Logic Hiển thị thanh lọc Mobile (Yêu cầu 3 của bạn)
+    function renderMobileActiveTags() {
+        const container = document.getElementById('filter-tags-container');
+        const bar = document.getElementById('mobile-filter-bar');
+        if (!container || !bar) return;
+
+        const params = new URLSearchParams(window.location.search);
+        let tagsHtml = '';
+        let hasFilter = false;
+
+        // Kiểm tra loại phòng
+        if(params.get('type') && params.get('type') !== 'all') { 
+            tagsHtml += `<span class="filter-tag">${params.get('type')}</span>`;
+            hasFilter = true; 
+        }
         
-        if (formBody && toggleBtn) {
-            // Bật transition khi user click
-            formBody.classList.add('transitioning');
-            
-            const isCollapsed = formBody.classList.contains('collapsed');
-            
-            if (isCollapsed) {
-                // Mở lại
-                formBody.classList.remove('collapsed');
-                toggleBtn.classList.remove('visible');
-            } else {
-                // Đóng lại
-                formBody.classList.add('collapsed');
-                toggleBtn.classList.add('visible');
-            }
+        // Kiểm tra giá
+        const p = params.get('price');
+        if (p && p !== 'all') {
+            let label = p === 'duoi-5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
+            tagsHtml += `<span class="filter-tag price-tag">${label}</span>`;
+            hasFilter = true;
+        }
+
+        // Kiểm tra tiện ích
+        const ams = params.get('amenities');
+        if(ams) {
+            ams.split(',').forEach(a => {
+                tagsHtml += `<span class="filter-tag">${a}</span>`;
+            });
+            hasFilter = true;
+        }
+
+        container.innerHTML = tagsHtml;
+        
+        // Nếu có filter thì hiện thanh bar, ngược lại ẩn
+        if (hasFilter && window.innerWidth < 992) {
+            bar.classList.add('is-visible');
+        } else {
+            bar.classList.remove('is-visible');
         }
     }
 
-    // 5. Reset Filter
+    // Các hàm phụ trợ khác (Collapse/Expand)
+    window.toggleFilterVisibility = function() {
+        const formBody = document.getElementById('filter-form-body');
+        const toggleBtn = document.getElementById('toggle-filter-btn-container');
+        if (formBody) {
+            formBody.classList.toggle('collapsed');
+            if (toggleBtn) toggleBtn.classList.toggle('visible');
+        }
+    }
+
     window.handleResetFilter = function() {
+        // Reset về trang hiện tại nhưng bỏ hết query params
         window.location.href = window.location.pathname;
     }
 
-     // 6. Khởi tạo
+    // Khởi chạy
     document.addEventListener('DOMContentLoaded', () => {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
@@ -490,17 +356,17 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         if (btnReset) btnReset.onclick = window.handleResetFilter;
         if (btnToggle) btnToggle.onclick = window.toggleFilterVisibility;
 
+        // Điền lại dữ liệu vào form từ URL
         const params = new URLSearchParams(window.location.search);
         
-        // Logic xác định quận hiện tại từ URL
+        // Xác định quận hiện tại dựa trên URL Path
         let currentPathDist = 'all';
         if (window.location.pathname.includes('tan-binh')) currentPathDist = 'Tân Bình';
         if (window.location.pathname.includes('phu-nhuan')) currentPathDist = 'Phú Nhuận';
         
-        // Điền dữ liệu vào Form
         const distEl = document.getElementById('sb-district');
-        if (distEl) distEl.value = params.get('district') || currentPathDist;
-        
+        if (distEl) distEl.value = currentPathDist;
+
         const typeEl = document.getElementById('sb-type');
         if (typeEl) typeEl.value = params.get('type') || 'all';
 
@@ -515,33 +381,15 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
-        // TỰ ĐỘNG THU GỌN NẾU CÓ FILTER (MOBILE ONLY)
-        // Chạy ngay khi DOMContentLoaded - trang đã load xong
-        const hasAnyFilter = (params.get('type') && params.get('type') !== 'all') || 
-                             (params.get('price') && params.get('price') !== 'all') || 
-                             (ams) || 
-                             (currentPathDist !== 'all');
-        
-        if (window.innerWidth < 992 && hasAnyFilter) {
+        // Render thanh mobile
+        renderMobileActiveTags();
+
+        // Tự động thu gọn filter form trên mobile nếu đang ở trang chi tiết quận
+        if (window.innerWidth < 992) {
             const formBody = document.getElementById('filter-form-body');
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
-            
-            if (formBody) {
-                // Bật transition khi ẩn
-                formBody.classList.add('transitioning');
-                // Thêm delay nhỏ để animation chạy sau khi element render
-                setTimeout(() => {
-                    formBody.classList.add('collapsed');
-                }, 50);
-            }
+            if (formBody) formBody.classList.add('collapsed');
             if (toggleBtn) toggleBtn.classList.add('visible');
         }
-
-        // Xóa sessionStorage vì không cần dùng nữa
-        sessionStorage.removeItem('filterCollapsed');
-
-        // Render tags & setup scroll logic
-        const hasFilter = renderMobileActiveTags();
-        setupMobileScrollLogic(hasFilter);
     });
 </script>

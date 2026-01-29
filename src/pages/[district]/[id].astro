@@ -45,16 +45,8 @@ if (!collageImage && images.length > 1) collageImage = images[1];
 const seoImage = (images.length > 0) ? images[0] : '/logo.png';
 
 // 4. CÁC HÀM TIỆN ÍCH
-function hideNumber(address) {
-    if (!address) return "";
-    return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
-}
+import { formatPrice, hideNumber } from '../../utils/helpers.js';
 const cleanAddress = hideNumber(room.address);
-
-function formatPrice(price) {
-    if (price >= 1000000) return (price / 1000000).toString() + " Triệu";
-    return new Intl.NumberFormat('vi-VN').format(price);
-}
 
 // Xử lý tiện ích (Keypoint)
 const keypointsList = room.keypoint 

@@ -50,13 +50,13 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
                         </select>
                     </div>
                     <div class="col-6">
-                        <select class="form-select form-select-sm" id="map-price">
-                            <option value="all">Mức giá: Tất cả</option>
-                            <option value="under5">Dưới 5 Triệu</option>
-                            <option value="5to7">5 - 7 Triệu</option>
-                            <option value="over7">Trên 7 Triệu</option>
-                        </select>
-                    </div>
+    <select class="form-select form-select-sm" id="map-price">
+        <option value="all">Mức giá: Tất cả</option>
+        <option value="duoi-5">Dưới 5 Triệu</option>
+        <option value="5to8">5 - 8 Triệu</option> 
+        <option value="over8">Trên 8 Triệu</option>
+    </select>
+</div>
 
                     <div class="col-12 mt-1">
                         <div class="row g-2" id="map-amenities">
@@ -114,26 +114,8 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
     white-space: normal;         /* Cho phép xuống dòng */
     line-height: 1.4;            /* Khoảng cách dòng cho dễ đọc */
 }
-    /* === COPY STYLE TỪ CARDROOM.ASTRO SANG ĐÂY === */
-    .room-card { transition: all 0.3s ease; }
-    .room-card:not(.rented-card):hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-    .rented-card { opacity: 0.85; }
-    
-    .room-title { font-size: 0.95rem; line-height: 1.4; }
-    .room-price { font-size: 1.1rem; }
-    .room-keypoint { font-size: 0.7rem; }
-    .room-code { font-size: 0.75rem; }
-    .room-district { font-size: 0.8rem; }
-    .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 
-    @media (max-width: 576px) {
-        .room-title { font-size: 0.8rem; margin-bottom: 4px; }
-        .room-price { font-size: 0.9rem; }
-        .room-keypoint { font-size: 0.65rem; }
-    }
-    @media(min-width: 768px) { .text-truncate-2 { -webkit-line-clamp: 2; } }
-
-    /* TÌM VÀ SỬA ĐOẠN CSS NÀY TRONG THẺ <style> */
+/* TÌM VÀ SỬA ĐOẠN CSS NÀY TRONG THẺ <style> */
 .btn-popup-yellow {
     background-color: #f1c40f !important; /* Vàng thương hiệu */
     color: #1a1a1a !important; /* Chữ đen */
@@ -222,7 +204,7 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
                     </div>
                     <div class="mb-1 mb-md-2">
                         <span class="fw-bold room-price ${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'}">
-                            ${priceText}/th
+                            ${priceText}/tháng
                         </span>
                     </div>
                     <div class="mb-2 mb-md-3 text-muted room-keypoint text-truncate-2">
@@ -230,7 +212,7 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
                     </div>
                     <div class="mt-auto">
                         <hr class="my-1 my-md-2 opacity-25">
-                        <div class="d-flex align-items-center text-muted fw-bold room-district">
+                        <div class="d-flex align-items-center text-muted room-district">
                             <i class="fas fa-map-marker-alt me-1 me-md-2 text-warning"></i> 
                             Quận ${room.district}
                         </div>
@@ -241,60 +223,103 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
     }
 
     // --- 2. LOGIC LỌC & SẮP XẾP ---
+    // --- 2. LOGIC LỌC & SẮP XẾP (ĐÃ ĐỒNG BỘ VỚI INDEX.ASTRO) ---
     function filterAndRender() {
+        // 1. Lấy giá trị từ UI
         const district = document.getElementById('map-district').value;
         const type = document.getElementById('map-type').value;
         const price = document.getElementById('map-price').value;
         const sortMode = document.getElementById('map-sort').value;
-        
+
         // Lấy danh sách tiện ích đã check
-        const amenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
+        // Lưu ý: value của checkbox trong HTML map-search đang là: 'ban công', 'cửa sổ', 'máy giặt', 'thang máy', 'pet'
+        const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
 
+        // Phân loại tiện ích giống logic index.astro
+        const specialGroup = ['ban công', 'cửa sổ'];
+        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+
+        // 2. Bắt đầu lọc
         let filtered = allRoomsData.filter(room => {
-            // 1. Lọc Khu vực
-            if (district !== 'all' && room.district !== district) return false;
-            
-            // 2. Lọc Loại phòng
-            if (type !== 'all' && room.type !== type) return false;
-            
-            // 3. Lọc Giá
-            const p = room.price;
-            if (price === 'under5' && p >= 5000000) return false;
-            if (price === '5to7' && (p < 5000000 || p >= 7000000)) return false;
-            if (price === 'over7' && p < 7000000) return false;
+            let matches = true;
 
-            // 4. Lọc Tiện ích (LOGIC MỚI: OR - HOẶC)
-            if (amenities.length > 0) {
-                const roomKey = (room.keypoint || "").toLowerCase();
-                
-                // --- SỬA Ở ĐÂY: Đổi .every() thành .some() ---
-                // .some() nghĩa là: Chỉ cần phòng thỏa mãn ÍT NHẤT 1 trong các ô đã check là lấy
-                const hasAny = amenities.some(am => roomKey.includes(am) || (am === 'pet' && room.pet));
-                
-                if (!hasAny) return false; // Nếu không có cái nào trùng khớp mới loại bỏ
+            // --- Lọc Khu vực ---
+            if (district !== 'all' && room.district !== district) matches = false;
+            
+            // --- Lọc Loại phòng ---
+            if (matches && type !== 'all' && room.type !== type) matches = false;
+            
+            // --- Lọc Giá (Đã sửa logic theo 5-8tr) ---
+            if (matches && price !== 'all') {
+                const p = room.price; // Giá gốc là số
+                if (price === 'duoi-5' && p >= 5000000) matches = false;
+                if (price === '5to8' && (p < 5000000 || p >= 8000000)) matches = false;
+                if (price === 'over8' && p < 8000000) matches = false;
             }
 
-            return true;
+            // --- Lọc Tiện ích (Logic chuẩn VÀ + Nhóm View) ---
+            if (matches && fAmenities.length > 0) {
+                const keypoints = (room.keypoint || "").toLowerCase();
+                const petAllowed = room.pet === true; // Data gốc có trường boolean pet
+
+                // 1. Kiểm tra nhóm thường (Logic AND: Phải có TẤT CẢ)
+                for (let ami of selectedNormal) {
+                    if (!ami) continue;
+                    
+                    if (ami === 'pet' || ami === 'nuôi pet') {
+                        // Check pet kỹ: xem field pet hoặc tìm text trong keypoint
+                        const hasPetText = keypoints.includes('pet') || keypoints.includes('thú cưng');
+                        if (!hasPetText && !petAllowed) { 
+                            matches = false; 
+                            break; 
+                        }
+                    } else {
+                        // Các tiện ích khác: máy giặt, thang máy...
+                        if (!keypoints.includes(ami)) { 
+                            matches = false; 
+                            break; 
+                        }
+                    }
+                }
+
+                // 2. Kiểm tra nhóm đặc biệt (Logic OR: Có ít nhất 1 trong nhóm Ban công/Cửa sổ)
+                // Chỉ chạy check này nếu user có chọn ít nhất 1 cái trong nhóm special
+                if (matches && selectedSpecial.length > 0) {
+                    let hasAtLeastOne = false;
+                    if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                    if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                    
+                    if (!hasAtLeastOne) matches = false;
+                }
+            }
+
+            return matches;
         });
 
-        // Sắp xếp (Giữ nguyên logic cũ)
+        // 3. Sắp xếp (Giữ nguyên logic cũ)
         filtered.sort((a, b) => {
+            // Ưu tiên phòng còn trống lên đầu
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             
             if (sortMode === 'price-asc') return a.price - b.price;
             else if (sortMode === 'price-desc') return b.price - a.price;
 
+            // Mặc định: Ưu tiên có ảnh
             const aImg = (a.image_detail && a.image_detail.length > 0) ? 1 : 0;
             const bImg = (b.image_detail && b.image_detail.length > 0) ? 1 : 0;
             return bImg - aImg;
         });
 
+        // 4. Phân trang & Render lại
         const activeRooms = filtered.filter(r => r.status === 'active');
         let rentedRooms = filtered.filter(r => r.status === 'rented');
-        if (rentedRooms.length > 9) rentedRooms = rentedRooms.slice(0, 9);
+        
+        // Giới hạn phòng đã thuê hiển thị max 10 căn để không làm rác bản đồ
+        if (rentedRooms.length > 10) rentedRooms = rentedRooms.slice(0, 10);
         
         currentFiltered = [...activeRooms, ...rentedRooms];
-        visibleCount = 6;
+        visibleCount = 6; // Reset số lượng hiển thị khi lọc lại
         
         renderListDOM();
         renderMapMarkers();

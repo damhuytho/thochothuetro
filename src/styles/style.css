@@ -520,7 +520,33 @@ ul { padding-left: 0; list-style: none; }
     font-size: 0.7rem;
     color: #ccc;
 }
+<style>
+    /* Hiệu ứng hover chỉ khi CHƯA thuê */
+    .room-card:not(.rented-card):hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transition: all 0.3s ease; }
+    
+    /* Card đã thuê thì mờ đi chút */
+    .rented-card { opacity: 0.85; pointer-events: none; } /* Có thể bỏ pointer-events nếu vẫn muốn cho khách click vào xem */
+    .rented-card .stretched-link { pointer-events: auto; } /* Vẫn cho click để xem chi tiết */
 
+    .room-title { font-size: 1rem; line-height: 1.4; }
+    .room-price { font-size: 1.1rem; }
+    .room-keypoint { font-size: 0.75rem; }
+    .room-code { font-size: 0.75rem; }
+    .room-district { font-size: 0.75rem; }
+    .badge-promo { font-size: 0.75rem; }
+
+    @media (max-width: 576px) {
+        .room-title { font-size: 0.9rem; margin-bottom: 4px; }
+        .room-price { font-size: 0.95rem; }
+        .room-keypoint { font-size: 0.75rem; }
+        .room-code { font-size: 0.65rem; }
+        .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
+        .room-district { font-size: 0.75rem; }
+    }
+    
+    .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    @media(min-width: 768px) { .text-truncate-2 { -webkit-line-clamp: 3; } }
+</style>
 
 
 
