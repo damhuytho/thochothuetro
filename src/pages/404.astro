@@ -1,0 +1,218 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CommitmentFooter from '../components/CommitmentFooter.astro';
+
+const pageTitle = "404 - Trang không tồn tại | Thọ Cho Thuê Trọ";
+const pageDesc = "Trang bạn tìm kiếm không tồn tại. Hãy quay lại trang chủ để tìm phòng ưng ý.";
+---
+
+<Layout title={pageTitle} description={pageDesc}>
+    <div class="error-page-wrapper flex-grow-1 d-flex align-items-center position-relative overflow-hidden">
+        
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+
+        <div class="container position-relative z-2 py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    
+                    <div class="error-number-container mb-2">
+                        <h1 class="display-1 fw-bold error-text">404</h1>
+                    </div>
+
+                    <h2 class="h4 fw-bold text-dark text-uppercase mb-3" style="letter-spacing: 2px;">
+                        Không tìm thấy trang này
+                    </h2>
+                    
+                    <p class="text-secondary mb-5 fs-6 px-md-5" style="line-height: 1.8;">
+                        Có vẻ như đường dẫn bạn truy cập đã bị thay đổi hoặc căn phòng này đã được thuê. <br class="d-none d-md-block">
+                        Đừng lo lắng, chúng tôi còn rất nhiều phòng đẹp đang chờ bạn.
+                    </p>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-5">
+                        <a href="/" class="btn btn-gold px-5 py-3 rounded-pill fw-bold shadow-gold text-white text-uppercase">
+                            <i class="fas fa-home me-2"></i> Về Trang Chủ
+                        </a>
+                        <a href="tel:0925996992" class="btn btn-outline-dark px-5 py-3 rounded-pill fw-bold text-uppercase hover-gold">
+                            <i class="fas fa-phone-alt me-2"></i> 0925 996 992
+                        </a>
+                    </div>
+
+                    <div class="divider-custom my-5">
+                        <span class="divider-text text-muted small bg-transparent text-uppercase">Hoặc khám phá ngay</span>
+                    </div>
+
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-md-5 col-6">
+                            <a href="/tan-binh" class="district-card text-decoration-none">
+                                <div class="card-body py-4 px-3 text-center border rounded-4 bg-white shadow-sm h-100 position-relative overflow-hidden">
+                                    <div class="icon-box mb-3 mx-auto">
+                                        <i class="fas fa-plane-departure fs-4 text-white"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark mb-1">Tân Bình</h5>
+                                    <span class="small text-muted">Khu vực sân bay & tiện ích</span>
+                                    <div class="hover-overlay"></div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-5 col-6">
+                            <a href="/phu-nhuan" class="district-card text-decoration-none">
+                                <div class="card-body py-4 px-3 text-center border rounded-4 bg-white shadow-sm h-100 position-relative overflow-hidden">
+                                    <div class="icon-box mb-3 mx-auto">
+                                        <i class="fas fa-leaf fs-4 text-white"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark mb-1">Phú Nhuận</h5>
+                                    <span class="small text-muted">Trung tâm & yên tĩnh</span>
+                                    <div class="hover-overlay"></div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <CommitmentFooter />
+</Layout>
+
+<style>
+    /* 1. NỀN & HIỆU ỨNG BLUR */
+    .error-page-wrapper {
+        background-color: #fcfcfc; /* Màu nền trắng xám rất nhẹ */
+        min-height: 70vh;
+    }
+    
+    .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        z-index: 1;
+        animation: floatBlob 10s infinite alternate ease-in-out;
+    }
+    .blob-1 {
+        top: -10%;
+        left: -10%;
+        width: 300px;
+        height: 300px;
+        background: #fceda6; /* Vàng nhạt */
+    }
+    .blob-2 {
+        bottom: -10%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: #fdf5d3; /* Vàng kem */
+    }
+
+    /* 2. SỐ 404 MẠ VÀNG (GOLD GRADIENT TEXT) */
+    .error-text {
+        font-size: 10rem;
+        line-height: 1;
+        /* Tạo gradient vàng kim loại */
+        background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        
+        /* Animation lơ lửng */
+        animation: floating 3s ease-in-out infinite;
+        position: relative;
+    }
+
+    /* Responsive font size */
+    @media (max-width: 768px) {
+        .error-text { font-size: 6rem; }
+    }
+
+    /* 3. BUTTON CUSTOM */
+    .btn-gold {
+        background: linear-gradient(90deg, #d9b205, #eecda3);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(217, 178, 5, 0.3); /* Bóng vàng */
+        background: linear-gradient(90deg, #cfaa04, #d9b205);
+        color: #fff !important;
+    }
+
+    .btn-outline-dark {
+        border-width: 2px;
+        transition: all 0.3s;
+    }
+    .btn-outline-dark:hover {
+        background-color: #333;
+        color: #d9b205; /* Chữ chuyển sang vàng khi hover nền đen */
+        transform: translateY(-2px);
+    }
+
+    /* 4. DISTRICT CARDS (LUXURY STYLE) */
+    .district-card .card-body {
+        transition: all 0.3s ease;
+        border-color: #eee !important;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px); /* Hiệu ứng kính */
+    }
+
+    .district-card .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d9b205, #b38728);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(217, 178, 5, 0.3);
+        transition: transform 0.3s;
+    }
+
+    .district-card:hover .card-body {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        border-color: #d9b205 !important;
+    }
+    
+    .district-card:hover .icon-box {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* 5. DIVIDER */
+    .divider-custom {
+        position: relative;
+        text-align: center;
+    }
+    .divider-custom::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 20%;
+        right: 20%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+        z-index: 1;
+    }
+    .divider-text {
+        background: #fcfcfc; /* Trùng màu nền */
+        padding: 0 15px;
+        position: relative;
+        z-index: 2;
+        letter-spacing: 1px;
+    }
+
+    /* KEYFRAMES */
+    @keyframes floating {
+        0% { transform: translate(0, 0px); }
+        50% { transform: translate(0, 15px); }
+        100% { transform: translate(0, -0px); }
+    }
+    @keyframes floatBlob {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(20px, 20px) scale(1.1); }
+    }
+</style>

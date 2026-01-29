@@ -190,10 +190,12 @@ main {
         }
         footer a {
             text-decoration: none;
-            color: #adb5bd;
+            color: #e0e0e0;  /* <-- Đã đổi từ #adb5bd sang #e0e0e0 cho sáng hơn */
             transition: color 0.2s;
         }
-        footer a:hover { color: var(--warning-color); }
+        footer a:hover { 
+            color: var(--warning-color) !important; /* Thêm !important để chắc chắn đổi màu khi hover */
+        }
         .footer-logo {
             width: 70px; height: 70px;
             object-fit: cover;
@@ -267,17 +269,31 @@ main {
                         <img src="/logo.png" alt="Logo Footer" class="footer-logo">
                         <div>
                             <h5 class="mb-1 text-warning">THỌ CHO THUÊ TRỌ</h5>
-                            <span class="badge bg-secondary text-white fw-normal">Hệ thống phòng trọ tiện nghi</span>
+                            <span class="badge bg-light text-dark fw-bold">Hệ thống phòng trọ tiện nghi</span>
                         </div>
                     </div>
-                    <p class="text-secondary small mb-4" style="line-height: 1.6;">
-                        Chúng tôi cam kết mang đến không gian sống an ninh, sạch sẽ và tiện nghi tại Tân Bình & Phú Nhuận. Hình ảnh thực tế 100%, giá cả minh bạch, hỗ trợ xem phòng hoàn toàn miễn phí.
+                    
+                    <p class="text-light small mb-4" style="line-height: 1.6; opacity: 0.9;">
+                        Chúng tôi cam kết mang đến không gian sống an ninh, sạch sẽ và tiện nghi tại Tân Bình & Phú Nhuận.
+                        Hình ảnh thực tế 100%, giá cả minh bạch, hỗ trợ xem phòng hoàn toàn miễn phí.
                     </p>
+
                     <div class="d-flex">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                        <a href="https://zalo.me/0925996992" class="social-link"><i class="fas fa-comment-dots"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" class="social-link" title="Theo dõi trên Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        
+                        <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" class="social-link" title="Xem video trên TikTok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        
+                        <a href="https://www.youtube.com/@thochothuetro" target="_blank" class="social-link" title="Đăng ký kênh YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        
+                        <a href="https://zalo.me/0925996992" target="_blank" class="social-link" title="Chat Zalo ngay">
+                            <i class="fas fa-comment-dots"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -296,13 +312,13 @@ main {
                     <ul class="list-unstyled">
                         <li class="mb-3 d-flex">
                             <i class="fas fa-map-marker-alt text-warning mt-1 me-3"></i>
-                            <span class="text-secondary">Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.HCM</span>
+                            <span class="text-white">Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.HCM</span>
                         </li>
                         <li class="mb-3 d-flex">
                             <i class="fas fa-phone-alt text-warning mt-1 me-3"></i>
                             <div>
                                 <a href="tel:0925996992" class="d-block text-white fw-bold">0925 996 992</a>
-                                <span class="small text-secondary">(Zalo / Call / SMS)</span>
+                                <span class="small text-white-50">(Zalo / Call / SMS)</span>
                             </div>
                         </li>
                     </ul>
@@ -310,8 +326,9 @@ main {
             </div>
 
             <div class="border-top border-secondary mt-5 pt-4 text-center">
-                <p class="small text-secondary mb-0">
-                    &copy; {new Date().getFullYear()} <strong>Thọ Cho Thuê Trọ</strong>. All rights reserved. <br class="d-lg-none">
+                <p class="small text-white-50 mb-0">
+                    &copy; {new Date().getFullYear()} <strong>Thọ Cho Thuê Trọ</strong>.
+                    All rights reserved. <br class="d-lg-none">
                     Designed for your comfort.
                 </p>
             </div>
