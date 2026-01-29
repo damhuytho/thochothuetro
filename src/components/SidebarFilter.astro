@@ -1,5 +1,4 @@
 ---
-// src/components/SidebarFilter.astro
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -14,7 +13,7 @@ try {
     uniqueDistricts = ["Tân Bình", "Phú Nhuận"]; 
 }
 
-// 2. DANH SÁCH CỐ ĐỊNH
+// 2. CONFIG DATA
 const listTypes = ["Studio", "1PN", "2PN", "3PN", "Duplex", "Nguyên căn"];
 const listPrices = [
     { label: "Dưới 5 triệu", value: "duoi-5" },
@@ -23,7 +22,7 @@ const listPrices = [
 ];
 const listAmenities = ["ban công", "cửa sổ", "tách bếp", "nuôi pet", "máy giặt riêng", "thang máy"];
 
-// 3. LẤY PARAMS HIỆN TẠI
+// 3. GET CURRENT PARAMS
 const { searchParams } = Astro.url;
 const currentDist = searchParams.get('district') || 'all';
 const currentType = searchParams.get('type') || 'all';
@@ -33,26 +32,24 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 
 <div id="mobile-filter-bar" class="mobile-filter-bar d-lg-none">
     <div class="container d-flex align-items-center h-100 px-3">
-        <div class="filter-status-wrapper d-flex align-items-center flex-grow-1 overflow-hidden">
-            <div class="filter-icon-box me-2">
-                <i class="fas fa-sliders-h"></i>
+        
+        <div class="filter-tags-scroll" id="filter-tags-container">
             </div>
-            <div class="filter-tags-scroll" id="filter-tags-container"></div>
-        </div>
-        <button type="button" class="btn-clear-filter" onclick="handleResetFilter()">
-            <i class="fas fa-redo-alt me-1"></i> <span>Xóa</span>
+
+        <button type="button" class="btn-reset-mobile ms-2" id="btn-clear-mobile">
+            <i class="fas fa-redo-alt"></i>
         </button>
     </div>
 </div>
 
 <div class="sidebar-sticky-wrapper" id="sidebar-wrapper">
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+        
         <div class="card-header text-dark fw-bold text-uppercase py-2 d-flex align-items-center" 
              style="background-color: #f1c40f; border-bottom: 1px solid #e0b40a;">
             <i class="fas fa-filter me-2"></i> TÌM KIẾM
         </div>
 
-        <!-- FORM BODY - CÓ ID ĐỂ ẨNHIỂN -->
         <div class="card-body p-3 bg-white" id="filter-form-body">
             <form id="astro-filter-form">
                 
@@ -113,37 +110,45 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             </form>
         </div>
 
-        <!-- NÚT TOGGLE FILTER (ẨN KHI EXPANDED) -->
-        <div id="toggle-filter-btn-container" class="p-3 bg-white">
-    <button type="button" id="btn-toggle-filter" class="btn btn-warning w-100 fw-bold text-dark shadow-sm py-2">
-        <i class="fas fa-chevron-down me-2"></i> HIỂN THỊ BỘ LỌC
-    </button>
-</div>
+        <div id="toggle-filter-btn-container" class="p-3 bg-white border-top">
+            <button type="button" id="btn-toggle-filter" class="btn bg-white border border-dark w-100 fw-bold text-dark shadow-sm py-2">
+                <i class="fas fa-chevron-down me-2"></i> HIỂN THỊ BỘ LỌC
+            </button>
+        </div>
     </div>
 </div>
 
-<style>
-    /* --- CSS MOBILE FILTER BAR (THANH LỌC NGANG TRÊN CÙNG) --- */
+<style is:global>
+    /* --- 1. CSS MOBILE ACTIVE BAR (Thanh kết quả lọc) --- */
     .mobile-filter-bar {
         position: fixed;
-        top: 0; 
-        left: 0;
-        width: 100%;
+        top: 0; left: 0; width: 100%;
+        /* Thay đổi quan trọng: Chiều cao tự động */
+        height: auto; 
+        min-height: 60px; 
+        
         background: #fff;
-        z-index: 2000; /* Cao hơn Navbar */
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        padding: 8px 15px;
-        display: none; /* Mặc định ẩn, hiện bằng JS */
+        z-index: 2000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         border-bottom: 1px solid #eee;
-        height: 60px; /* Chiều cao cố định */
+        cursor: pointer;
+        
+        /* Căn giữa nội dung theo chiều dọc */
+        display: none; 
+        padding: 8px 0; /* Thêm đệm trên dưới */
     }
 
-    /* Khi active thì hiện flex */
     .mobile-filter-bar.is-visible {
-        display: flex !important;
-        align-items: center;
-        justify-content: space-between;
+        display: block !important;
         animation: slideDown 0.3s ease-out;
+    }
+
+    /* Khi hiển thị thì dùng flex để căn chỉnh */
+    .mobile-filter-bar .container {
+        display: flex;
+        align-items: flex-start; /* Căn lề trên để nút reset không bị chạy lung tung */
+        justify-content: space-between;
+        height: 100%;
     }
 
     @keyframes slideDown {
@@ -154,104 +159,98 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
     .filter-tags-scroll {
         flex: 1;
         display: flex;
-        overflow-x: auto; /* Cuộn ngang */
-        white-space: nowrap;
-        gap: 8px;
-        margin-right: 10px;
-        padding-bottom: 2px;
-        -webkit-overflow-scrolling: touch;
-        /* Ẩn scrollbar */
-        scrollbar-width: none; 
+        
+        /* Thay đổi quan trọng: Cho phép xuống dòng */
+        flex-wrap: wrap; 
+        white-space: normal; 
+        
+        align-items: center;
+        gap: 8px; /* Khoảng cách giữa các thẻ cả ngang và dọc */
+        padding-right: 10px;
     }
+
+    /* Ẩn thanh cuộn vì giờ đã xuống dòng */
     .filter-tags-scroll::-webkit-scrollbar { display: none; }
 
-    .filter-tag {
+    /* --- STYLE CHO CÁC THẺ TAG --- */
+    .active-tag {
         display: inline-flex;
         align-items: center;
-        background: #f8f9fa;
+        background: #fff;
         color: #333;
-        border: 1px solid #ddd;
-        border-radius: 50px; /* Bo tròn viên thuốc */
-        padding: 4px 12px;
-        font-size: 0.75rem;
+        padding: 6px 12px;
+        font-size: 0.8rem;
         font-weight: 600;
-        flex-shrink: 0; /* Không bị co lại */
-    }
-
-    /* Tag giá màu nổi bật */
-    .filter-tag.price-tag {
-        background: #fff3cd;
-        color: #856404;
-        border-color: #ffeeba;
-    }
-
-    .btn-clear-filter {
-        background: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 5px 12px;
-        font-size: 0.75rem;
-        font-weight: 700;
+        border-radius: 6px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #e0e0e0;
         flex-shrink: 0;
-        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+        height: 32px;
+        margin-bottom: 4px; /* Khoảng cách phụ khi xuống dòng */
+    }
+    
+    /* Code màu phân loại thẻ */
+    .tag-type { border-left: 4px solid #3498db; } 
+    .tag-price { border-left: 4px solid #f1c40f; background-color: #fffcf5; } 
+    .tag-amenity { border-left: 4px solid #2ecc71; } 
+
+    .btn-reset-mobile {
+        width: 34px; height: 34px;
+        background: #f8f9fa;
+        color: #e74c3c;
+        border: 1px solid #e0e0e0;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-top: 2px; /* Căn chỉnh nhẹ cho thẳng hàng với dòng đầu tiên */
     }
 
-    /* --- GIỮ NGUYÊN CSS DESKTOP CŨ --- */
+    /* --- 2. CSS FORM & SIDEBAR (GIỮ NGUYÊN KHÔNG ĐỔI) --- */
     .sidebar-sticky-wrapper {
         position: -webkit-sticky;
         position: sticky;
         top: 80px;
         z-index: 90;
-        height: fit-content;
-        max-height: calc(100vh - 120px);
-        overflow-y: auto;
     }
-    .col-lg-3 { overflow: visible !important; }
+
+    #filter-form-body { 
+        opacity: 1; 
+        max-height: 1500px;
+        overflow: hidden; 
+        transition: all 0.4s ease-in-out;
+    }
+    
+    #filter-form-body.collapsed { 
+        opacity: 0; 
+        max-height: 0; 
+        padding-top: 0 !important; padding-bottom: 0 !important;
+        pointer-events: none; 
+    }
+
+    #toggle-filter-btn-container { display: none; }
+    #toggle-filter-btn-container.visible { display: block !important; }
+
     .filter-label { font-weight: 700; font-size: 0.75rem; color: #666; margin-bottom: 4px; text-transform: uppercase; }
     .custom-select { border: 1px solid #f1c40f !important; font-size: 0.85rem; cursor: pointer; }
     .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 0.95rem; margin-bottom: 3px; }
     .custom-check input { display: none; }
-    .checkmark { height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .checkmark { 
+        height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; 
+        border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
     .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
     .custom-check input:checked ~ .checkmark:after { content: '\2713'; color: #212529; font-size: 11px; font-weight: bold; }
-    
-    /* Ẩn form mặc định trên mobile để cho gọn */
-    #filter-form-body { 
-        opacity: 1; 
-        max-height: 1000px; 
-        overflow: hidden; 
-        transition: all 0.3s ease; 
-    }
-    
-    /* Khi có class collapsed thì ẩn form đi */
-    #filter-form-body.collapsed { 
-        opacity: 0; 
-        max-height: 0; 
-        padding: 0 !important; 
-        pointer-events: none; 
-    }
 
-    /* Mặc định ẨN nút toggle (để desktop không thấy) */
-    #toggle-filter-btn-container { 
-        display: none; 
-    }
-
-    /* Chỉ hiện nút toggle khi có class visible (Mobile sẽ thêm class này bằng JS) */
-    #toggle-filter-btn-container.visible { 
-        display: block !important; 
-        padding: 10px 15px !important;
-    }
-
-    /* Desktop: Luôn hiện form, luôn ẩn nút toggle */
     @media (min-width: 992px) {
         #filter-form-body { display: block !important; opacity: 1 !important; max-height: none !important; }
         #toggle-filter-btn-container { display: none !important; }
+        .mobile-filter-bar { display: none !important; }
     }
 </style>
 
 <script is:inline>
-    // 1. Logic Điều hướng & Lọc (Yêu cầu 1 của bạn)
+    // --- 1. XỬ LÝ LỌC & CHUYỂN TRANG ---
     function handleApplyFilter() {
         const district = document.getElementById('sb-district').value;
         const type = document.getElementById('sb-type').value;
@@ -268,98 +267,125 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         if (type !== 'all') params.set('type', type); else params.delete('type');
         if (price !== 'all') params.set('price', price); else params.delete('price');
         if (amenities.length > 0) params.set('amenities', amenities.join(',')); else params.delete('amenities');
-        
-        // --- LOGIC QUAN TRỌNG: CHUYỂN TRANG THEO QUẬN ---
-        // Xóa param district vì nó sẽ nằm trên đường dẫn
-        params.delete('district'); 
 
+        // Logic giữ Routing theo Quận
+        params.delete('district'); 
         let targetPath = '/';
+        
         if (district !== 'all') {
-            // Chuyển tên quận thành slug (Ví dụ: Tân Bình -> tan-binh)
             if (district === 'Tân Bình') targetPath = '/tan-binh';
             else if (district === 'Phú Nhuận') targetPath = '/phu-nhuan';
             else targetPath = '/' + district.toLowerCase().replace(/ /g, '-');
         }
 
-        // Tạo URL đích
         const queryString = params.toString();
         const finalUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
-        
         window.location.href = finalUrl;
     }
 
-    // 2. Logic Hiển thị thanh lọc Mobile (Yêu cầu 3 của bạn)
+    // --- 2. XỬ LÝ HIỂN THỊ TAGS TRÊN MOBILE ---
     function renderMobileActiveTags() {
         const container = document.getElementById('filter-tags-container');
         const bar = document.getElementById('mobile-filter-bar');
+        
         if (!container || !bar) return;
 
         const params = new URLSearchParams(window.location.search);
         let tagsHtml = '';
         let hasFilter = false;
 
-        // Kiểm tra loại phòng
+        // Tag Loại phòng (Màu xanh)
         if(params.get('type') && params.get('type') !== 'all') { 
-            tagsHtml += `<span class="filter-tag">${params.get('type')}</span>`;
-            hasFilter = true; 
-        }
+    tagsHtml += `<span class="active-tag tag-type">${params.get('type')}</span>`;
+    hasFilter = true; 
+}
         
-        // Kiểm tra giá
-        const p = params.get('price');
-        if (p && p !== 'all') {
-            let label = p === 'duoi-5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
-            tagsHtml += `<span class="filter-tag price-tag">${label}</span>`;
-            hasFilter = true;
-        }
+        // Tag Giá (Màu vàng)
+const p = params.get('price');
+if (p && p !== 'all') {
+    let label = p === 'duoi-5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
+    tagsHtml += `<span class="active-tag tag-price">${label}</span>`;
+    hasFilter = true;
+}
 
-        // Kiểm tra tiện ích
-        const ams = params.get('amenities');
-        if(ams) {
-            ams.split(',').forEach(a => {
-                tagsHtml += `<span class="filter-tag">${a}</span>`;
-            });
-            hasFilter = true;
-        }
+        // Tag Tiện ích (Màu xám)
+const ams = params.get('amenities');
+if(ams) {
+    ams.split(',').forEach(a => {
+        tagsHtml += `<span class="active-tag tag-amenity">${a}</span>`;
+    });
+    hasFilter = true;
+}
 
         container.innerHTML = tagsHtml;
-        
-        // Nếu có filter thì hiện thanh bar, ngược lại ẩn
-        if (hasFilter && window.innerWidth < 992) {
-            bar.classList.add('is-visible');
-        } else {
-            bar.classList.remove('is-visible');
+
+        // LOGIC ẨN/HIỆN BAR (YÊU CẦU 1)
+        if (window.innerWidth < 992) {
+            if (hasFilter) {
+                bar.classList.add('is-visible'); // Có lọc -> Hiện bar
+            } else {
+                bar.classList.remove('is-visible'); // Không lọc -> Ẩn bar hoàn toàn
+            }
         }
     }
 
-    // Các hàm phụ trợ khác (Collapse/Expand)
-    window.toggleFilterVisibility = function() {
+    // --- 3. CÁC HÀM TIỆN ÍCH KHÁC ---
+    window.expandFilter = function() {
         const formBody = document.getElementById('filter-form-body');
         const toggleBtn = document.getElementById('toggle-filter-btn-container');
         if (formBody) {
-            formBody.classList.toggle('collapsed');
-            if (toggleBtn) toggleBtn.classList.toggle('visible');
+            formBody.classList.remove('collapsed');
+            // Mở rồi thì ẩn nút toggle để không chiếm chỗ
+            if (toggleBtn) toggleBtn.classList.remove('visible'); 
         }
     }
 
-    window.handleResetFilter = function() {
-        // Reset về trang hiện tại nhưng bỏ hết query params
+    window.toggleFilterVisibility = function() {
+        const formBody = document.getElementById('filter-form-body');
+        if (formBody) {
+            if (formBody.classList.contains('collapsed')) {
+                window.expandFilter();
+            } else {
+                formBody.classList.add('collapsed');
+                // Khi đóng lại thì hiện nút toggle lên
+                const toggleBtn = document.getElementById('toggle-filter-btn-container');
+                if (toggleBtn) toggleBtn.classList.add('visible');
+            }
+        }
+    }
+
+    window.handleResetFilter = function(e) {
+        if(e) e.stopPropagation();
         window.location.href = window.location.pathname;
     }
 
-    // Khởi chạy
+    // --- MAIN EXECUTION ---
     document.addEventListener('DOMContentLoaded', () => {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
+        const btnClearMobile = document.getElementById('btn-clear-mobile');
         const btnToggle = document.getElementById('btn-toggle-filter');
+        const mobileBar = document.getElementById('mobile-filter-bar');
         
         if (btnApply) btnApply.onclick = handleApplyFilter;
         if (btnReset) btnReset.onclick = window.handleResetFilter;
-        if (btnToggle) btnToggle.onclick = window.toggleFilterVisibility;
+        if (btnClearMobile) btnClearMobile.onclick = window.handleResetFilter;
+        if (btnToggle) btnToggle.onclick = window.expandFilter;
 
-        // Điền lại dữ liệu vào form từ URL
+        // CLICK BAR -> SCROLL & OPEN FILTER
+        if (mobileBar) {
+            mobileBar.addEventListener('click', (e) => {
+                if (e.target.closest('#btn-clear-mobile')) return;
+                const sidebar = document.getElementById('sidebar-wrapper');
+                if(sidebar) {
+                    sidebar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    window.expandFilter();
+                }
+            });
+        }
+
+        // FILL FORM DATA
         const params = new URLSearchParams(window.location.search);
-        
-        // Xác định quận hiện tại dựa trên URL Path
         let currentPathDist = 'all';
         if (window.location.pathname.includes('tan-binh')) currentPathDist = 'Tân Bình';
         if (window.location.pathname.includes('phu-nhuan')) currentPathDist = 'Phú Nhuận';
@@ -381,15 +407,23 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
-        // Render thanh mobile
         renderMobileActiveTags();
 
-        // Tự động thu gọn filter form trên mobile nếu đang ở trang chi tiết quận
+        // LOGIC KHỞI TẠO TRẠNG THÁI FORM
         if (window.innerWidth < 992) {
             const formBody = document.getElementById('filter-form-body');
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
-            if (formBody) formBody.classList.add('collapsed');
-            if (toggleBtn) toggleBtn.classList.add('visible');
+            const hasFilterParams = params.toString().length > 0;
+
+            if (hasFilterParams) {
+                // Đang lọc -> Thu gọn Form
+                if (formBody) formBody.classList.add('collapsed');
+                if (toggleBtn) toggleBtn.classList.add('visible');
+            } else {
+                // Chưa lọc -> MỞ FULL Form
+                if (formBody) formBody.classList.remove('collapsed');
+                if (toggleBtn) toggleBtn.classList.remove('visible');
+            }
         }
     });
 </script>
