@@ -372,5 +372,18 @@ main {
             }
         });
     </script>
+<script is:inline>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW đã đăng ký thành công:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW đăng ký thất bại:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
