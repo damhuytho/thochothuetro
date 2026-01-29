@@ -384,5 +384,19 @@ main {
             });
         }
     </script>
+    <script is:inline>
+      // Delay Google Analytics 3.5 giây để ưu tiên hiển thị nội dung trước
+      setTimeout(function() {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=G-RG0S5V71ZQ";
+          document.head.appendChild(script);
+
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-RG0S5V71ZQ');
+      }, 3500);
+    </script>
 </body>
 </html>

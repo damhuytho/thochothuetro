@@ -71,7 +71,7 @@ if (room.video) {
 
 // --- [SEO MỚI] TỐI ƯU META DATA ---
 // Title có từ khóa mạnh: Cho thuê + Loại + Địa chỉ + Đặc điểm
-const pageTitle = `Cho thuê ${room.type} ${cleanAddress}, ${room.district} - ${formatPrice(room.price)}`;
+const pageTitle = `Cho thuê ${room.type} ${cleanAddress} - ${formatPrice(room.price)}`;
 // Description đưa giá và tiện ích lên đầu
 const pageDesc = `Phòng trọ ${room.district} giá ${formatPrice(room.price)}. ${room.keypoint || 'Full nội thất, giờ giấc tự do'}. Địa chỉ: ${cleanAddress}. Liên hệ chính chủ Thọ: 0925 996 992.`;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
