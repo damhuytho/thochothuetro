@@ -142,46 +142,49 @@ const schemaBreadcrumb = {
         </div>
     </div>
 
-    <div class="container pb-5 detail-container-standard">
+<div class="container pb-5 detail-container-standard">
         <div class="row g-4">
             
             <div class="col-lg-8">
                 
-                <div class="mb-4 bg-light rounded-3 overflow-hidden position-relative border shadow-sm">
-                    {images.length > 0 ? (
-                        // Thay thế dòng 281 đến 286 bằng đoạn này
-<div id="gallery-container" class="position-relative bg-light rounded overflow-hidden" 
-     style="aspect-ratio: 4/3; contain-intrinsic-size: 800px 600px; content-visibility: auto;">
-    {images[0] && (
-        <img 
-            src={images[0]} 
-            id="main-image" 
-            class="w-100 h-100 d-block position-absolute top-0 start-0" 
-            style="object-fit: contain; background: #000;" 
-            alt={pageTitle}
-            fetchpriority="high" 
-            loading="eager" 
-            decoding="sync"
-            width="800" 
-            height="600"
-        />
-    )}
-    </div>
-    
-    <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar position-absolute bottom-0 start-0 w-100" style="z-index: 2;">
-            {images.map((img, index) => (
-                <img src={img} 
-                     class={`rounded border cursor-pointer gallery-thumb ${index===0?'active':''}`} 
-                     style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
-                     onclick="changeImage(this.src, this)"
-                     loading="lazy" decoding="async"
-                     width="80" height="60"
-                     alt={`${room.type} ${cleanAddress} - Ảnh ${index + 1}`} />
-        ))}
-    </div>
-</div>
+                <div class="mb-4 bg-white rounded-3 overflow-hidden border shadow-sm">
+                    {images && images.length > 0 ? (
+                        <div class="gallery-wrapper">
+                            {/* Ảnh chính lớn nhất - Tỷ lệ 4:3 */}
+                            <div id="gallery-main-frame" class="position-relative bg-dark" 
+                                 style="aspect-ratio: 4/3; width: 100%; overflow: hidden;">
+                                <img 
+                                    src={images[0]} 
+                                    id="main-image" 
+                                    class="w-100 h-100 d-block" 
+                                    style="object-fit: contain;" 
+                                    alt={pageTitle}
+                                    fetchpriority="high" 
+                                    loading="eager" 
+                                    decoding="sync"
+                                />
+                            </div>
+                            
+                            {/* Thanh ảnh nhỏ nằm bên dưới ảnh chính */}
+                            <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar" 
+                                 style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
+                                {images.map((img, index) => (
+                                    <img 
+                                        src={img} 
+                                        class={index === 0 ? "rounded border cursor-pointer gallery-thumb active" : "rounded border cursor-pointer gallery-thumb"} 
+                                        style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
+                                        onclick={`changeImage('${img}', this)`}
+                                        loading="lazy" 
+                                        decoding="async"
+                                        width="80" 
+                                        height="60"
+                                        alt={`Ảnh ${index + 1}`} 
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     ) : (
-                        <div class="d-flex align-items-center justify-content-center h-100 p-5 text-muted" style="aspect-ratio: 4/3;">
+                        <div class="d-flex align-items-center justify-content-center p-5 text-muted" style="aspect-ratio: 4/3;">
                             Đang cập nhật hình ảnh
                         </div>
                     )}
@@ -194,17 +197,20 @@ const schemaBreadcrumb = {
                         </div>
                         <div class="text-muted pb-1 fst-italic">/tháng (Thương lượng)</div>
                     </div>
+                    
                     {room.promotion && (
                         <div class="mb-3">
                             <div class="px-3 py-2 rounded-3 text-dark fw-bold d-inline-block shadow-sm" 
                                  style="background-color: #fff8e1; font-size: 1.05rem; border: 1px solid #ffecb3;">
                                 {room.promotion}
                             </div>
-                         </div>
+                        </div>
                     )}
-                    <hr class="text-muted opacity-25 my-3">
+
+                    <hr class="text-muted opacity-25 my-3" />
+
                     <div class="row g-2">
-                        {keypointsList.map(k => (
+                        {keypointsList && keypointsList.map((k) => (
                             <div class="col-6">
                                 <div class="d-flex align-items-center text-secondary" style="font-size: 0.95rem;">
                                     <i class="fas fa-check-circle text-success me-2 flex-shrink-0"></i> 
@@ -217,7 +223,7 @@ const schemaBreadcrumb = {
 
                 {collageImage && (
                     <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
-                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt={`Tiện ích phòng trọ ${cleanAddress}`} style="width: 100%; height: auto;">
+                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt="Tiện ích bổ sung" style="height: auto;" />
                     </div>
                 )}
 
@@ -234,20 +240,16 @@ const schemaBreadcrumb = {
                     <div class="d-block d-lg-none mb-4">
                         <div class="card shadow-sm border-0 overflow-hidden">
                             <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
-    <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
-</div>
+                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
+                            </div>
                             <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-    
-    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
-         class="w-100 h-100 object-fit-cover" 
-         alt={`Video review phòng ${room.room_code}`}>
-
-    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
-            <i class="fas fa-play fs-4 ms-1"></i>
-        </div>
-    </div>
-</div>
+                                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover" alt="Video thumbnail" />
+                                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
+                                        <i class="fas fa-play fs-4 ms-1"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -354,12 +356,12 @@ const schemaBreadcrumb = {
 <style>
     /* Tùy chỉnh Icon Play theo màu thương hiệu */
 .text-warning {
-    color: #f1c40f !important; /* Màu vàng thương hiệu của bạn */
-.bg-warning {
-    background-color: #ffc107 !important; /* Mã màu vàng nút gọi điện của bạn */
-}
-}
+        color: #f1c40f !important; /* Màu vàng thương hiệu */
+    }
 
+    .bg-warning {
+        background-color: #ffc107 !important; /* Màu vàng nút gọi điện */
+    }
 
 /* Hiệu ứng nhấp nháy nhẹ cho nút Play để thu hút sự chú ý */
 .ratio-9x16 .bg-white {
