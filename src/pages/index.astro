@@ -33,41 +33,155 @@ function createSlug(text) {
 
 <Layout title="Thọ Cho Thuê Trọ - Trang Chủ">
         <!-- BANNER HERO FULL WIDTH (NGOÀI CONTAINER) -->
-    <div class="banner-hero-full mb-4 rounded-0 overflow-hidden shadow-lg" style="position: relative; height: 380px; background-image: url('https://img.thochothuetro.com/banner.webp'); background-size: cover; background-position: center; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+    <div class="banner-hero-wrapper mb-4 shadow-lg">
+        <div class="banner-bg"></div>
+        <div class="banner-overlay"></div>
         
-        <!-- OVERLAY TỐI -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.45); z-index: 1;"></div>
-        
-        <!-- CONTENT TEXT -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: center;">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-8">
-                        <h1 class="display-5 fw-bold text-white mb-3 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out;">
-                            Tìm Phòng Trọ Tiện Nghi & Giá Rẻ Tại TP.HCM
-                        </h1>
-                        <p class="lead text-white mb-4 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out 0.2s backwards;">
-                            Thọ Cho Thuê Trọ - Nền tảng hàng đầu với 100+ phòng trọ chất lượng, an toàn, giá cạnh tranh từ 3-15 triệu/tháng. Không chung chủ, giờ giấc tự do, đầy đủ tiện ích.
-                        </p>
-                        <div class="d-flex flex-wrap gap-3 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out 0.4s backwards;">
-                            <span class="badge bg-success px-3 py-2 fs-6">
-                                <i class="fas fa-check-circle me-2"></i>Tiện nghi
-                            </span>
-                            <span class="badge bg-success px-3 py-2 fs-6">
-                                <i class="fas fa-check-circle me-2"></i>Giá cạnh tranh
-                            </span>
-                            <span class="badge bg-success px-3 py-2 fs-6">
-                                <i class="fas fa-check-circle me-2"></i>Giờ giấc tự do
-                            </span>
+        <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
+            <div class="row w-100">
+                <div class="col-lg-8 col-md-10 mx-auto mx-lg-0 text-center text-lg-start">
+                    
+                    <h1 class="hero-title fw-bold text-white mb-2 mb-md-3 animate-slide-up">
+                        Tìm Phòng Trọ <span class="text-gradient-gold">Tiện Nghi</span> <br class="d-md-none"> & Giá Rẻ Tại TP.HCM
+                    </h1>
+                    
+                    <p class="hero-desc text-white-50 mb-4 animate-slide-up delay-1">
+                        Hệ thống hơn 500+ phòng trọ an ninh, giờ giấc tự do, nội thất cao cấp. <br class="d-none d-lg-block">
+                        Giá chỉ từ <strong class="text-white">3 - 15 triệu/tháng</strong>.
+                    </p>
+
+                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2 gap-md-3 animate-slide-up delay-2">
+                        <div class="badge-luxury">
+                            <i class="fas fa-couch text-warning me-2"></i>Full nội thất
+                        </div>
+                        <div class="badge-luxury">
+                            <i class="fas fa-key text-warning me-2"></i>Giờ tự do
+                        </div>
+                        <div class="badge-luxury">
+                            <i class="fas fa-shield-alt text-warning me-2"></i>An ninh 24/7
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 
     <style>
-        @keyframes fadeInUp {
+        /* 1. SETUP CONTAINER & BACKGROUND */
+        .banner-hero-wrapper {
+            position: relative;
+            height: 420px; /* Chiều cao mặc định desktop */
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            overflow: hidden;
+        }
+
+        .banner-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://img.thochothuetro.com/banner.webp');
+            background-size: cover;
+            background-position: center;
+            animation: kenBurns 20s infinite alternate; /* Hiệu ứng zoom nhẹ */
+            z-index: 0;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* Gradient đen mờ để làm nổi chữ */
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: 1;
+            backdrop-filter: blur(2px); /* Làm mờ nhẹ ảnh nền để chữ nét hơn */
+        }
+
+        /* 2. TYPOGRAPHY (CỠ CHỮ) */
+        .hero-title {
+            font-size: 3rem; /* Desktop */
+            line-height: 1.2;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .text-gradient-gold {
+            color: #d9b205; /* Màu vàng thương hiệu */
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            max-width: 600px;
+            font-weight: 300;
+        }
+
+        /* 3. MOBILE OPTIMIZATION (< 768px) */
+        @media (max-width: 768px) {
+            .banner-hero-wrapper {
+                height: 320px; /* Giảm chiều cao banner trên mobile */
+            }
+
+            .hero-title {
+                font-size: 1.6rem; /* Chữ nhỏ lại vừa vặn */
+                margin-top: 1rem;
+            }
+
+            .hero-desc {
+                font-size: 0.9rem; /* Chữ mô tả nhỏ lại */
+                padding: 0 10px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* Giới hạn 2 dòng mô tả */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+
+        /* 4. LUXURY BADGE (GLASSMORPHISM) */
+        .badge-luxury {
+            background: rgba(255, 255, 255, 0.1); /* Nền trong suốt */
+            border: 1px solid rgba(217, 178, 5, 0.5); /* Viền vàng mờ */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        /* Hiệu ứng khi hover vào badge (chỉ desktop) */
+        @media (min-width: 992px) {
+            .badge-luxury:hover {
+                background: rgba(217, 178, 5, 0.2);
+                border-color: #d9b205;
+                transform: translateY(-3px);
+            }
+        }
+
+        /* Mobile Badge nhỏ hơn */
+        @media (max-width: 576px) {
+            .badge-luxury {
+                padding: 5px 12px;
+                font-size: 0.75rem;
+                background: rgba(0, 0, 0, 0.4); /* Nền tối hơn chút trên mobile để dễ đọc */
+            }
+        }
+
+        /* 5. ANIMATIONS */
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .animate-slide-up {
+            opacity: 0;
+            animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+
+        @keyframes slideUpFade {
             from {
                 opacity: 0;
                 transform: translateY(30px);
