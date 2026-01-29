@@ -120,9 +120,9 @@ const schemaBreadcrumb = {
 };
 ---
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<Layout title={pageTitle} description={pageDesc} image={seoImage}>
+
+<Layout title={pageTitle} description={pageDesc} image={seoImage} preloadImage={images[0]}>
     
     <script type="application/ld+json" set:html={JSON.stringify(schemaProduct)} />
     <script type="application/ld+json" set:html={JSON.stringify(schemaBreadcrumb)} />
@@ -351,7 +351,7 @@ const schemaBreadcrumb = {
     }
 </style>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script is:inline>
     // 1. Chuyển ảnh Gallery
     function changeImage(src, thumb) {
@@ -365,18 +365,27 @@ const schemaBreadcrumb = {
         container.onclick = null;
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
     }
-
+    let isLeafletLoaded = false;
     // 3. Load Map
     function loadMap(lat, lng, popupText) {
         const placeholder = document.getElementById('map-placeholder');
         const realMap = document.getElementById('real-map');
+        const loadingSpinner = document.createElement('div');
         
+        // Hiệu ứng loading trong lúc tải thư viện
+        loadingSpinner.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-warning" role="status"></div><div class="mt-2 small text-muted">Đang tải bản đồ...</div></div>';
+        
+        // 1. Ẩn ảnh bìa, hiện khung map
         placeholder.style.setProperty('display', 'none', 'important');
         realMap.classList.remove('d-none');
         realMap.style.display = 'block';
-        
-        if (typeof L !== 'undefined') {
-            if (realMap._leaflet_id) return;
+        realMap.appendChild(loadingSpinner);
+
+        // 2. Hàm khởi tạo map (chạy sau khi thư viện tải xong)
+        const initMap = () => {
+            if (realMap._leaflet_id) return; // Nếu map đã có rồi thì thôi
+            loadingSpinner.remove(); // Xóa spinner
+
             const map = L.map('real-map').setView([lat, lng], 16);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
@@ -400,8 +409,27 @@ const schemaBreadcrumb = {
                 </div>
             `;
             L.marker([lat, lng], {icon: brandIcon}).addTo(map).bindPopup(popupContent).openPopup();
+        };
+
+        // 3. Logic tải thư viện động (Dynamic Import)
+        if (typeof L === 'undefined') {
+            // Tải CSS
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(cssLink);
+
+            // Tải JS
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = () => {
+                isLeafletLoaded = true;
+                initMap(); // Tải xong thì chạy map
+            };
+            document.body.appendChild(script);
         } else {
-            alert("Lỗi: Không tải được thư viện bản đồ. Vui lòng tải lại trang.");
+            // Nếu đã tải rồi thì chạy luôn
+            initMap();
         }
     }
 </script>
