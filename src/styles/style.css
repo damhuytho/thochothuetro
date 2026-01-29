@@ -342,7 +342,7 @@ ul { padding-left: 0; list-style: none; }
     font-size: 0.7rem;
     color: #ccc;
 }
-<style>
+
     /* Hiệu ứng hover chỉ khi CHƯA thuê */
     .room-card:not(.rented-card):hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transition: all 0.3s ease; }
     
@@ -368,7 +368,42 @@ ul { padding-left: 0; list-style: none; }
     
     .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
     @media(min-width: 768px) { .text-truncate-2 { -webkit-line-clamp: 3; } }
-</style>
+/* =========================================
+   13. MOBILE HEADER FIX (Thêm mới)
+   ========================================= */
+
+/* Chỉnh font chữ tên thương hiệu trên mobile */
+.brand-name-mobile {
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+}
+
+/* Màn hình điện thoại nhỏ (dưới 400px) */
+@media (max-width: 400px) {
+    /* Thu nhỏ logo chút xíu */
+    .logo-mobile-img {
+        width: 38px !important; 
+        height: 38px !important;
+    }
+
+    /* Thu nhỏ cỡ chữ tiêu đề */
+    .brand-name-mobile {
+        font-size: 0.95rem; 
+    }
+
+    /* Ẩn luôn câu slogan "Uy tín - Tận tâm" để đỡ chật */
+    .brand-slogan-mobile {
+        display: none !important; 
+    }
+    
+    /* Thu hẹp padding nút gọi */
+    .btn-call-mobile {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
 
 
 

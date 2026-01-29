@@ -217,18 +217,19 @@ main {
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-2">
-        <div class="container navbar-container">
+        <div class="container navbar-container d-flex flex-nowrap">
             
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" class="rounded-circle border border-warning">
-                <div class="d-flex flex-column">
-                    <span class="fw-bold text-dark lh-1" style="font-size: 1.15rem; letter-spacing: -0.5px;">THỌ CHO THUÊ TRỌ</span>
-                    <span class="text-secondary" style="font-size: 0.7rem; font-weight: 500;">UY TÍN - TẬN TÂM - CHUYÊN NGHIỆP</span>
+            <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/" style="min-width: 0; flex-grow: 1;">
+                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" class="rounded-circle shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">
+                
+                <div class="d-flex flex-column" style="overflow: hidden;">
+                    <span class="fw-bold text-dark lh-1 text-truncate brand-name-mobile">THỌ CHO THUÊ TRỌ</span>
+                    <span class="text-secondary brand-slogan-mobile" style="font-size: 0.7rem; font-weight: 500;">UY TÍN - TẬN TÂM</span>
                 </div>
             </a>
 
-            <a href="tel:0925996992" class="btn btn-sm btn-warning rounded-pill fw-bold text-dark shadow-sm btn-call-mobile px-3">
-                <i class="fas fa-phone-alt me-1"></i> Gọi Ngay
+            <a href="tel:0925996992" class="btn btn-sm btn-warning rounded-pill fw-bold text-dark shadow-sm btn-call-mobile px-2 px-md-3 flex-shrink-0 ms-2">
+                <i class="fas fa-phone-alt me-1"></i> <span class="d-none d-sm-inline">Gọi Ngay</span><span class="d-inline d-sm-none">Gọi</span>
             </a>
 
             <div class="collapse navbar-collapse desktop-nav-links" id="navbarNav">
@@ -241,7 +242,7 @@ main {
                     
                     <li class="nav-item ms-2">
                         <a href="tel:0925996992" class="btn btn-warning rounded-pill fw-bold text-dark px-4 shadow-sm border-0">
-                            <i class="fas fa-phone-alt me-2"></i> 0925 996 992
+                             <i class="fas fa-phone-alt me-2"></i> 0925 996 992
                         </a>
                     </li>
                 </ul>
