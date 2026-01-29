@@ -233,17 +233,21 @@ const schemaBreadcrumb = {
                 {videoId && (
                     <div class="d-block d-lg-none mb-4">
                         <div class="card shadow-sm border-0 overflow-hidden">
-                            <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
-                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
-                            </div>
-                            <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-                                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover opacity-75" alt={`Video review phòng ${room.room_code}`}>
-                                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-                                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
-                                        <i class="fas fa-play fs-4 ms-1"></i>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
+    <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
+</div>
+                            <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
+    
+    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+         class="w-100 h-100 object-fit-cover" 
+         alt={`Video review phòng ${room.room_code}`}>
+
+    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
+            <i class="fas fa-play fs-4 ms-1"></i>
+        </div>
+    </div>
+</div>
                         </div>
                     </div>
                 )}
@@ -266,7 +270,7 @@ const schemaBreadcrumb = {
                                 Mình luôn sẵn sàng hỗ trợ bạn xem phòng bất cứ lúc nào (hoàn toàn miễn phí).
                                 </p>
                             <div class="d-flex gap-2">
-                                <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #dfa33d;">
+                                <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #ffc107;">
                                      <i class="fas fa-phone-alt me-2"></i> 0925 996 992
                                 </a>
                                 <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold flex-grow-1 text-white rounded-pill shadow-sm" style="background-color: #4e80ff; border: none;">
@@ -323,20 +327,22 @@ const schemaBreadcrumb = {
                 {videoId && (
                 <div style="position: sticky; top: 60px; z-index: 10;">
                     <div class="card shadow-sm border-0 overflow-hidden mb-4">
-                        <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase">
-                            <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
-                        </div>
+                        <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
+    <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
+</div>
                         
-                        <div class="ratio ratio-9x16 bg-black position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-                            <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
-                                 class="w-100 h-100 object-fit-cover opacity-75" 
-                                 alt="Video Thumbnail">
-                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
-                                    <i class="fas fa-play fs-4 ms-1"></i>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
+    
+    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+         class="w-100 h-100 object-fit-cover" 
+         alt="Video Thumbnail">
+
+    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
+            <i class="fas fa-play fs-4 ms-1"></i>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
                 )}
@@ -346,6 +352,24 @@ const schemaBreadcrumb = {
 </Layout>
 
 <style>
+    /* Tùy chỉnh Icon Play theo màu thương hiệu */
+.text-warning {
+    color: #f1c40f !important; /* Màu vàng thương hiệu của bạn */
+.bg-warning {
+    background-color: #ffc107 !important; /* Mã màu vàng nút gọi điện của bạn */
+}
+}
+
+
+/* Hiệu ứng nhấp nháy nhẹ cho nút Play để thu hút sự chú ý */
+.ratio-9x16 .bg-white {
+    transition: transform 0.3s ease;
+}
+
+.ratio-9x16:hover .bg-white {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5) !important;
+}
     .cursor-pointer { cursor: pointer; }
     .gallery-thumb { transition: all 0.2s; opacity: 0.6; }
     .gallery-thumb:hover, .gallery-thumb.active { opacity: 1; border-color: #f39c12 !important; border-width: 2px !important; }
