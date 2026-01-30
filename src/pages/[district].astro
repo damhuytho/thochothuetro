@@ -6,29 +6,40 @@ import CommitmentFooter from '../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// Helper tạo Slug chuẩn (Dùng chung cho cả logic Server)
+function createSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+}
+
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-  // 1. Lấy danh sách tất cả các quận CÓ trong data (Không fix cứng nữa)
+  // 1. Lấy danh sách tất cả các quận
   const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
 
-  // 2. Hàm tạo slug (Giống hệt bên SidebarFilter để khớp URL)
-  function createSlug(str) {
+  // Logic slug nội bộ (cần khai báo lại vì getStaticPaths chạy isolated)
+  function localCreateSlug(str) {
       if (!str) return '';
       return str.toString().toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Bỏ dấu
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
           .replace(/[đĐ]/g, 'd')
           .replace(/[^a-z0-9\s]/g, '')
           .trim()
           .replace(/\s+/g, '-');
   }
 
-  // 3. Tạo đường dẫn động cho TẤT CẢ các quận tìm thấy
+  // 2. Tạo path
   return uniqueDistricts.map(distName => {
       return {
-          params: { district: createSlug(distName) }, // VD: 'Bình Thạnh' -> 'binh-thanh'
+          params: { district: localCreateSlug(distName) },
           props: { 
               districtName: distName, 
               allRooms: validRooms.filter(r => r.district === distName) 
@@ -38,53 +49,88 @@ export async function getStaticPaths() {
 }
 
 const { districtName, allRooms } = Astro.props;
+const currentSlug = createSlug(districtName);
 
-// LOGIC SẮP XẾP SERVER-SIDE
+// --- SERVER-SIDE SORTING ---
+// Quy tắc: Promo -> Image -> Normal
 const activeRooms = allRooms.filter(r => r.status === 'active');
 const rentedRooms = allRooms.filter(r => r.status === 'rented');
 
-// [CẬP NHẬT] Sắp xếp Active: 
-// 1. Có Promotion lên đầu
-// 2. Sau đó đến Có hình ảnh
-// 3. Cuối cùng là Không có hình
 activeRooms.sort((a, b) => {
-    // Check Promotion
+    // 1. Ưu tiên Promotion
     const aPromo = !!a.promotion;
     const bPromo = !!b.promotion;
-    if (aPromo !== bPromo) return bPromo ? 1 : -1; // Có promo xếp trước
+    if (aPromo !== bPromo) return bPromo ? 1 : -1; 
 
-    // Check Hình ảnh (Nếu cùng trạng thái promo thì xét tiếp cái này)
+    // 2. Ưu tiên Có hình ảnh
     const aHasImg = (a.image_detail && a.image_detail.length > 0);
     const bHasImg = (b.image_detail && b.image_detail.length > 0);
-    if (aHasImg !== bHasImg) return bHasImg ? 1 : -1; // Có hình xếp trước
+    if (aHasImg !== bHasImg) return bHasImg ? 1 : -1;
 
     return 0;
 });
 
-// [CẬP NHẬT] Rented: Chỉ lấy 6 căn mới nhất (Thay vì 12)
+// Giới hạn Rented hiển thị 6 căn
 const limitedRentedRooms = rentedRooms.slice(0, 6);
-
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
-// Metadata
-const pageTitle = `Cho thuê phòng trọ ${districtName} giá rẻ, chính chủ - thochothuetro.com`;
-const pageDesc = `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName} đầy đủ tiện nghi, giá tốt nhất. Hình ảnh thực tế 100%, xem phòng miễn phí.`;
 
-// Schema ItemList
+// --- SEO CONFIG ---
+// --- [SEO NÂNG CAO] CẤU HÌNH RIÊNG CHO TỪNG QUẬN ---
+const districtSEO = {
+    "Tân Bình": {
+        title: "Cho Thuê Phòng Trọ Quận Tân Bình Gần Sân Bay, Etown, Công Viên Hoàng Văn Thụ",
+        desc: "Tổng hợp phòng trọ, căn hộ dịch vụ Quận Tân Bình khu vực sân bay, đường Cộng Hòa, Phạm Văn Hai. Giờ giấc tự do, full nội thất, giá tốt từ chính chủ.",
+        intro: "Khu vực Tân Bình nổi bật với vị trí gần **Sân bay Tân Sơn Nhất**, tòa nhà **Etown** và công viên **Hoàng Văn Thụ**. Rất thuận tiện cho các bạn làm việc văn phòng hoặc nhân viên hàng không."
+    },
+    "Phú Nhuận": {
+        title: "Cho Thuê Phòng Trọ Quận Phú Nhuận Khu Phan Xích Long, Bờ Kè, Giáp Quận 1",
+        desc: "Tìm thuê phòng trọ Quận Phú Nhuận gần Phan Xích Long, Vạn Kiếp. Vị trí trung tâm, đi đâu cũng gần, tiện nghi cao cấp, an ninh đảm bảo.",
+        intro: "Phú Nhuận là tâm điểm ẩm thực với khu **Phan Xích Long** sầm uất và đường **bờ kè Trường Sa** thoáng mát. Vị trí vàng giáp ranh Quận 1 và Quận 3, di chuyển cực kỳ nhanh chóng."
+    }
+    // Sau này có thêm Quận 3, Bình Thạnh thì copy thêm vào đây...
+};
+
+// Lấy thông tin riêng (nếu có), nếu không có thì dùng câu mặc định
+const specificInfo = districtSEO[districtName];
+
+const pageTitle = specificInfo?.title 
+    || `Cho Thuê Phòng Trọ Quận ${districtName} Giá Rẻ, Full Nội Thất - Thọ Cho Thuê Trọ`;
+
+const pageDesc = specificInfo?.desc 
+    || `Hệ thống 100+ phòng trọ, căn hộ dịch vụ tại Quận ${districtName}. Giờ giấc tự do, an ninh, có thang máy. Giá từ 3 - 8 triệu. Xem phòng ngay!`;
+
+const introText = specificInfo?.intro 
+    || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **${districtName}**.`;
+const siteURL = Astro.site || 'https://thochothuetro.com';
+const canonicalURL = `${siteURL}/${currentSlug}`;
+
+// 1. Schema Breadcrumb (Google rất thích cái này)
+const schemaBreadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": siteURL },
+    { "@type": "ListItem", "position": 2, "name": `Quận ${districtName}`, "item": canonicalURL }
+  ]
+};
+
+// 2. Schema ItemList (Danh sách phòng)
 const schemaItemList = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "itemListElement": initialDisplayRooms.map((room, index) => ({
     "@type": "ListItem",
     "position": index + 1,
-    "url": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : (room.district === 'Phú Nhuận' ? 'phu-nhuan' : room.district.toLowerCase().replace(/ /g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd'))}/${room.id}`,
-    "name": `Cho thuê ${room.type} mã ${room.room_code}`
+    "url": `${siteURL}/${createSlug(room.district)}/${room.id}`,
+    "name": `Cho thuê ${room.type} mã ${room.room_code} tại ${room.district}`
   }))
 };
 ---
 
 <Layout title={pageTitle} description={pageDesc} image="/logo.png">
     
-    <script type="application/ld+json" set:html={JSON.stringify(schemaItemList)} />
+    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaBreadcrumb)} />
+    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaItemList)} />
 
     <div class="bg-light border-bottom py-3 mb-4">
         <div class="container">
@@ -94,15 +140,18 @@ const schemaItemList = {
                     <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Quận {districtName}</li>
                 </ol>
             </nav>
-            <h1 class="h3 fw-bold text-uppercase mb-0 text-dark">
-                Phòng trọ Quận <span class="text-warning">{districtName}</span>
+            <h1 class="h3 fw-bold text-uppercase mb-2 text-dark">
+              Phòng trọ Quận <span class="text-warning">{districtName}</span>
             </h1>
+            <p class="text-muted mb-0 small" style="max-width: 800px;">
+              <i class="fas fa-info-circle me-1 text-warning"></i> <span set:html={introText}></span>
+            </p>
         </div>
     </div>
 
     <div class="container pb-5">
         <div class="row">
-            <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="col-lg-3 mb-5 mb-lg-0">
                 <SidebarFilter />
             </div>
 
@@ -114,7 +163,7 @@ const schemaItemList = {
                     <div class="d-flex align-items-center ms-auto">
                         <label for="sort-select" class="small fw-bold me-2 text-muted">Sắp xếp:</label>
                         <select id="sort-select" class="form-select form-select-sm border-warning shadow-sm" style="width: auto; font-weight: 500;">
-                            <option value="default">Mặc định</option>
+                            <option value="default">Mặc định (Ưu tiên KM)</option>
                             <option value="price-asc">Giá thấp đến cao</option>
                             <option value="price-desc">Giá cao đến thấp</option>
                         </select>
@@ -161,10 +210,8 @@ const schemaItemList = {
 </Layout>
 
 <script is:inline>
-    // Định nghĩa biến toàn cục cho script inline
-    let itemsToShow = 12; // Mặc định hiển thị 12
-    if (window.innerWidth < 768) itemsToShow = 8; // Mobile hiện 8
-    
+    // Config hiển thị
+    let itemsToShow = window.innerWidth < 768 ? 8 : 12;
     const ITEMS_PER_LOAD = 6;
     let lastFilterParams = '';
 
@@ -177,7 +224,7 @@ const schemaItemList = {
         const params = new URLSearchParams(window.location.search);
         const currentFilterParams = params.toString();
         
-        // Reset phân trang nếu bộ lọc thay đổi
+        // Reset phân trang nếu bộ lọc đổi
         if (lastFilterParams !== currentFilterParams) {
             itemsToShow = (window.innerWidth < 768) ? 8 : 12;
             lastFilterParams = currentFilterParams;
@@ -190,20 +237,17 @@ const schemaItemList = {
         const specialGroup = ['ban công', 'cửa sổ'];
         const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
         const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-
         const sortEl = document.getElementById('sort-select');
         const sortMode = sortEl ? sortEl.value : 'default';
 
         const allDomItems = Array.from(document.querySelectorAll('.room-item'));
-
-        // 1. LỌC
+        
+        // 1. LỌC (FILTER)
         const filteredItems = allDomItems.filter(item => {
             let matches = true;
-
-            const itemDistrict = item.getAttribute('data-district');
-            // Logic lọc quận ở đây thực ra luôn đúng vì ta đang ở trang district cụ thể, 
-            // nhưng giữ lại để an toàn
-            if (params.get('district') && params.get('district') !== 'all' && itemDistrict !== params.get('district')) matches = false;
+            // District: Mặc định đúng vì đang ở trang quận
+            if (params.get('district') && params.get('district') !== 'all' && 
+                item.getAttribute('data-district') !== params.get('district')) matches = false;
 
             const itemType = (item.getAttribute('data-type') || '').toLowerCase();
             if (matches && fType !== 'all' && itemType !== fType) matches = false;
@@ -211,7 +255,6 @@ const schemaItemList = {
             if (matches && fPrice && fPrice !== 'all') {
                 const priceAttr = item.getAttribute('data-price');
                 const price = priceAttr ? parseInt(priceAttr) / 1000000 : 0;
-                
                 if (fPrice === 'duoi-5' && price >= 5) matches = false;
                 if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
                 if (fPrice === 'over8' && price < 8) matches = false;
@@ -229,7 +272,6 @@ const schemaItemList = {
                         if (!keypoints.includes(ami)) { matches = false; break; }
                     }
                 }
-
                 if (matches && selectedSpecial.length > 0) {
                     let hasAtLeastOne = false;
                     if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
@@ -237,16 +279,14 @@ const schemaItemList = {
                     if (!hasAtLeastOne) matches = false;
                 }
             }
-
             return matches;
         });
 
-        // 2. SẮP XẾP
+        // 2. SẮP XẾP (SORT) - [FIXED LOGIC]
         const getPrice = (el) => parseInt(el.getAttribute('data-price') || '0');
         const hasImg = (el) => el.getAttribute('data-has-image') === 'yes';
         const isPromo = (el) => el.getAttribute('data-promotion') === 'yes';
-
-        // Tách Active/Rented
+        
         let activeItems = filteredItems.filter(i => i.getAttribute('data-status') === 'active');
         let rentedItems = filteredItems.filter(i => i.getAttribute('data-status') === 'rented');
 
@@ -256,31 +296,39 @@ const schemaItemList = {
             } else if (sortMode === 'price-desc') {
                 list.sort((a, b) => getPrice(b) - getPrice(a));
             } else {
-                // Mặc định: Promotion lên đầu
-                list.sort((a, b) => (isPromo(b) ? 1 : 0) - (isPromo(a) ? 1 : 0));
+                // Mặc định: GỘP CHUNG LOGIC (Promo -> Image) để tránh lỗi đảo lộn
+                list.sort((a, b) => {
+                    // 1. Ưu tiên Promo trước
+                    const promoA = isPromo(a);
+                    const promoB = isPromo(b);
+                    if (promoA !== promoB) return promoB ? 1 : -1;
+
+                    // 2. Sau đó đến Image
+                    const imgA = hasImg(a);
+                    const imgB = hasImg(b);
+                    if (imgA !== imgB) return imgB ? 1 : -1;
+
+                    return 0; // Bằng nhau giữ nguyên
+                });
             }
-            // Luôn ưu tiên có ảnh
-            list.sort((a, b) => (hasImg(b) ? 1 : 0) - (hasImg(a) ? 1 : 0));
         };
 
         sortFn(activeItems);
         sortFn(rentedItems);
 
-        // Giới hạn Rented hiển thị
-        if (rentedItems.length > 12) rentedItems = rentedItems.slice(0, 12);
-
+        // Giới hạn Rented hiển thị 6 căn
+        if (rentedItems.length > 6) rentedItems = rentedItems.slice(0, 6);
+        
         const finalSortedList = [...activeItems, ...rentedItems];
 
-        // 3. RENDER LẠI DOM
+        // 3. RENDER UI
         const container = document.getElementById('district-room-container');
         if (container) {
-            // Ẩn hết trước
             allDomItems.forEach(el => el.style.display = 'none');
-            
-            // Append lại theo thứ tự đã sort
+            // Re-append để đúng thứ tự visual
             finalSortedList.forEach(el => container.appendChild(el));
             
-            // Hiển thị theo Items To Show
+            // Chỉ hiện số lượng itemsToShow
             finalSortedList.forEach((el, index) => {
                 if (index < itemsToShow) {
                     el.style.display = 'block';
@@ -291,7 +339,7 @@ const schemaItemList = {
             });
         }
 
-        // 4. XỬ LÝ UI PHỤ (Nút Load More, No Result)
+        // 4. UI Phụ
         const btnWrapper = document.getElementById('load-more-wrapper');
         const btn = document.getElementById('btn-load-more');
         const noResult = document.getElementById('no-result');
@@ -301,7 +349,7 @@ const schemaItemList = {
             if (finalSortedList.length > itemsToShow) {
                 btn.innerHTML = `Xem thêm ${remaining} căn nữa <i class="fas fa-chevron-down ms-2"></i>`;
                 btnWrapper.style.display = 'block';
-                btn.onclick = handleLoadMore; // Gán sự kiện trực tiếp
+                btn.onclick = handleLoadMore;
             } else if (finalSortedList.length > 0) {
                 btnWrapper.style.display = 'block';
                 btnWrapper.innerHTML = '<span class="text-muted small fst-italic">Đã hiển thị hết danh sách</span>';

@@ -1,9 +1,49 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// --- SEO METADATA ---
+const pageTitle = "Liên hệ Thọ Cho Thuê Trọ - Tìm Phòng & Ký Gửi (Tân Bình, Phú Nhuận)";
+const pageDesc = "Liên hệ ngay 0925 996 992 (Zalo) để tìm phòng trọ, căn hộ dịch vụ ưng ý. Nhận ký gửi vận hành phòng trọ uy tín, lấp đầy phòng nhanh chóng tại TP.HCM.";
+const siteURL = Astro.site || 'https://thochothuetro.com';
+
+// --- SCHEMA LOCAL BUSINESS (SEO) ---
+const schemaLocalBusiness = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Thọ Cho Thuê Trọ",
+  "image": `${siteURL}/logo.png`,
+  "telephone": "0925 996 992",
+  "url": `${siteURL}/contact`,
+  "email": "thochothuetro@gmail.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Tân Bình",
+    "addressRegion": "Thành phố Hồ Chí Minh",
+    "addressCountry": "VN"
+  },
+  "areaServed": ["Tân Bình", "Phú Nhuận"],
+  "priceRange": "3000000VND-15000000VND",
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": [
+      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    ],
+    "opens": "08:00",
+    "closes": "21:00"
+  }
+};
 ---
 
-<Layout title="Liên hệ & Hỗ trợ - Thọ Cho Thuê Trọ">
+<Layout title={pageTitle} description={pageDesc} image="/logo.png">
     
+    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaLocalBusiness)} />
+
+    <meta slot="head" property="og:type" content="website" />
+    <meta slot="head" property="og:title" content={pageTitle} />
+    <meta slot="head" property="og:description" content={pageDesc} />
+    <meta slot="head" property="og:url" content={`${siteURL}/contact`} />
+    <meta slot="head" property="og:site_name" content="Thọ Cho Thuê Trọ" />
+
     <div class="bg-light py-4 border-bottom">
         <div class="container text-center">
             <h1 class="fw-bold text-uppercase mb-2 text-dark">Liên hệ & Hỗ trợ</h1>
@@ -22,49 +62,53 @@ import Layout from '../layouts/Layout.astro';
                 <div class="bg-white p-4 rounded-3 shadow-sm border h-100 position-relative overflow-hidden">
                     <div class="position-absolute top-0 start-0 w-100 bg-warning" style="height: 5px;"></div>
                     
-                    <h4 class="fw-bold mb-4 text-uppercase">Thông tin kết nối</h4>
+                    <h4 class="fw-bold mb-4 text-uppercase border-start border-4 border-warning ps-3">Thông tin kết nối</h4>
                     
-                    <div class="d-flex align-items-center mb-4 p-3 rounded bg-light border border-light-subtle">
-                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm">
+                    <div class="d-flex align-items-center mb-3 p-3 rounded bg-light border border-light-subtle contact-card">
+                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                             <i class="fas fa-phone-alt fa-lg"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1 text-dark">Hotline / Zalo</h6>
-                            <a href="tel:0925996992" class="text-danger fw-bold fs-5 text-decoration-none">0925 996 992</a>
-                            <div class="small text-muted">Hỗ trợ 24/7</div>
+                            <h6 class="fw-bold mb-1 text-dark text-uppercase small">Hotline / Zalo (24/7)</h6>
+                            <a href="tel:0925996992" class="text-danger fw-bold fs-4 text-decoration-none d-block lh-1">0925 996 992</a>
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center mb-4 p-3 rounded bg-light border border-light-subtle">
-                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm">
+                    <div class="d-flex align-items-center mb-3 p-3 rounded bg-light border border-light-subtle contact-card">
+                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                             <i class="fas fa-envelope fa-lg"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1 text-dark">Email hỗ trợ</h6>
-                            <div class="fw-bold text-dark">thochothuetro@gmail.com</div>
+                            <h6 class="fw-bold mb-1 text-dark text-uppercase small">Email hỗ trợ</h6>
+                            <div class="fw-bold text-dark text-break">thochothuetro@gmail.com</div>
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center mb-4 p-3 rounded bg-light border border-light-subtle">
-                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm">
-                            <i class="fas fa-map-marker-alt fa-lg"></i>
+                    <div class="d-flex align-items-center mb-4 p-3 rounded bg-light border border-light-subtle contact-card">
+                        <div class="bg-white rounded-circle p-3 me-3 text-warning shadow-sm d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-map-marked-alt fa-lg"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1 text-dark">Khu vực hoạt động</h6>
+                            <h6 class="fw-bold mb-1 text-dark text-uppercase small">Khu vực hoạt động</h6>
                             <div class="fw-bold text-dark">Quận Tân Bình, Phú Nhuận</div>
                             <div class="small text-muted">TP. Hồ Chí Minh</div>
                         </div>
+                    </div>
+
+                    <div class="mb-4 rounded overflow-hidden border shadow-sm position-relative" style="height: 200px;" id="contact-map">
+                         <div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"></div></div>
                     </div>
 
                     <hr class="my-4 opacity-25">
 
                     <div class="text-center">
                         <p class="fw-bold mb-3 small text-uppercase text-muted">Quét mã Zalo để nhận báo giá</p>
-                        <div class="d-inline-block border p-2 rounded bg-white shadow-sm mb-3">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/0925996992" alt="QR Zalo" width="120" height="120">
+                        <div class="d-inline-block border p-2 rounded bg-white shadow-sm mb-3 position-relative qr-wrapper">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/0925996992" alt="QR Zalo 0925996992" width="120" height="120">
+                            <div class="qr-scan-line"></div>
                         </div>
-                        <div>
-                            <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm border-0" style="background-color: #0068ff;">
+                        <div class="d-grid gap-2">
+                            <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold rounded-pill shadow-sm border-0 btn-pulse-blue" style="background-color: #0068ff;">
                                 <i class="fas fa-comment-dots me-2"></i> Chat Zalo Ngay
                             </a>
                         </div>
@@ -74,17 +118,109 @@ import Layout from '../layouts/Layout.astro';
 
             <div class="col-lg-7">
                 <div class="bg-white p-4 rounded-3 shadow-sm border h-100">
-                    <h4 class="fw-bold mb-3 text-uppercase">Đăng ký tìm phòng</h4>
-                    <p class="text-muted mb-4 small">
-                        Nếu chưa tìm được phòng ưng ý trên Website, hãy để lại thông tin. 
-                        Thọ sẽ liên hệ gửi riêng cho bạn những căn phòng mới nhất (chưa kịp đăng lên web).
-                    </p>
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-2 text-uppercase text-dark">Đăng ký tìm phòng / Ký gửi</h4>
+                        <p class="text-muted small">
+                            Bạn chưa tìm được phòng ưng ý? Hoặc bạn là chủ nhà muốn ký gửi phòng?<br>
+                            Hãy để lại thông tin, Thọ sẽ liên hệ lại ngay trong vòng 30 phút.
+                        </p>
+                    </div>
                     
-                    <div class="ratio" style="--bs-aspect-ratio: 120%;">
-                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfD83g8e95q39485743957/viewform?embedded=true" class="rounded-3 border bg-light">Đang tải biểu mẫu...</iframe>
+                    <div class="ratio-form-wrapper rounded-3 border bg-light overflow-hidden">
+                        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfD83g8e95q39485743957/viewform?embedded=true" 
+                                width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0"
+                                class="w-100 h-100">Đang tải biểu mẫu...</iframe>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </Layout>
+
+<style>
+    /* 1. ANIMATION PULSE */
+    .btn-pulse-blue { animation: pulse-blue 2s infinite; }
+    @keyframes pulse-blue {
+        0% { box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(0, 104, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 104, 255, 0); }
+    }
+
+    /* 2. CONTACT CARD HOVER */
+    .contact-card { transition: all 0.3s ease; }
+    .contact-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: #f1c40f !important; }
+
+    /* 3. QR SCAN EFFECT */
+    .qr-wrapper { position: relative; overflow: hidden; }
+    .qr-scan-line {
+        position: absolute; width: 100%; height: 2px; background: #f1c40f; box-shadow: 0 0 4px #f1c40f;
+        top: 0; left: 0; animation: scan 2s infinite linear;
+    }
+    @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+    /* 4. FORM RESPONSIVE */
+    .ratio-form-wrapper {
+        position: relative;
+        width: 100%;
+        height: 850px; /* Chiều cao cố định đủ lớn cho form */
+    }
+    @media (max-width: 768px) {
+        .ratio-form-wrapper { height: 950px; /* Mobile cần dài hơn chút */ }
+    }
+    
+    /* LEAFLET */
+    .custom-map-marker-yellow { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+</style>
+
+<script is:inline>
+    // LOAD MAP TỔNG QUAN (Tân Bình - Phú Nhuận)
+    document.addEventListener('astro:page-load', () => {
+        const mapContainer = document.getElementById('contact-map');
+        if (!mapContainer) return;
+
+        // Tọa độ trung tâm giữa Tân Bình và Phú Nhuận (ngã 4 Phú Nhuận / Hoàng Văn Thụ)
+        const centerLat = 10.7992;
+        const centerLng = 106.6814;
+
+        const initMap = () => {
+            if (typeof L === 'undefined') return;
+            
+            mapContainer.innerHTML = ''; // Xóa spinner
+            const map = L.map('contact-map', {
+                zoomControl: false, // Tắt zoom control cho gọn
+                scrollWheelZoom: false, // Tắt scroll chuột để không bị kẹt khi cuộn trang
+                dragging: !L.Browser.mobile // Tắt kéo thả trên mobile để dễ cuộn trang web
+            }).setView([centerLat, centerLng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            // Icon Marker
+            const brandIcon = L.divIcon({ 
+                className: 'custom-map-marker-yellow', 
+                html: '<div style="background:#f1c40f; width:30px; height:30px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:14px;"></i></div>', 
+                iconSize: [30, 30], iconAnchor: [15, 30]
+            });
+
+            // Marker ảo tượng trưng khu vực
+            L.marker([10.801646, 106.663158], {icon: brandIcon}).addTo(map); // Tân Bình (Khu sân bay)
+            L.marker([10.793781, 106.684175], {icon: brandIcon}).addTo(map); // Phú Nhuận (Phan Xích Long)
+        };
+
+        if (typeof L === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = () => {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(link);
+                setTimeout(initMap, 100);
+            };
+            document.head.appendChild(script);
+        } else {
+            initMap();
+        }
+    });
+</script>
