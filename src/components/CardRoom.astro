@@ -11,8 +11,15 @@ function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN').format(price);
 }
 
-function getDistrictSlug(district) {
-    return district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+
+function createSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Bỏ dấu
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
 }
 
 const images = room.image_detail || []; 
@@ -24,11 +31,13 @@ if (images.length > 0) {
 }
 
 const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;
-const detailLink = `/${getDistrictSlug(room.district)}/${room.id}`;
+const detailLink = `/${createSlug(room.district)}/${room.id}`;
 const isRented = room.status === 'rented';
 ---
 
 <div class={`card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}`}>
+   <a href={detailLink} class="stretched-link"></a>
+
     
     <div class="position-relative">
         <img src={displayImage} 

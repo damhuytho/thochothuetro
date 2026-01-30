@@ -4,17 +4,40 @@ import CommitmentSidebar from '../../components/CommitmentSidebar.astro';
 import CardRoom from '../../components/CardRoom.astro';
 import fs from 'node:fs';
 import path from 'node:path';
-// Import các hàm tiện ích từ file helpers.js đã tạo
+// Import các hàm tiện ích
 import { formatPrice, hideNumber } from '../../utils/helpers.js';
 
-// 1. TẠO PATH (SERVER SIDE)
+// --- [FIX] HÀM TẠO SLUG (Để dùng cho URL) ---
+function createSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+}
+
+// 1. TẠO PATH ĐỘNG CHO MỌI QUẬN (SERVER SIDE)
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
   
+  // Hàm slug phải khai báo lại hoặc đưa ra ngoài scope export nếu muốn dùng chung
+  function localCreateSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+  }
+
   return activeRooms.map((room) => {
-      const districtSlug = room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+      // [FIX] Tự động tạo slug từ tên quận trong data
+      const districtSlug = localCreateSlug(room.district);
       return {
         params: { district: districtSlug, id: room.id },
         props: { room, allRooms: activeRooms },
@@ -25,13 +48,15 @@ export async function getStaticPaths() {
 // 2. LẤY DỮ LIỆU TỪ PROPS
 const { room, allRooms } = Astro.props;
 
+// [FIX] Tạo lại slug để dùng trong Breadcrumb/Link
+const currentDistrictSlug = createSlug(room.district);
+
 // 3. XỬ LÝ HÌNH ẢNH (Tối ưu Mobile/Desktop)
 function getOptimizedImages(keyword) {
     const sourceDetail = (room.image_detail || []).filter(img => img.includes(keyword));
     const sourceCollage = (room.image_collage || []).filter(img => img.includes(keyword));
     
     let result = [...sourceDetail];
-    
     if (result.length < 6) {
         const missingCount = 6 - result.length;
         if (sourceCollage.length > 0) {
@@ -41,36 +66,26 @@ function getOptimizedImages(keyword) {
     return result.slice(0, 6);
 }
 
-// Tạo 2 bộ ảnh riêng biệt: Web (Desktop) và Medium (Mobile)
 const imagesWeb = getOptimizedImages('_web');
-let imagesMobile = getOptimizedImages('_medium'); 
+let imagesMobile = getOptimizedImages('_medium');
+if (imagesMobile.length === 0) imagesMobile = imagesWeb;
+const images = imagesWeb;
 
-// Fallback: Nếu không có ảnh medium thì dùng web để tránh lỗi
-if (imagesMobile.length === 0) imagesMobile = imagesWeb; 
-
-// QUAN TRỌNG: Giữ biến 'images' trỏ về bản Web để KHÔNG LỖI SEO/SCHEMA
-const images = imagesWeb; 
-
-// Xử lý Ảnh Collage Đơn (Cột AE)
 const collageListWeb = (room.image_collage || []).filter(img => img.includes('_web'));
 const collageListMobile = (room.image_collage || []).filter(img => img.includes('_medium'));
 
 let collageImageWeb = collageListWeb[0] || imagesWeb[1];
 let collageImageMobile = collageListMobile[0] || imagesMobile[1];
-
-// Nếu không tìm thấy, ẩn khối collage
 if (!collageListWeb.length && imagesWeb.length <= 1) collageImageWeb = null;
 if (!collageImageWeb) collageImageMobile = null;
 
-// --- ĐÂY LÀ DÒNG GÂY LỖI TRƯỚC ĐÓ (Giờ chỉ còn 1 dòng duy nhất) ---
 const seoImage = (images.length > 0) ? images[0] : '/logo.png';
 const cleanAddress = hideNumber(room.address);
 
-// Xử lý tiện ích (Keypoint)
 const keypointsList = room.keypoint 
     ? room.keypoint.split(',').map(k => k.split('|')[0].trim()).filter(k => k !== '') 
     : [];
-const firstThreeKeypoints = keypointsList.slice(0, 3).join(', ');
+
 // 4. LỌC PHÒNG TƯƠNG TỰ
 const relatedRooms = allRooms.filter(r => 
     r.district === room.district && 
@@ -90,14 +105,12 @@ if (room.video) {
     else if (room.video.includes('youtu.be/')) videoId = room.video.split('youtu.be/')[1].split('?')[0];
 }
 
-// --- [SEO MỚI] TỐI ƯU META DATA ---
-// Title có từ khóa mạnh: Cho thuê + Loại + Địa chỉ + Đặc điểm
+// SEO META DATA
 const pageTitle = `Cho thuê ${room.type} ${cleanAddress} - ${formatPrice(room.price)}`;
-// Description đưa giá và tiện ích lên đầu
 const pageDesc = `Phòng trọ ${room.district} giá ${formatPrice(room.price)}. ${room.keypoint || 'Full nội thất, giờ giấc tự do'}. Địa chỉ: ${cleanAddress}. Liên hệ chính chủ Thọ: 0925 996 992.`;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
 
-// --- [SEO MỚI] SCHEMA.ORG (JSON-LD) ---
+// SCHEMA.ORG
 const schemaProduct = {
   "@context": "https://schema.org",
   "@type": "Apartment",
@@ -108,7 +121,7 @@ const schemaProduct = {
   "address": {
     "@type": "PostalAddress",
     "streetAddress": cleanAddress,
-    "addressLocality": room.district === 'Tân Bình' ? 'Quận Tân Bình' : 'Quận Phú Nhuận',
+    "addressLocality": `Quận ${room.district}`, // [FIX] Động theo tên quận
     "addressRegion": "Thành phố Hồ Chí Minh",
     "addressCountry": "VN"
   },
@@ -123,10 +136,7 @@ const schemaProduct = {
     "priceCurrency": "VND",
     "price": room.price,
     "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    "seller": {
-      "@type": "Person",
-      "name": "Thọ Cho Thuê Trọ"
-    }
+    "seller": { "@type": "Person", "name": "Thọ Cho Thuê Trọ" }
   }
 };
 
@@ -135,13 +145,11 @@ const schemaBreadcrumb = {
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://thochothuetro.com/" },
-    { "@type": "ListItem", "position": 2, "name": room.district, "item": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}` },
+    { "@type": "ListItem", "position": 2, "name": room.district, "item": `https://thochothuetro.com/${currentDistrictSlug}` }, // [FIX] Link động
     { "@type": "ListItem", "position": 3, "name": room.room_code, "item": canonicalURL }
   ]
 };
 ---
-
-
 
 <Layout title={pageTitle} description={pageDesc} image={seoImage} preloadImage={images[0]}>
     
@@ -153,130 +161,83 @@ const schemaBreadcrumb = {
             <h1 class="h4 fw-bold mb-1 text-dark text-uppercase" style="line-height: 1.4;">
                 {pageTitle}
             </h1>
+            
             <nav aria-label="breadcrumb">
                  <ol class="breadcrumb mb-0 small justify-content-center">
                     <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a href={`/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}`} class="text-decoration-none text-muted">{room.district}</a></li>
+                    <li class="breadcrumb-item"><a href={`/${currentDistrictSlug}`} class="text-decoration-none text-muted">{room.district}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{room.room_code}</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-<div class="container pb-5 detail-container-standard">
+    <div class="container pb-5 detail-container-standard">
         <div class="row g-4">
-            
             <div class="col-lg-8">
                 
                 <div class="mb-4 bg-white rounded-3 overflow-hidden border shadow-sm">
                     {images && images.length > 0 ? (
                         <div class="gallery-wrapper">
-    {/* Ảnh chính lớn nhất - Tỷ lệ 4:3 - Dùng thẻ picture để responsive */}
-    <div id="gallery-main-frame" class="position-relative bg-dark" style="aspect-ratio: 4/3; width: 100%; overflow: hidden;">
-        <picture>
-            <source media="(max-width: 767px)" srcset={imagesMobile[0]} />
-            <img 
-                src={imagesWeb[0]} 
-                id="main-image" 
-                class="w-100 h-100 d-block" 
-                style="object-fit: contain;" 
-                alt={pageTitle}
-                fetchpriority="high" 
-                loading="eager" 
-                decoding="sync"
-            />
-        </picture>
-    </div>
-    
-    {/* Thanh ảnh nhỏ - Thumbnails dùng ảnh Mobile cho nhẹ */}
-    <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar" 
-         style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
-        {imagesWeb.map((imgWeb, index) => {
-            const imgMobile = imagesMobile[index] || imgWeb;
-            return (
-                <img 
-                    src={imgMobile} 
-                    class={index === 0 ? "rounded border cursor-pointer gallery-thumb active" : "rounded border cursor-pointer gallery-thumb"} 
-                    style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
-                    onclick={`changeImage('${imgWeb}', '${imgMobile}', this)`}
-                    loading="lazy" 
-                    decoding="async"
-                    width="80" 
-                    height="60"
-                    alt={`Ảnh ${index + 1}`} 
-                />
-            )
-        })}
-    </div>
-</div>
-                    ) : (
-                        <div class="d-flex align-items-center justify-content-center p-5 text-muted" style="aspect-ratio: 4/3;">
-                            Đang cập nhật hình ảnh
+                            <div id="gallery-main-frame" class="position-relative bg-dark" style="aspect-ratio: 4/3; width: 100%; overflow: hidden;">
+                                <picture>
+                                    <source media="(max-width: 767px)" srcset={imagesMobile[0]} />
+                                    <img src={imagesWeb[0]} id="main-image" class="w-100 h-100 d-block" style="object-fit: contain;" alt={pageTitle} fetchpriority="high" loading="eager" decoding="sync" />
+                                </picture>
+                            </div>
+                            
+                            <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar" style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
+                                {imagesWeb.map((imgWeb, index) => {
+                                    const imgMobile = imagesMobile[index] || imgWeb;
+                                    return (
+                                        <img src={imgMobile} class={index === 0 ? "rounded border cursor-pointer gallery-thumb active" : "rounded border cursor-pointer gallery-thumb"} style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;" onclick={`changeImage('${imgWeb}', '${imgMobile}', this)`} loading="lazy" decoding="async" width="80" height="60" alt={`Ảnh ${index + 1}`} />
+                                    )
+                                })}
+                            </div>
                         </div>
+                    ) : (
+                        <div class="d-flex align-items-center justify-content-center p-5 text-muted" style="aspect-ratio: 4/3;">Đang cập nhật hình ảnh</div>
                     )}
                 </div>
 
                 <div class="mb-4 bg-white p-4 rounded-3 border shadow-sm">
                     <div class="d-flex align-items-end mb-3 flex-wrap gap-2">
-                         <div class="fw-bold text-danger" style="font-size: 1.8rem; line-height: 1;">
-                            {formatPrice(room.price)}
-                        </div>
+                         <div class="fw-bold text-danger" style="font-size: 1.8rem; line-height: 1;">{formatPrice(room.price)}</div>
                         <div class="text-muted pb-1 fst-italic">/tháng (Thương lượng)</div>
                     </div>
-                    
                     {room.promotion && (
-                        <div class="mb-3">
-                            <div class="px-3 py-2 rounded-3 text-dark fw-bold d-inline-block shadow-sm" 
-                                 style="background-color: #fff8e1; font-size: 1.05rem; border: 1px solid #ffecb3;">
-                                {room.promotion}
-                            </div>
-                        </div>
+                        <div class="mb-3"><div class="px-3 py-2 rounded-3 text-dark fw-bold d-inline-block shadow-sm" style="background-color: #fff8e1; font-size: 1.05rem; border: 1px solid #ffecb3;">{room.promotion}</div></div>
                     )}
-
                     <hr class="text-muted opacity-25 my-3" />
-
                     <div class="row g-2">
                         {keypointsList && keypointsList.map((k) => (
-                            <div class="col-6">
-                                <div class="d-flex align-items-center text-secondary" style="font-size: 0.95rem;">
-                                    <i class="fas fa-check-circle text-success me-2 flex-shrink-0"></i> 
-                                    <span>{k}</span>
-                                </div>
-                            </div>
+                            <div class="col-6"><div class="d-flex align-items-center text-secondary" style="font-size: 0.95rem;"><i class="fas fa-check-circle text-success me-2 flex-shrink-0"></i><span>{k}</span></div></div>
                         ))}
                     </div>
                 </div>
 
                 {collageImageWeb && (
-    <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
-        <picture>
-            <source media="(max-width: 767px)" srcset={collageImageMobile || collageImageWeb} />
-            <img src={collageImageWeb} class="w-100 d-block" loading="lazy" alt="Tiện ích bổ sung" style="height: auto;" />
-        </picture>
-    </div>
-)}
+                    <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
+                        <picture>
+                            <source media="(max-width: 767px)" srcset={collageImageMobile || collageImageWeb} />
+                            <img src={collageImageWeb} class="w-100 d-block" loading="lazy" alt="Tiện ích bổ sung" style="height: auto;" />
+                        </picture>
+                    </div>
+                )}
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
-                    <h2 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
-                        <i class="fas fa-align-left me-2"></i> Mô tả chi tiết
-                    </h2>
-                    <div style="white-space: pre-line; line-height: 1.8; color: #333; font-size: 1.05rem;">
-                        {room.desc}
-                    </div>
+                    <h2 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary"><i class="fas fa-align-left me-2"></i> Mô tả chi tiết</h2>
+                    <div style="white-space: pre-line; line-height: 1.8; color: #333; font-size: 1.05rem;">{room.desc}</div>
                 </div>
 
                 {videoId && (
                     <div class="d-block d-lg-none mb-4">
                         <div class="card shadow-sm border-0 overflow-hidden">
-                            <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
-                                <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế
-                            </div>
+                            <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase"><i class="fas fa-play-circle text-danger me-2"></i> Video thực tế</div>
                             <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
                                 <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover" alt="Video thumbnail" />
                                 <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
-                                        <i class="fas fa-play fs-4 ms-1"></i>
-                                    </div>
+                                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;"><i class="fas fa-play fs-4 ms-1"></i></div>
                                 </div>
                             </div>
                         </div>
@@ -296,17 +257,10 @@ const schemaBreadcrumb = {
                         </div>
                         <div class="col-md-8 ps-md-4">
                             <h5 class="fw-bold mb-2">👋 Xin chào bạn,</h5>
-                               <p class="text-muted mb-3" style="font-size: 1.05rem;">
-                                Cảm ơn bạn đã quan tâm. Mình cam kết <strong>hình ảnh và giá cả là chính xác 100%</strong>.
-                                Mình luôn sẵn sàng hỗ trợ bạn xem phòng bất cứ lúc nào (hoàn toàn miễn phí).
-                                </p>
+                               <p class="text-muted mb-3" style="font-size: 1.05rem;">Cảm ơn bạn đã quan tâm. Mình cam kết <strong>hình ảnh và giá cả là chính xác 100%</strong>. Mình luôn sẵn sàng hỗ trợ bạn xem phòng bất cứ lúc nào (hoàn toàn miễn phí).</p>
                             <div class="d-flex gap-2">
-                                <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #ffc107;">
-                                     <i class="fas fa-phone-alt me-2"></i> 0925 996 992
-                                </a>
-                                <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold flex-grow-1 text-white rounded-pill shadow-sm" style="background-color: #4e80ff; border: none;">
-                                     <i class="fas fa-comment-dots me-2"></i> Chat Zalo
-                                </a>
+                                <a href="tel:0925996992" class="btn fw-bold flex-grow-1 text-dark rounded-pill shadow-sm" style="background-color: #ffc107;"><i class="fas fa-phone-alt me-2"></i> 0925 996 992</a>
+                                <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold flex-grow-1 text-white rounded-pill shadow-sm" style="background-color: #4e80ff; border: none;"><i class="fas fa-comment-dots me-2"></i> Chat Zalo</a>
                             </div>
                         </div>
                     </div>
@@ -316,22 +270,15 @@ const schemaBreadcrumb = {
                     <div class="d-flex align-items-center mb-3 border-start border-4 border-warning ps-3">
                         <h2 class="h6 fw-bold text-uppercase text-dark mb-0">Vị trí căn hộ</h2>
                     </div>
-                    
                     <div id="map-container" class="rounded overflow-hidden position-relative bg-light border" style="height: 350px;">
-                        <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" 
-                             onclick={`loadMap(${room.lat}, ${room.lng}, '${cleanAddress}')`}>
-                            <div class="position-absolute top-0 start-0 w-100 h-100" 
-                                 style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat;"></div>
+                        <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" onclick={`loadMap(${room.lat}, ${room.lng}, '${cleanAddress}')`}>
+                            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat;"></div>
                             <div class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0.6;"></div>
                             <div class="position-relative text-center z-1 p-3">
-                                <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle bg-warning shadow-sm border border-2 border-white" style="width: 50px; height: 50px;">
-                                    <i class="fas fa-home text-dark fs-4"></i>
-                                </div>
+                                <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle bg-warning shadow-sm border border-2 border-white" style="width: 50px; height: 50px;"><i class="fas fa-home text-dark fs-4"></i></div>
                                 <h4 class="h6 fw-bold text-dark mb-1">{cleanAddress}</h4>
                                 <div class="small text-muted mb-3">Khu vực {room.district}</div>
-                                <button class="btn btn-white fw-bold text-dark rounded-pill px-4 py-2 shadow-sm border border-warning">
-                                     <i class="fas fa-map-marked-alt me-2 text-warning"></i> Bấm để xem bản đồ
-                                </button>
+                                <button class="btn btn-white fw-bold text-dark rounded-pill px-4 py-2 shadow-sm border border-warning"><i class="fas fa-map-marked-alt me-2 text-warning"></i> Bấm để xem bản đồ</button>
                             </div>
                         </div>
                         <div id="real-map" class="w-100 h-100 d-none"></div>
@@ -341,39 +288,23 @@ const schemaBreadcrumb = {
                 <div class="mt-5">
                     <h2 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">Phòng tương tự gần đây</h2>
                     <div class="row g-2 g-md-3">
-                        {relatedRooms.length > 0 ? relatedRooms.map((r) => (
-                            <div class="col-6 col-md-4"><CardRoom room={r} /></div>
-                        )) : (
-                            <div class="col-12 text-center text-muted fst-italic py-3">Chưa có phòng tương tự cùng mức giá.</div>
-                        )}
+                        {relatedRooms.length > 0 ? relatedRooms.map((r) => (<div class="col-6 col-md-4"><CardRoom room={r} /></div>)) : (<div class="col-12 text-center text-muted fst-italic py-3">Chưa có phòng tương tự cùng mức giá.</div>)}
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-4 d-none d-lg-block">
-                <div class="mb-4">
-                    <CommitmentSidebar />
-                </div>
-                
+                <div class="mb-4"><CommitmentSidebar /></div>
                 {videoId && (
                 <div style="position: sticky; top: 60px; z-index: 10;">
                     <div class="card shadow-sm border-0 overflow-hidden mb-4">
-                        <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
-    <i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)
-</div>
-                        
+                        <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase"><i class="fas fa-play-circle text-danger me-2"></i> Video thực tế (Shorts)</div>
                         <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer" onclick={`loadVideo(this, '${videoId}')`}>
-    
-    <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
-         class="w-100 h-100 object-fit-cover" 
-         alt="Video Thumbnail">
-
-    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
-        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
-            <i class="fas fa-play fs-4 ms-1"></i>
-        </div>
-    </div>
-</div>
+                            <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover" alt="Video Thumbnail">
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 2;">
+                                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;"><i class="fas fa-play fs-4 ms-1"></i></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 )}
@@ -383,75 +314,51 @@ const schemaBreadcrumb = {
 </Layout>
 
 <style>
-    /* Tùy chỉnh Icon Play theo màu thương hiệu */
-.text-warning {
-        color: #f1c40f !important; /* Màu vàng thương hiệu */
-    }
-
-    .bg-warning {
-        background-color: #ffc107 !important; /* Màu vàng nút gọi điện */
-    }
-
-/* Hiệu ứng nhấp nháy nhẹ cho nút Play để thu hút sự chú ý */
-.ratio-9x16 .bg-white {
-    transition: transform 0.3s ease;
-}
-
-.ratio-9x16:hover .bg-white {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5) !important;
-}
+    .text-warning { color: #f1c40f !important; }
+    .bg-warning { background-color: #ffc107 !important; }
+    .ratio-9x16 .bg-white { transition: transform 0.3s ease; }
+    .ratio-9x16:hover .bg-white { transform: scale(1.1); box-shadow: 0 0 20px rgba(241, 196, 15, 0.5) !important; }
     .cursor-pointer { cursor: pointer; }
     .gallery-thumb { transition: all 0.2s; opacity: 0.6; }
     .gallery-thumb:hover, .gallery-thumb.active { opacity: 1; border-color: #f39c12 !important; border-width: 2px !important; }
     .custom-scrollbar::-webkit-scrollbar { height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     @media (min-width: 768px) { .border-end-md { border-right: 1px dashed #dee2e6; } }
-
     .ratio-9x16 { --bs-aspect-ratio: 177.78%; }
-    
     .btn-white { background: white; transition: all 0.3s; }
     .btn-white:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
-
-    @media (min-width: 1200px) {
-        .detail-container-standard { max-width: 1140px !important; }
-    }
+    @media (min-width: 1200px) { .detail-container-standard { max-width: 1140px !important; } }
 </style>
-
 
 <script is:inline>
     // 1. Chuyển ảnh Gallery
-    function changeImage(src, thumb) {
+    function changeImage(srcWeb, srcMobile, element) {
         const mainImg = document.getElementById('main-image');
-        if (mainImg.src === src) return;
+        const mainPicture = mainImg.parentElement;
+        const sourceMobile = mainPicture.querySelector('source');
 
-        // Cập nhật ảnh chính trước
-        mainImg.src = src;
-        
-        // Sử dụng requestAnimationFrame để thay đổi class CSS ở khung hình kế tiếp
-        requestAnimationFrame(() => {
-            document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-            thumb.classList.add('active');
-        });
+        if (!mainImg || !element) return;
+        if (sourceMobile) sourceMobile.srcset = srcMobile;
+        mainImg.src = srcWeb;
+
+        document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
     }
 
     // 2. Load Video
     function loadVideo(container, id) {
-        container.onclick = null;
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
+        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" title="Video phòng" allow="autoplay; encrypted-media" allowfullscreen class="w-100 h-100 border-0"></iframe>`;
+        container.removeAttribute('onclick');
     }
 
-    // 3. LOAD MAP THÔNG MINH (Tối ưu hiệu suất render)
+    // 3. LOAD MAP THÔNG MINH
     function loadMap(lat, lng, popupText) {
         const placeholder = document.getElementById('map-placeholder');
         const realMap = document.getElementById('real-map');
         
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"></div></div>';
-        
         const initLeafletMap = () => {
-            // Đọc trạng thái hiển thị trước khi thay đổi DOM
             requestAnimationFrame(() => {
                 placeholder.style.setProperty('display', 'none', 'important');
                 realMap.classList.remove('d-none');
@@ -464,10 +371,7 @@ const schemaBreadcrumb = {
                     attribution: '&copy; OpenStreetMap' 
                 }).addTo(map);
 
-                // Quan trọng: Dùng requestAnimationFrame thay cho setTimeout 200ms để tránh Forced Reflow
-                requestAnimationFrame(() => {
-                    map.invalidateSize();
-                });
+                requestAnimationFrame(() => { map.invalidateSize(); });
 
                 const brandIcon = L.divIcon({ 
                     className: 'custom-map-marker-yellow', 

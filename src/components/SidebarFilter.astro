@@ -7,10 +7,11 @@ let uniqueDistricts = [];
 try {
     const dataPath = path.join(process.cwd(), 'public', 'data.json');
     const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    // Lấy danh sách quận từ data thật
     uniqueDistricts = [...new Set(jsonData.rooms.map(r => r.district).filter(d => d))].sort();
 } catch (error) {
     console.error("Lỗi đọc data.json:", error);
-    uniqueDistricts = ["Tân Bình", "Phú Nhuận"]; 
+    uniqueDistricts = ["Tân Bình", "Phú Nhuận"]; // Fallback nếu lỗi
 }
 
 // 2. CONFIG DATA
@@ -32,10 +33,7 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 
 <div id="mobile-filter-bar" class="mobile-filter-bar d-lg-none">
     <div class="container d-flex align-items-center h-100 px-3">
-        
-        <div class="filter-tags-scroll" id="filter-tags-container">
-            </div>
-
+        <div class="filter-tags-scroll" id="filter-tags-container"></div>
         <button type="button" class="btn-reset-mobile ms-2" id="btn-clear-mobile">
             <i class="fas fa-redo-alt"></i>
         </button>
@@ -50,37 +48,64 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             <i class="fas fa-filter me-2"></i> TÌM KIẾM
         </div>
 
-        <div class="card-body p-3 bg-white" id="filter-form-body">
+        <div class="card-body p-3 bg-white collapse show" id="filter-form-body">
             <form id="astro-filter-form">
                 
-                <div class="mb-2">
+                <div class="mb-3">
                     <label class="filter-label">KHU VỰC</label>
-                    <select class="form-select custom-select fw-bold" id="sb-district">
-                        <option value="all">-- Tất cả --</option>
-                        {uniqueDistricts.map((dist) => (
-                            <option value={dist} selected={currentDist === dist}>Quận {dist}</option>
-                        ))}
-                    </select>
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-warning text-dark w-100 d-flex justify-content-between align-items-center dropdown-toggle fw-bold bg-light-subtle" 
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-display-district">
+                            -- Tất cả --
+                        </button>
+                        <ul class="dropdown-menu w-100 shadow border-0" style="max-height: 250px; overflow-y: auto;">
+                            <li><a class="dropdown-item active" href="#" data-value="all" onclick="selectItem(this, 'sb-district', 'btn-display-district')">-- Tất cả --</a></li>
+                            {uniqueDistricts.map((dist) => (
+                                <li>
+                                    <a class="dropdown-item" href="#" data-value={dist} onclick="selectItem(this, 'sb-district', 'btn-display-district')"> {dist}</a>
+                                </li>
+                            ))}
+                        </ul>
+                        <input type="hidden" id="sb-district" value="all">
+                    </div>
                 </div>
 
-                <div class="mb-2">
+                <div class="mb-3">
                     <label class="filter-label">LOẠI PHÒNG</label>
-                    <select class="form-select custom-select" id="sb-type">
-                        <option value="all">-- Tất cả --</option>
-                        {listTypes.map((type) => (
-                            <option value={type} selected={currentType === type}>{type}</option>
-                        ))}
-                    </select>
+                    <div class="dropdown w-100">
+                        <button class="btn btn-white border w-100 d-flex justify-content-between align-items-center dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-display-type">
+                            -- Tất cả --
+                        </button>
+                        <ul class="dropdown-menu w-100 shadow border-0">
+                            <li><a class="dropdown-item active" href="#" data-value="all" onclick="selectItem(this, 'sb-type', 'btn-display-type')">-- Tất cả --</a></li>
+                            {listTypes.map((type) => (
+                                <li>
+                                    <a class="dropdown-item" href="#" data-value={type} onclick="selectItem(this, 'sb-type', 'btn-display-type')">{type}</a>
+                                </li>
+                            ))}
+                        </ul>
+                        <input type="hidden" id="sb-type" value="all">
+                    </div>
                 </div>
 
-                <div class="mb-2">
+                <div class="mb-3">
                     <label class="filter-label">MỨC GIÁ</label>
-                    <select class="form-select custom-select" id="sb-price">
-                        <option value="all">-- Tất cả --</option>
-                        {listPrices.map((p) => (
-                            <option value={p.value} selected={currentPrice === p.value}>{p.label}</option>
-                        ))}
-                    </select>
+                    <div class="dropdown w-100">
+                        <button class="btn btn-white border w-100 d-flex justify-content-between align-items-center dropdown-toggle" 
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-display-price">
+                            -- Tất cả --
+                        </button>
+                        <ul class="dropdown-menu w-100 shadow border-0">
+                            <li><a class="dropdown-item active" href="#" data-value="all" onclick="selectItem(this, 'sb-price', 'btn-display-price')">-- Tất cả --</a></li>
+                            {listPrices.map((p) => (
+                                <li>
+                                    <a class="dropdown-item" href="#" data-value={p.value} onclick="selectItem(this, 'sb-price', 'btn-display-price')">{p.label}</a>
+                                </li>
+                            ))}
+                        </ul>
+                        <input type="hidden" id="sb-price" value="all">
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -119,247 +144,191 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 </div>
 
 <style is:global>
-    /* --- 1. CSS MOBILE ACTIVE BAR (Thanh kết quả lọc) --- */
-    .mobile-filter-bar {
-        position: fixed;
-        top: 0; left: 0; width: 100%;
-        /* Thay đổi quan trọng: Chiều cao tự động */
-        height: auto; 
-        min-height: 60px; 
-        
-        background: #fff;
-        z-index: 2000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border-bottom: 1px solid #eee;
-        cursor: pointer;
-        
-        /* Căn giữa nội dung theo chiều dọc */
-        display: none; 
-        padding: 8px 0; /* Thêm đệm trên dưới */
-    }
-
-    .mobile-filter-bar.is-visible {
-        display: block !important;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    /* Khi hiển thị thì dùng flex để căn chỉnh */
-    .mobile-filter-bar .container {
-        display: flex;
-        align-items: flex-start; /* Căn lề trên để nút reset không bị chạy lung tung */
-        justify-content: space-between;
-        height: 100%;
-    }
-
-    @keyframes slideDown {
-        from { transform: translateY(-100%); }
-        to { transform: translateY(0); }
-    }
-
-    .filter-tags-scroll {
-        flex: 1;
-        display: flex;
-        
-        /* Thay đổi quan trọng: Cho phép xuống dòng */
-        flex-wrap: wrap; 
-        white-space: normal; 
-        
-        align-items: center;
-        gap: 8px; /* Khoảng cách giữa các thẻ cả ngang và dọc */
-        padding-right: 10px;
-    }
-
-    /* Ẩn thanh cuộn vì giờ đã xuống dòng */
-    .filter-tags-scroll::-webkit-scrollbar { display: none; }
-
-    /* --- STYLE CHO CÁC THẺ TAG --- */
-    .active-tag {
-        display: inline-flex;
-        align-items: center;
-        background: #fff;
-        color: #333;
-        padding: 6px 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border-radius: 6px; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        border: 1px solid #e0e0e0;
-        flex-shrink: 0;
-        height: 32px;
-        margin-bottom: 4px; /* Khoảng cách phụ khi xuống dòng */
-    }
+    /* CSS Dropdown & Button giữ nguyên từ phiên bản trước */
+    .btn-white { background: white; color: #333; }
+    .btn-white:hover, .btn-white:focus { background: #f8f9fa; border-color: #f1c40f !important; }
+    .dropdown-item.active, .dropdown-item:active { background-color: #f1c40f; color: #000; font-weight: 600; }
+    .dropdown-menu { font-size: 0.9rem; margin-top: 5px !important; border-radius: 8px; }
     
-    /* Code màu phân loại thẻ */
+    .mobile-filter-bar {
+        position: fixed; top: 0; left: 0; width: 100%; height: auto; min-height: 60px; 
+        background: #fff; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-bottom: 1px solid #eee; cursor: pointer; display: none; padding: 8px 0;
+    }
+    .mobile-filter-bar.is-visible { display: block !important; animation: slideDown 0.3s ease-out; }
+    .mobile-filter-bar .container { display: flex; align-items: flex-start; justify-content: space-between; height: 100%; }
+    @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    
+    .filter-tags-scroll { flex: 1; display: flex; flex-wrap: wrap; white-space: normal; align-items: center; gap: 8px; padding-right: 10px; }
+    .active-tag { display: inline-flex; align-items: center; background: #fff; color: #333; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; flex-shrink: 0; height: 32px; margin-bottom: 4px; }
     .tag-type { border-left: 4px solid #3498db; } 
     .tag-price { border-left: 4px solid #f1c40f; background-color: #fffcf5; } 
     .tag-amenity { border-left: 4px solid #2ecc71; } 
+    .btn-reset-mobile { width: 34px; height: 34px; background: #f8f9fa; color: #e74c3c; border: 1px solid #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 2px; }
 
-    .btn-reset-mobile {
-        width: 34px; height: 34px;
-        background: #f8f9fa;
-        color: #e74c3c;
-        border: 1px solid #e0e0e0;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        margin-top: 2px; /* Căn chỉnh nhẹ cho thẳng hàng với dòng đầu tiên */
-    }
-
-    /* --- 2. CSS FORM & SIDEBAR (GIỮ NGUYÊN KHÔNG ĐỔI) --- */
-    .sidebar-sticky-wrapper {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 80px;
-        z-index: 90;
-    }
-
-    #filter-form-body { 
-        opacity: 1; 
-        max-height: 1500px;
-        overflow: hidden; 
-        transition: all 0.4s ease-in-out;
-    }
+    .sidebar-sticky-wrapper { position: -webkit-sticky; position: sticky; top: 80px; z-index: 90; }
     
-    #filter-form-body.collapsed { 
-        opacity: 0; 
-        max-height: 0; 
-        padding-top: 0 !important; padding-bottom: 0 !important;
-        pointer-events: none; 
-    }
-
     #toggle-filter-btn-container { display: none; }
     #toggle-filter-btn-container.visible { display: block !important; }
 
     .filter-label { font-weight: 700; font-size: 0.75rem; color: #666; margin-bottom: 4px; text-transform: uppercase; }
-    .custom-select { border: 1px solid #f1c40f !important; font-size: 0.85rem; cursor: pointer; }
+    
     .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 0.95rem; margin-bottom: 3px; }
     .custom-check input { display: none; }
-    .checkmark { 
-        height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; 
-        border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
+    .checkmark { height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
     .custom-check input:checked ~ .checkmark:after { content: '\2713'; color: #212529; font-size: 11px; font-weight: bold; }
 
     @media (min-width: 992px) {
-        #filter-form-body { display: block !important; opacity: 1 !important; max-height: none !important; }
+        #filter-form-body { display: block !important; height: auto !important; visibility: visible !important; }
         #toggle-filter-btn-container { display: none !important; }
         .mobile-filter-bar { display: none !important; }
     }
 </style>
 
 <script is:inline>
-    // --- 1. XỬ LÝ LỌC & CHUYỂN TRANG ---
+    // --- HÀM XỬ LÝ SLUG TIẾNG VIỆT CHUẨN (Quan trọng cho mở rộng) ---
+    function createSlug(str) {
+        if (!str) return '';
+        return str.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Bỏ dấu tiếng Việt
+            .replace(/[đĐ]/g, 'd')
+            .replace(/[^a-z0-9\s]/g, '') // Bỏ ký tự đặc biệt
+            .trim()
+            .replace(/\s+/g, '-'); // Thay khoảng trắng bằng dấu gạch ngang
+    }
+
+    // 1. Helper: Hàm chọn Item trong Dropdown
+    window.selectItem = function(element, inputId, btnId) {
+        event.preventDefault();
+        const value = element.getAttribute('data-value');
+        const input = document.getElementById(inputId);
+        if(input) input.value = value;
+
+        const btn = document.getElementById(btnId);
+        if(btn) btn.textContent = element.textContent;
+
+        const menu = element.closest('.dropdown-menu');
+        menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+    };
+
+    // 2. Helper: Khôi phục trạng thái Dropdown
+    function restoreDropdownState(inputId, btnId, targetValue) {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(btnId);
+        if (!input || !btn || !targetValue) return;
+
+        input.value = targetValue;
+        
+        // Tìm item dựa vào data-value (chuẩn xác nhất)
+        const menu = btn.nextElementSibling;
+        let targetItem = null;
+        
+        // Nếu là 'all' thì tìm cái all
+        if (targetValue === 'all') {
+            targetItem = menu.querySelector(`.dropdown-item[data-value="all"]`);
+        } else {
+            // Nếu là tên quận (VD: Tân Bình), tìm chính xác tên đó trong data-value
+            // Lưu ý: data-value trong HTML ở trên được gen từ Data thật (có dấu)
+            targetItem = menu.querySelector(`.dropdown-item[data-value="${targetValue}"]`);
+        }
+        
+        if (targetItem) {
+            btn.textContent = targetItem.textContent;
+            menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+            targetItem.classList.add('active');
+        }
+    }
+
+    // 3. Logic Lọc (ĐÃ NÂNG CẤP ĐỘNG)
     function handleApplyFilter() {
         const district = document.getElementById('sb-district').value;
         const type = document.getElementById('sb-type').value;
         const price = document.getElementById('sb-price').value;
-        
         const amenities = [];
-        document.querySelectorAll('.sb-amenity:checked').forEach((cb) => {
-            amenities.push(cb.value);
-        });
+        document.querySelectorAll('.sb-amenity:checked').forEach(cb => amenities.push(cb.value));
 
         const params = new URLSearchParams(window.location.search);
         
-        // Cập nhật params
-        if (type !== 'all') params.set('type', type); else params.delete('type');
-        if (price !== 'all') params.set('price', price); else params.delete('price');
-        if (amenities.length > 0) params.set('amenities', amenities.join(',')); else params.delete('amenities');
-
-        // Logic giữ Routing theo Quận
+        type !== 'all' ? params.set('type', type) : params.delete('type');
+        price !== 'all' ? params.set('price', price) : params.delete('price');
+        amenities.length > 0 ? params.set('amenities', amenities.join(',')) : params.delete('amenities');
         params.delete('district'); 
+
+        // --- PHẦN XỬ LÝ LINK ĐỘNG (QUAN TRỌNG) ---
         let targetPath = '/';
-        
         if (district !== 'all') {
-            if (district === 'Tân Bình') targetPath = '/tan-binh';
-            else if (district === 'Phú Nhuận') targetPath = '/phu-nhuan';
-            else targetPath = '/' + district.toLowerCase().replace(/ /g, '-');
+            // Tự động chuyển tên quận thành slug: "Bình Thạnh" -> "/binh-thanh"
+            targetPath = '/' + createSlug(district);
         }
 
-        const queryString = params.toString();
-        const finalUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
-        window.location.href = finalUrl;
+        const finalUrl = `${targetPath}${params.toString() ? '?' + params.toString() : ''}`;
+
+        if (window.innerWidth < 992 && typeof window.bsCollapse === 'function') {
+            window.bsCollapse('filter-form-body', 'hide');
+            setTimeout(() => { window.location.href = finalUrl; }, 300);
+        } else {
+            window.location.href = finalUrl;
+        }
     }
 
-    // --- 2. XỬ LÝ HIỂN THỊ TAGS TRÊN MOBILE ---
+    window.expandFilter = function() {
+        if (typeof window.bsCollapse === 'function') {
+            window.bsCollapse('filter-form-body', 'show');
+        } else {
+            const el = document.getElementById('filter-form-body');
+            if(el) { el.classList.add('show'); el.style.display = 'block'; }
+        }
+        const toggleBtn = document.getElementById('toggle-filter-btn-container');
+        if (toggleBtn) {
+            toggleBtn.classList.remove('visible');
+            toggleBtn.style.setProperty('display', 'none', 'important');
+        }
+    };
+
+    window.handleResetFilter = function(e) {
+        if(e) e.stopPropagation();
+        window.location.href = window.location.pathname;
+    };
+
     function renderMobileActiveTags() {
         const container = document.getElementById('filter-tags-container');
         const bar = document.getElementById('mobile-filter-bar');
-        
-        if (!container || !bar) return;
+        if (!container || !bar) return false;
 
         const params = new URLSearchParams(window.location.search);
         let tagsHtml = '';
         let hasFilter = false;
 
-        // Tag Loại phòng (Màu xanh)
         if(params.get('type') && params.get('type') !== 'all') { 
-    tagsHtml += `<span class="active-tag tag-type">${params.get('type')}</span>`;
-    hasFilter = true; 
-}
+            tagsHtml += `<span class="active-tag tag-type">${params.get('type')}</span>`;
+            hasFilter = true; 
+        }
         
-        // Tag Giá (Màu vàng)
-const p = params.get('price');
-if (p && p !== 'all') {
-    let label = p === 'duoi-5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
-    tagsHtml += `<span class="active-tag tag-price">${label}</span>`;
-    hasFilter = true;
-}
+        const p = params.get('price');
+        if (p && p !== 'all') {
+            let label = p === 'duoi-5' ? '< 5 Triệu' : (p === '5to8' ? '5-8 Triệu' : '> 8 Triệu');
+            tagsHtml += `<span class="active-tag tag-price">${label}</span>`;
+            hasFilter = true;
+        }
 
-        // Tag Tiện ích (Màu xám)
-const ams = params.get('amenities');
-if(ams) {
-    ams.split(',').forEach(a => {
-        tagsHtml += `<span class="active-tag tag-amenity">${a}</span>`;
-    });
-    hasFilter = true;
-}
+        const ams = params.get('amenities');
+        if(ams) {
+            ams.split(',').forEach(a => {
+                tagsHtml += `<span class="active-tag tag-amenity">${a}</span>`;
+            });
+            hasFilter = true;
+        }
 
         container.innerHTML = tagsHtml;
-
-        // LOGIC ẨN/HIỆN BAR (YÊU CẦU 1)
         if (window.innerWidth < 992) {
-            if (hasFilter) {
-                bar.classList.add('is-visible'); // Có lọc -> Hiện bar
-            } else {
-                bar.classList.remove('is-visible'); // Không lọc -> Ẩn bar hoàn toàn
-            }
+            hasFilter ? bar.classList.add('is-visible') : bar.classList.remove('is-visible');
         }
+        return hasFilter;
     }
 
-    // --- 3. CÁC HÀM TIỆN ÍCH KHÁC ---
-    window.expandFilter = function() {
-        const formBody = document.getElementById('filter-form-body');
-        const toggleBtn = document.getElementById('toggle-filter-btn-container');
-        if (formBody) {
-            formBody.classList.remove('collapsed');
-            // Mở rồi thì ẩn nút toggle để không chiếm chỗ
-            if (toggleBtn) toggleBtn.classList.remove('visible'); 
-        }
-    }
-
-    window.toggleFilterVisibility = function() {
-        const formBody = document.getElementById('filter-form-body');
-        if (formBody) {
-            if (formBody.classList.contains('collapsed')) {
-                window.expandFilter();
-            } else {
-                formBody.classList.add('collapsed');
-                // Khi đóng lại thì hiện nút toggle lên
-                const toggleBtn = document.getElementById('toggle-filter-btn-container');
-                if (toggleBtn) toggleBtn.classList.add('visible');
-            }
-        }
-    }
-
-    window.handleResetFilter = function(e) {
-        if(e) e.stopPropagation();
-        window.location.href = window.location.pathname;
-    }
-
-    // --- MAIN EXECUTION ---
+    // 4. MAIN EXECUTION
     document.addEventListener('DOMContentLoaded', () => {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
@@ -372,7 +341,6 @@ if(ams) {
         if (btnClearMobile) btnClearMobile.onclick = window.handleResetFilter;
         if (btnToggle) btnToggle.onclick = window.expandFilter;
 
-        // CLICK BAR -> SCROLL & OPEN FILTER
         if (mobileBar) {
             mobileBar.addEventListener('click', (e) => {
                 if (e.target.closest('#btn-clear-mobile')) return;
@@ -384,20 +352,30 @@ if(ams) {
             });
         }
 
-        // FILL FORM DATA
+        // --- KHÔI PHỤC TRẠNG THÁI ---
         const params = new URLSearchParams(window.location.search);
+
+        // Logic khôi phục tên quận từ URL (để nút dropdown hiện đúng tên quận)
+        // VD: URL là /binh-thanh -> Cần hiện "Quận Bình Thạnh"
+        // Cách làm: Lấy slug từ URL, so sánh với slug của từng option trong danh sách
         let currentPathDist = 'all';
-        if (window.location.pathname.includes('tan-binh')) currentPathDist = 'Tân Bình';
-        if (window.location.pathname.includes('phu-nhuan')) currentPathDist = 'Phú Nhuận';
+        const pathSegments = window.location.pathname.split('/').filter(Boolean); // Lấy các phần của URL
+        if (pathSegments.length > 0) {
+            const potentialSlug = pathSegments[0]; // Lấy slug đầu tiên (vd: tan-binh)
+            
+            // Tìm trong dropdown xem có quận nào khớp slug này không
+            const districtLinks = document.querySelectorAll('#btn-display-district + .dropdown-menu .dropdown-item');
+            districtLinks.forEach(link => {
+                const val = link.getAttribute('data-value');
+                if (val !== 'all' && createSlug(val) === potentialSlug) {
+                    currentPathDist = val; // Tìm thấy! (VD: tìm thấy val="Tân Bình" khớp slug "tan-binh")
+                }
+            });
+        }
         
-        const distEl = document.getElementById('sb-district');
-        if (distEl) distEl.value = currentPathDist;
-
-        const typeEl = document.getElementById('sb-type');
-        if (typeEl) typeEl.value = params.get('type') || 'all';
-
-        const priceEl = document.getElementById('sb-price');
-        if (priceEl) priceEl.value = params.get('price') || 'all';
+        restoreDropdownState('sb-district', 'btn-display-district', currentPathDist);
+        restoreDropdownState('sb-type', 'btn-display-type', params.get('type') || 'all');
+        restoreDropdownState('sb-price', 'btn-display-price', params.get('price') || 'all');
 
         const ams = params.get('amenities');
         if (ams) {
@@ -407,21 +385,19 @@ if(ams) {
             });
         }
 
-        renderMobileActiveTags();
+        const hasFilter = renderMobileActiveTags();
 
-        // LOGIC KHỞI TẠO TRẠNG THÁI FORM
         if (window.innerWidth < 992) {
-            const formBody = document.getElementById('filter-form-body');
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
-            const hasFilterParams = params.toString().length > 0;
-
-            if (hasFilterParams) {
-                // Đang lọc -> Thu gọn Form
-                if (formBody) formBody.classList.add('collapsed');
+            if (hasFilter) {
+                if (typeof window.bsCollapse === 'function') {
+                    window.bsCollapse('filter-form-body', 'hide');
+                } else {
+                    const el = document.getElementById('filter-form-body');
+                    if(el) el.classList.remove('show');
+                }
                 if (toggleBtn) toggleBtn.classList.add('visible');
             } else {
-                // Chưa lọc -> MỞ FULL Form
-                if (formBody) formBody.classList.remove('collapsed');
                 if (toggleBtn) toggleBtn.classList.remove('visible');
             }
         }

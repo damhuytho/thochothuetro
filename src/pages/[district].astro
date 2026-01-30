@@ -11,10 +11,30 @@ export async function getStaticPaths() {
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-  return [
-    { params: { district: 'tan-binh' }, props: { districtName: 'Tân Bình', allRooms: validRooms.filter(r => r.district === 'Tân Bình') } },
-    { params: { district: 'phu-nhuan' }, props: { districtName: 'Phú Nhuận', allRooms: validRooms.filter(r => r.district === 'Phú Nhuận') } }
-  ];
+  // 1. Lấy danh sách tất cả các quận CÓ trong data (Không fix cứng nữa)
+  const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
+
+  // 2. Hàm tạo slug (Giống hệt bên SidebarFilter để khớp URL)
+  function createSlug(str) {
+      if (!str) return '';
+      return str.toString().toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Bỏ dấu
+          .replace(/[đĐ]/g, 'd')
+          .replace(/[^a-z0-9\s]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+  }
+
+  // 3. Tạo đường dẫn động cho TẤT CẢ các quận tìm thấy
+  return uniqueDistricts.map(distName => {
+      return {
+          params: { district: createSlug(distName) }, // VD: 'Bình Thạnh' -> 'binh-thanh'
+          props: { 
+              districtName: distName, 
+              allRooms: validRooms.filter(r => r.district === distName) 
+          }
+      };
+  });
 }
 
 const { districtName, allRooms } = Astro.props;
@@ -25,14 +45,12 @@ const rentedRooms = allRooms.filter(r => r.status === 'rented');
 
 // Sắp xếp Active: Ưu tiên có Promotion
 activeRooms.sort((a, b) => (b.promotion ? 1 : 0) - (a.promotion ? 1 : 0));
-
 // Rented: Lấy 12 căn mới nhất
 const limitedRentedRooms = rentedRooms.slice(0, 12);
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
-
 // Metadata
 const pageTitle = `Cho thuê phòng trọ ${districtName} giá rẻ, chính chủ - thochothuetro.com`;
-const pageDesc = `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName} đầy đủ tiện nghi, giá tốt nhất. [cite_start]Hình ảnh thực tế 100%, xem phòng miễn phí.`;
+const pageDesc = `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName} đầy đủ tiện nghi, giá tốt nhất. Hình ảnh thực tế 100%, xem phòng miễn phí.`;
 
 // Schema ItemList
 const schemaItemList = {
@@ -41,7 +59,7 @@ const schemaItemList = {
   "itemListElement": initialDisplayRooms.map((room, index) => ({
     "@type": "ListItem",
     "position": index + 1,
-    "url": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan'}/${room.id}`,
+    "url": `https://thochothuetro.com/${room.district === 'Tân Bình' ? 'tan-binh' : (room.district === 'Phú Nhuận' ? 'phu-nhuan' : room.district.toLowerCase().replace(/ /g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd'))}/${room.id}`,
     "name": `Cho thuê ${room.type} mã ${room.room_code}`
   }))
 };
@@ -100,16 +118,15 @@ const schemaItemList = {
                              data-district-index={idx}>
                              
                              <CardRoom room={room} priority={idx < 6} />
-                        
                         </div>
                     ))}
                 </div>
                 
                 <div id="no-result" class="text-center py-5 d-none">
                     <div class="mb-3"><i class="fas fa-search fa-3x text-muted opacity-25"></i></div>
-                    <p class="text-muted small mb-3">Không tìm thấy phòng phù hợp.</p>
-                    <button class="btn btn-warning text-dark fw-bold shadow-sm" onclick="window.location.href=window.location.pathname">
-                        Xóa bộ lọc
+                    <p class="text-muted small mb-3">Không tìm thấy phòng phù hợp tại khu vực này.</p>
+                    <button class="btn btn-warning text-dark fw-bold shadow-sm" onclick="window.location.href='/'">
+                        Xem tất cả khu vực khác
                     </button>
                 </div>
 
@@ -153,21 +170,22 @@ const schemaItemList = {
         const fPrice = params.get('price');
         const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
         const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
-        
         const specialGroup = ['ban công', 'cửa sổ'];
         const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
         const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-        
+
         const sortEl = document.getElementById('sort-select');
         const sortMode = sortEl ? sortEl.value : 'default';
 
         const allDomItems = Array.from(document.querySelectorAll('.room-item'));
-        
+
         // 1. LỌC
         const filteredItems = allDomItems.filter(item => {
             let matches = true;
 
             const itemDistrict = item.getAttribute('data-district');
+            // Logic lọc quận ở đây thực ra luôn đúng vì ta đang ở trang district cụ thể, 
+            // nhưng giữ lại để an toàn
             if (params.get('district') && params.get('district') !== 'all' && itemDistrict !== params.get('district')) matches = false;
 
             const itemType = (item.getAttribute('data-type') || '').toLowerCase();
@@ -244,7 +262,7 @@ const schemaItemList = {
             
             // Append lại theo thứ tự đã sort
             finalSortedList.forEach(el => container.appendChild(el));
-
+            
             // Hiển thị theo Items To Show
             finalSortedList.forEach((el, index) => {
                 if (index < itemsToShow) {
