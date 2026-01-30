@@ -82,8 +82,32 @@ if (!collageImageWeb) collageImageMobile = null;
 const seoImage = (images.length > 0) ? images[0] : '/logo.png';
 const cleanAddress = hideNumber(room.address);
 
+// [FIX V3] Logic mạnh mẽ hơn: Cắt bỏ phần đầu dựa trên dấu hai chấm (:)
 const keypointsList = room.keypoint 
-    ? room.keypoint.split(',').map(k => k.split('|')[0].trim()).filter(k => k !== '') 
+    ? room.keypoint.split(',')
+        .map(k => {
+            // Lấy nội dung gốc, bỏ phần sau dấu |
+            let text = k.split('|')[0].trim();
+            
+            // Kiểm tra: Nếu dòng này là Khuyến mại (bắt đầu bằng icon 🎁 hoặc chữ KM)
+            // (Dùng match để kiểm tra linh hoạt cả chữ hoa/thường)
+            if (text.match(/^(🎁|KM|Khuyến mãi)/i)) {
+                
+                // TRƯỜNG HỢP 1: Có dấu hai chấm (VD: "🎁 KM: Tặng 1 tháng")
+                // -> Chỉ lấy phần sau dấu hai chấm
+                if (text.includes(':')) {
+                    return text.substring(text.indexOf(':') + 1).trim();
+                }
+                
+                // TRƯỜNG HỢP 2: Không có dấu hai chấm (VD: "🎁 Tặng 1 tháng")
+                // -> Xóa thủ công các ký tự prefix
+                return text.replace(/^(🎁|KM|Khuyến mãi|\s|-)+/i, '').trim();
+            }
+
+            // Nếu không phải dòng khuyến mại thì giữ nguyên
+            return text;
+        })
+        .filter(k => k !== '') 
     : [];
 
 // 4. LỌC PHÒNG TƯƠNG TỰ
