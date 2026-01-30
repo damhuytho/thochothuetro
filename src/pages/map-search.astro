@@ -5,14 +5,17 @@ import path from 'node:path';
 
 // Load Data Server-Side
 const dataPath = path.join(process.cwd(), 'public', 'data.json');
-const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-
-// Lấy cả phòng Active và Rented
-const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+let allRooms = [];
+try {
+    const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+} catch (error) {
+    console.error("Lỗi đọc data.json:", error);
+}
 
 // --- [SEO CONFIG] ---
-const pageTitle = "Bản đồ tìm phòng trọ TP.HCM - Tìm theo vị trí & Giá | Thọ Cho Thuê Trọ";
-const pageDesc = "Công cụ tìm phòng trọ trên bản đồ trực quan. Xem vị trí, so sánh giá các căn hộ dịch vụ, phòng trọ tại Tân Bình, Phú Nhuận.";
+const pageTitle = "Bản đồ phòng trọ TP.HCM - Tìm theo vị trí & Giá | Thọ Cho Thuê Trọ";
+const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ tại Tân Bình, Phú Nhuận.";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
 
 // Schema JSON-LD
@@ -30,17 +33,25 @@ const searchSchema = {
 };
 ---
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
 
 <Layout title={pageTitle} description={pageDesc}>
     
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(searchSchema)} />
 
-    <h1 class="visually-hidden">Tìm kiếm phòng trọ, căn hộ dịch vụ trên bản đồ tại Hồ Chí Minh</h1>
+    <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
 
     <div class="map-layout-wrapper">
         
-        <div id="full-map-view" class="map-viewport bg-white border-start position-relative"></div>
+        <div id="full-map-view" class="map-viewport bg-white border-start position-relative">
+            <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100 bg-light" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 10;">
+                <div class="text-center">
+                    <div class="spinner-border text-warning mb-2" role="status"></div>
+                    <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
+                </div>
+            </div>
+        </div>
 
         <div class="map-sidebar bg-light d-flex flex-column">
             
@@ -57,7 +68,6 @@ const searchSchema = {
             
             <div class="p-3 bg-white border-bottom shadow-sm" style="z-index: 10;">
                 <div class="row g-3">
-                    
                     <div class="col-6">
                         <label class="map-filter-label">KHU VỰC</label>
                         <div class="dropdown">
@@ -67,11 +77,10 @@ const searchSchema = {
                             </button>
                             <ul class="dropdown-menu shadow border-0" id="dd-menu-district">
                                 <li><a class="dropdown-item active" href="#" onclick="setMapFilter('map-district', 'all', 'Tất cả', this)">Tất cả</a></li>
-                                </ul>
+                            </ul>
                             <input type="hidden" id="map-district" value="all">
                         </div>
                     </div>
-
                     <div class="col-6">
                         <label class="map-filter-label">SẮP XẾP</label>
                         <div class="dropdown">
@@ -87,7 +96,6 @@ const searchSchema = {
                             <input type="hidden" id="map-sort" value="default">
                         </div>
                     </div>
-
                     <div class="col-6">
                         <label class="map-filter-label">LOẠI PHÒNG</label>
                         <div class="dropdown">
@@ -105,7 +113,6 @@ const searchSchema = {
                             <input type="hidden" id="map-type" value="all">
                         </div>
                     </div>
-
                     <div class="col-6">
                         <label class="map-filter-label">MỨC GIÁ</label>
                         <div class="dropdown">
@@ -122,7 +129,6 @@ const searchSchema = {
                             <input type="hidden" id="map-price" value="all">
                         </div>
                     </div>
-
                     <div class="col-12">
                         <label class="map-filter-label">TIỆN ÍCH</label>
                         <div class="row g-2" id="map-amenities">
@@ -159,7 +165,6 @@ const searchSchema = {
 </Layout>
 
 <style>
-    /* CSS CHO LAYOUT BẢN ĐỒ */
     :global(footer) { display: none !important; }
     
     @media (min-width: 992px) {
@@ -176,24 +181,17 @@ const searchSchema = {
         .map-viewport { height: 50vh !important; width: 100%; position: relative; order: -1; }
     }
 
-    /* CSS CHO DROPDOWN & FILTER */
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
-    
     .btn-white { background-color: #fff !important; border: 1px solid #ddd !important; color: #333 !important; transition: all 0.2s; border-radius: 8px; }
     .btn-white:hover, .btn-white:focus { border-color: #f1c40f !important; background-color: #fffcf5 !important; }
-    
     .dropdown-menu { font-size: 0.9rem; border-radius: 8px; margin-top: 5px !important; }
     .dropdown-item:active, .dropdown-item.active { background-color: #f1c40f; color: #000; font-weight: 600; }
-    
-    /* CHECKBOX STYLE */
     .custom-check-map { display: flex; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
     .custom-check-map input { display: none; }
     .checkmark-map { height: 18px !important; width: 18px !important; background-color: #fff; border: 1px solid #bbb; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .custom-check-map input:checked ~ .checkmark-map { background-color: #f1c40f; border-color: #f1c40f; }
     .custom-check-map input:checked ~ .checkmark-map:after { content: '\2713'; color: #1a1a1a; font-size: 12px; font-weight: 800; }
-    
     .sticky-result-bar { position: sticky; top: 0; z-index: 15; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    
     .btn-popup-yellow { background-color: #f1c40f !important; color: #1a1a1a !important; font-weight: 700 !important; border: none; padding: 6px 0; width: 100%; border-radius: 50px; font-size: 0.85rem; text-align: center; display: block; text-decoration: none !important; margin-top: 8px; }
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
 </style>
@@ -207,52 +205,82 @@ const searchSchema = {
     let currentFiltered = [];
     let visibleCount = 6;
     const LOAD_STEP = 6;
-    
+
+    // --- HÀM HỖ TRỢ ---
     function toSlug(str) {
-    if (!str) return '';
-    return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
+        if (!str) return '';
+        return str.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[đĐ]/g, 'd')
+            .replace(/[^a-z0-9\s]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
     }
-    // --- 1. LOGIC DROPDOWN MỚI ---
-    // Hàm này được gọi khi bấm chọn item trong dropdown
+
+    // --- HÀM KHỞI TẠO MAP AN TOÀN ---
+    // Kiểm tra xem L đã tải chưa, nếu chưa thì đợi, nếu rồi thì vẽ
+    function initMapSafely() {
+        if (typeof L === 'undefined') {
+            // Chưa tải xong Leaflet, đợi 100ms rồi thử lại
+            setTimeout(initMapSafely, 100);
+            return;
+        }
+
+        // Đã có L, kiểm tra DOM
+        const mapContainer = document.getElementById('full-map-view');
+        if (!mapContainer) return;
+
+        // Nếu map đã có rồi thì không init lại
+        if (map) return;
+
+        try {
+            // Khởi tạo Map
+            map = L.map('full-map-view').setView([10.801646, 106.663158], 18
+            );
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                attribution: '&copy; OpenStreetMap' 
+            }).addTo(map);
+
+            // ẨN SPINNER (Quan trọng: Xóa cái vòng quay đi)
+            const spinner = document.getElementById('map-loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+
+            // Vẽ marker
+            renderMapMarkers();
+        } catch (err) {
+            console.error("Lỗi khởi tạo Map:", err);
+        }
+    }
+
+    // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
     window.setMapFilter = function(inputId, val, label, el) {
         event.preventDefault();
-        // 1. Cập nhật giá trị Input ẩn
         document.getElementById(inputId).value = val;
         
-        // 2. Cập nhật Text nút bấm
         const btnId = 'btn-' + inputId;
-        document.getElementById(btnId).textContent = label;
+        const btnEl = document.getElementById(btnId);
+        if(btnEl) btnEl.textContent = label;
 
-        // 3. Highlight item
         const menu = el.closest('.dropdown-menu');
-        menu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-
-        // 4. Kích hoạt lọc ngay lập tức
+        if(menu) {
+            menu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
         filterAndRender();
     };
 
     window.resetMapFilters = function() {
-        // Reset Inputs
         document.getElementById('map-district').value = 'all';
         document.getElementById('map-type').value = 'all';
         document.getElementById('map-price').value = 'all';
         document.getElementById('map-sort').value = 'default';
         
-        // Reset Buttons Text
         document.getElementById('btn-map-district').textContent = 'Tất cả';
         document.getElementById('btn-map-type').textContent = 'Tất cả';
         document.getElementById('btn-map-price').textContent = 'Tất cả';
         document.getElementById('btn-map-sort').textContent = 'Mặc định';
 
-        // Reset Active class trong menus
         document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-        // Set lại active cho các item mặc định (item đầu tiên)
         document.querySelectorAll('.dropdown-menu').forEach(menu => {
             const first = menu.querySelector('li:first-child .dropdown-item');
             if(first) first.classList.add('active');
@@ -262,8 +290,6 @@ const searchSchema = {
         filterAndRender();
     };
 
-
-    // --- 2. RENDER CARD HTML ---
     function renderCardHTML(room) {
         const images = room.image_detail || [];
         let displayImg = '/logo.png';
@@ -271,9 +297,11 @@ const searchSchema = {
             const thumb = images.find(img => img.includes('_thumb'));
             displayImg = thumb ? thumb : images[0];
         }
-        const cleanAddr = room.address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+        const safeAddr = room.address || "";
+        const cleanAddr = safeAddr.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
         const cardTitle = `Cho thuê ${room.type} ${cleanAddr}`;
         const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
+        // Dùng toSlug an toàn
         const link = `/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
         const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
@@ -298,12 +326,20 @@ const searchSchema = {
         </div>`;
     }
 
-    // --- 3. FILTER LOGIC ---
     function filterAndRender() {
-        const district = document.getElementById('map-district').value;
-        const type = document.getElementById('map-type').value;
-        const price = document.getElementById('map-price').value;
-        const sortMode = document.getElementById('map-sort').value;
+        // Lấy giá trị filter
+        const districtEl = document.getElementById('map-district');
+        const district = districtEl ? districtEl.value : 'all';
+        
+        const typeEl = document.getElementById('map-type');
+        const type = typeEl ? typeEl.value : 'all';
+        
+        const priceEl = document.getElementById('map-price');
+        const price = priceEl ? priceEl.value : 'all';
+        
+        const sortEl = document.getElementById('map-sort');
+        const sortMode = sortEl ? sortEl.value : 'default';
+
         const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
 
         let filtered = allRoomsData.filter(room => {
@@ -346,32 +382,47 @@ const searchSchema = {
         });
 
         currentFiltered = filtered;
-        document.getElementById('result-count-display').textContent = currentFiltered.length;
+        
+        // Update UI
+        const countDisplay = document.getElementById('result-count-display');
+        if(countDisplay) countDisplay.textContent = currentFiltered.length;
+        
         visibleCount = 6;
         renderListDOM();
-        renderMapMarkers();
+        
+        // Vẽ lại marker nếu map đã sẵn sàng (nếu chưa thì initMapSafely sẽ gọi sau)
+        if(map) renderMapMarkers();
     }
 
     function renderListDOM() {
         const grid = document.getElementById('map-grid');
+        if (!grid) return;
+
         const loadMoreBtn = document.getElementById('map-load-more-container');
         const noResult = document.getElementById('map-no-result');
         const visibleItems = currentFiltered.slice(0, visibleCount);
         
         grid.innerHTML = visibleItems.map(renderCardHTML).join('');
         
-        if (currentFiltered.length > visibleCount) {
-            loadMoreBtn.style.display = 'block';
-            loadMoreBtn.querySelector('button').innerHTML = `Xem thêm ${Math.min(LOAD_STEP, currentFiltered.length - visibleCount)} phòng <i class="fas fa-chevron-down ms-1"></i>`;
-        } else {
-            loadMoreBtn.style.display = 'none';
+        if (loadMoreBtn) {
+            if (currentFiltered.length > visibleCount) {
+                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.querySelector('button').innerHTML = `Xem thêm ${Math.min(LOAD_STEP, currentFiltered.length - visibleCount)} phòng <i class="fas fa-chevron-down ms-1"></i>`;
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
         }
-        if (currentFiltered.length === 0) noResult.classList.remove('d-none');
-        else noResult.classList.add('d-none');
+        
+        if (noResult) {
+            if (currentFiltered.length === 0) noResult.classList.remove('d-none');
+            else noResult.classList.add('d-none');
+        }
     }
 
     function renderMapMarkers() {
-        if (!map) return;
+        if (!map) return; // Nếu map chưa load xong thì thôi, đợi nó load
+        if (typeof L === 'undefined') return;
+
         if (markersLayer) map.removeLayer(markersLayer);
         markersLayer = L.layerGroup().addTo(map);
 
@@ -406,45 +457,55 @@ const searchSchema = {
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
     document.addEventListener('astro:page-load', () => {
-        
-        // 1. Dọn dẹp map cũ
+        // 1. Dọn dẹp map cũ (nếu có)
         if (map) {
-            map.remove();
+            if(map.remove) map.remove();
             map = null;
         }
 
-        // --- [SỬA LẠI ĐOẠN NÀY] ---
-        // Thay vì tìm 'map-district' (input), ta tìm cái MENU danh sách 'dd-menu-district'
+        // 2. Tạo Dropdown Quận & SET MẶC ĐỊNH
         const ddMenuDistrict = document.getElementById('dd-menu-district');
-        
+        const defaultDistrict = "Phú Nhuận"; // <-- Tên quận bạn muốn mặc định (phải khớp chính xác trong Data)
+
         if (ddMenuDistrict) {
-            // Reset lại menu, chỉ giữ lại mục "Tất cả" đầu tiên
-            ddMenuDistrict.innerHTML = '<li><a class="dropdown-item active" href="#" onclick="setMapFilter(\'map-district\', \'all\', \'Tất cả\', this)">Tất cả</a></li>';
+            // Reset menu
+            ddMenuDistrict.innerHTML = '<li><a class="dropdown-item" href="#" onclick="setMapFilter(\'map-district\', \'all\', \'Tất cả\', this)">Tất cả</a></li>';
             
-            // Lấy danh sách quận
             const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
             
-            // Tạo các thẻ <li> và <a> đúng chuẩn Bootstrap Dropdown
             districts.forEach(d => {
                 const li = document.createElement('li');
-                // Chú ý: Hàm setMapFilter cần truyền đúng tham số
-                li.innerHTML = `<a class="dropdown-item" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a>`;
+                // Kiểm tra nếu là quận mặc định thì thêm class 'active' luôn
+                const isActive = d === defaultDistrict ? 'active' : '';
+                li.innerHTML = `<a class="dropdown-item ${isActive}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a>`;
                 ddMenuDistrict.appendChild(li);
             });
-        }
-        // --- [KẾT THÚC SỬA] ---
 
-        // 3. Khởi tạo lại Map
-        map = L.map('full-map-view').setView([10.801646, 106.663158], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+            // --- [QUAN TRỌNG] LOGIC SET MẶC ĐỊNH ---
+            // Kiểm tra xem dữ liệu có quận Phú Nhuận không mới set để tránh lỗi
+            if (districts.includes(defaultDistrict)) {
+                // 1. Gán giá trị vào input ẩn (để hàm lọc đọc được)
+                const inputDist = document.getElementById('map-district');
+                if(inputDist) inputDist.value = defaultDistrict;
+
+                // 2. Đổi tên nút hiển thị từ "Tất cả" -> "Phú Nhuận"
+                const btnDist = document.getElementById('btn-map-district');
+                if(btnDist) btnDist.textContent = defaultDistrict;
+            }
+        }
         
-        // 4. Gán lại sự kiện change cho các input
-        // Lưu ý: Dropdown Bootstrap dùng onclick, không dùng sự kiện change của select
-        // Chỉ cần gán lại cho checkbox tiện ích
-        const inputs = document.querySelectorAll('.amenity-cb'); 
+        const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
 
-        // 5. Render lần đầu
-        filterAndRender();
+        // 3. Render danh sách (Lúc này input đã có value="Phú Nhuận" nên nó sẽ lọc đúng)
+        try {
+            filterAndRender();
+        } catch(e) { console.error("Lỗi render list:", e); }
+
+        // 4. Khởi tạo Map an toàn
+        const spinner = document.getElementById('map-loading-spinner');
+        if (spinner) spinner.style.display = 'flex';
+        
+        initMapSafely();
     });
 </script>
