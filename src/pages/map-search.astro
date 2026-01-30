@@ -217,39 +217,46 @@ const searchSchema = {
             .replace(/\s+/g, '-');
     }
 
-    // --- HÀM KHỞI TẠO MAP AN TOÀN ---
-    // Kiểm tra xem L đã tải chưa, nếu chưa thì đợi, nếu rồi thì vẽ
+    // --- [TỐI ƯU] HÀM KHỞI TẠO MAP CHỐNG REFLOW ---
     function initMapSafely() {
         if (typeof L === 'undefined') {
-            // Chưa tải xong Leaflet, đợi 100ms rồi thử lại
             setTimeout(initMapSafely, 100);
             return;
         }
 
-        // Đã có L, kiểm tra DOM
         const mapContainer = document.getElementById('full-map-view');
-        if (!mapContainer) return;
+        if (!mapContainer || map) return;
 
-        // Nếu map đã có rồi thì không init lại
-        if (map) return;
+        // [QUAN TRỌNG] requestAnimationFrame: Đợi trình duyệt vẽ xong giao diện rồi mới init Map
+        requestAnimationFrame(() => {
+            try {
+                // 1. Khởi tạo Map
+                map = L.map('full-map-view', {
+                    // Tắt zoom animation lúc đầu để đỡ giật
+                    zoomAnimation: false, 
+                    fadeAnimation: true, 
+                    markerZoomAnimation: true 
+                }).setView([10.801646, 106.663158], 15);
 
-        try {
-            // Khởi tạo Map
-            map = L.map('full-map-view').setView([10.801646, 106.663158], 18
-            );
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                attribution: '&copy; OpenStreetMap' 
-            }).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    attribution: '&copy; OpenStreetMap' 
+                }).addTo(map);
 
-            // ẨN SPINNER (Quan trọng: Xóa cái vòng quay đi)
-            const spinner = document.getElementById('map-loading-spinner');
-            if (spinner) spinner.style.display = 'none';
+                // 2. Ẩn Spinner (DOM Write)
+                const spinner = document.getElementById('map-loading-spinner');
+                if (spinner) spinner.style.display = 'none';
 
-            // Vẽ marker
-            renderMapMarkers();
-        } catch (err) {
-            console.error("Lỗi khởi tạo Map:", err);
-        }
+                // 3. [CỰC QUAN TRỌNG] invalidateSize sau khi ẩn spinner
+                // Đợi frame tiếp theo để chắc chắn Spinner đã ẩn, Map container đã có kích thước thật
+                requestAnimationFrame(() => {
+                    map.invalidateSize(); // Báo Leaflet đo lại kích thước chuẩn
+                    renderMapMarkers();   // Vẽ marker
+                });
+
+            } catch (err) {
+                console.error("Lỗi Map:", err);
+            }
+        });
     }
 
     // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
@@ -301,7 +308,6 @@ const searchSchema = {
         const cleanAddr = safeAddr.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
         const cardTitle = `Cho thuê ${room.type} ${cleanAddr}`;
         const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
-        // Dùng toSlug an toàn
         const link = `/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
         const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
@@ -327,19 +333,14 @@ const searchSchema = {
     }
 
     function filterAndRender() {
-        // Lấy giá trị filter
         const districtEl = document.getElementById('map-district');
         const district = districtEl ? districtEl.value : 'all';
-        
         const typeEl = document.getElementById('map-type');
         const type = typeEl ? typeEl.value : 'all';
-        
         const priceEl = document.getElementById('map-price');
         const price = priceEl ? priceEl.value : 'all';
-        
         const sortEl = document.getElementById('map-sort');
         const sortMode = sortEl ? sortEl.value : 'default';
-
         const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
 
         let filtered = allRoomsData.filter(room => {
@@ -358,7 +359,6 @@ const searchSchema = {
                 const specialGroup = ['ban công', 'cửa sổ'];
                 const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
                 const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-
                 for (let ami of selectedNormal) {
                     if (ami === 'pet' || ami === 'nuôi pet') {
                         if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
@@ -382,16 +382,16 @@ const searchSchema = {
         });
 
         currentFiltered = filtered;
-        
-        // Update UI
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
-        
         visibleCount = 6;
         renderListDOM();
         
-        // Vẽ lại marker nếu map đã sẵn sàng (nếu chưa thì initMapSafely sẽ gọi sau)
-        if(map) renderMapMarkers();
+        // Vẽ lại marker nếu map đã sẵn sàng
+        if(map) {
+            // Dùng requestAnimationFrame cho marker để tránh reflow khi đang scroll
+            requestAnimationFrame(() => renderMapMarkers());
+        }
     }
 
     function renderListDOM() {
@@ -420,7 +420,7 @@ const searchSchema = {
     }
 
     function renderMapMarkers() {
-        if (!map) return; // Nếu map chưa load xong thì thôi, đợi nó load
+        if (!map) return;
         if (typeof L === 'undefined') return;
 
         if (markersLayer) map.removeLayer(markersLayer);
@@ -451,44 +451,41 @@ const searchSchema = {
                 bounds.push([room.lat, room.lng]);
             }
         });
-        if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // [TỐI ƯU] fitBounds cũng gây reflow, nên cho vào requestAnimationFrame
+        if (bounds.length > 0) {
+            requestAnimationFrame(() => {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            });
+        }
     }
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
     document.addEventListener('astro:page-load', () => {
-        // 1. Dọn dẹp map cũ (nếu có)
         if (map) {
             if(map.remove) map.remove();
             map = null;
         }
 
-        // 2. Tạo Dropdown Quận & SET MẶC ĐỊNH
         const ddMenuDistrict = document.getElementById('dd-menu-district');
-        const defaultDistrict = "Phú Nhuận"; // <-- Tên quận bạn muốn mặc định (phải khớp chính xác trong Data)
+        // MẶC ĐỊNH: Phú Nhuận
+        const defaultDistrict = "Phú Nhuận"; 
 
         if (ddMenuDistrict) {
-            // Reset menu
             ddMenuDistrict.innerHTML = '<li><a class="dropdown-item" href="#" onclick="setMapFilter(\'map-district\', \'all\', \'Tất cả\', this)">Tất cả</a></li>';
-            
             const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
             
             districts.forEach(d => {
                 const li = document.createElement('li');
-                // Kiểm tra nếu là quận mặc định thì thêm class 'active' luôn
                 const isActive = d === defaultDistrict ? 'active' : '';
                 li.innerHTML = `<a class="dropdown-item ${isActive}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a>`;
                 ddMenuDistrict.appendChild(li);
             });
 
-            // --- [QUAN TRỌNG] LOGIC SET MẶC ĐỊNH ---
-            // Kiểm tra xem dữ liệu có quận Phú Nhuận không mới set để tránh lỗi
             if (districts.includes(defaultDistrict)) {
-                // 1. Gán giá trị vào input ẩn (để hàm lọc đọc được)
                 const inputDist = document.getElementById('map-district');
                 if(inputDist) inputDist.value = defaultDistrict;
-
-                // 2. Đổi tên nút hiển thị từ "Tất cả" -> "Phú Nhuận"
                 const btnDist = document.getElementById('btn-map-district');
                 if(btnDist) btnDist.textContent = defaultDistrict;
             }
@@ -497,15 +494,12 @@ const searchSchema = {
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
 
-        // 3. Render danh sách (Lúc này input đã có value="Phú Nhuận" nên nó sẽ lọc đúng)
-        try {
-            filterAndRender();
-        } catch(e) { console.error("Lỗi render list:", e); }
+        try { filterAndRender(); } catch(e) {}
 
-        // 4. Khởi tạo Map an toàn
         const spinner = document.getElementById('map-loading-spinner');
         if (spinner) spinner.style.display = 'flex';
         
+        // Gọi hàm init Map đã tối ưu
         initMapSafely();
     });
 </script>
