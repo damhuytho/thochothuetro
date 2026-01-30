@@ -3,55 +3,76 @@ import path from 'node:path';
 
 const SITE_URL = "https://thochothuetro.com";
 
+// Hàm tạo slug chuẩn (Giống các file khác để link khớp nhau 100%)
+function createSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+}
+
 export async function GET() {
-  // 1. Định nghĩa các trang Tĩnh (Static Pages)
-  const staticPages = [
+  // 1. Các trang Cố định (Home, Map, Contact)
+  const basePages = [
     { url: '', changefreq: 'daily', priority: 1.0 },          // Trang chủ
-    { url: 'tan-binh', changefreq: 'daily', priority: 0.8 },  // Quận Tân Bình
-    { url: 'phu-nhuan', changefreq: 'daily', priority: 0.8 }, // Quận Phú Nhuận
     { url: 'map-search', changefreq: 'weekly', priority: 0.8 }, // Bản đồ
     { url: 'contact', changefreq: 'monthly', priority: 0.5 },   // Liên hệ
   ];
 
-  // 2. Lấy dữ liệu Phòng từ data.json (Dynamic Pages)
-  let dynamicPages = [];
+  let districtPages = [];
+  let roomPages = [];
+
   try {
     const dataPath = path.join(process.cwd(), 'public', 'data.json');
     const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
     
-    // Lấy danh sách phòng Active và Rented (giống logic trang [district].astro)
+    // Lấy danh sách phòng hợp lệ
     const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-    dynamicPages = validRooms.map(room => {
-      // Logic slug giống hệt file [id].astro 
-      const districtSlug = room.district === 'Tân Bình' ? 'tan-binh' : 'phu-nhuan';
+    // 2. [TỰ ĐỘNG] Tạo trang Quận từ data
+    // Lấy danh sách các quận duy nhất có trong file data
+    const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
+    
+    districtPages = uniqueDistricts.map(dist => ({
+        url: createSlug(dist), // Tự động: "Bình Thạnh" -> "binh-thanh"
+        changefreq: 'daily',
+        priority: 0.8
+    }));
+
+    // 3. [TỰ ĐỘNG] Tạo trang Chi tiết phòng
+    roomPages = validRooms.map(room => {
+      // Tự động tạo slug quận dựa trên tên quận của phòng đó
+      const districtSlug = createSlug(room.district);
       return {
         url: `${districtSlug}/${room.id}`,
         changefreq: 'weekly',
         priority: 0.6,
-        lastmod: room.updated_at || new Date().toISOString() // Nếu data.json có ngày update thì dùng, ko thì dùng ngày build
+        lastmod: room.updated_at || new Date().toISOString()
       };
     });
+
   } catch (e) {
     console.error("Lỗi tạo sitemap động:", e);
   }
 
-  // 3. Tạo nội dung XML
-  const allPages = [...staticPages, ...dynamicPages];
+  // 4. Gộp tất cả lại
+  const allPages = [...basePages, ...districtPages, ...roomPages];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${allPages.map((page) => `
   <url>
     <loc>${SITE_URL}/${page.url}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${page.lastmod || new Date().toISOString()}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>
   `).join('')}
 </urlset>`;
 
-  // 4. Trả về response dạng XML
   return new Response(sitemap, {
     headers: {
       'Content-Type': 'application/xml',

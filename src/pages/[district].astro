@@ -43,10 +43,27 @@ const { districtName, allRooms } = Astro.props;
 const activeRooms = allRooms.filter(r => r.status === 'active');
 const rentedRooms = allRooms.filter(r => r.status === 'rented');
 
-// Sắp xếp Active: Ưu tiên có Promotion
-activeRooms.sort((a, b) => (b.promotion ? 1 : 0) - (a.promotion ? 1 : 0));
-// Rented: Lấy 12 căn mới nhất
-const limitedRentedRooms = rentedRooms.slice(0, 12);
+// [CẬP NHẬT] Sắp xếp Active: 
+// 1. Có Promotion lên đầu
+// 2. Sau đó đến Có hình ảnh
+// 3. Cuối cùng là Không có hình
+activeRooms.sort((a, b) => {
+    // Check Promotion
+    const aPromo = !!a.promotion;
+    const bPromo = !!b.promotion;
+    if (aPromo !== bPromo) return bPromo ? 1 : -1; // Có promo xếp trước
+
+    // Check Hình ảnh (Nếu cùng trạng thái promo thì xét tiếp cái này)
+    const aHasImg = (a.image_detail && a.image_detail.length > 0);
+    const bHasImg = (b.image_detail && b.image_detail.length > 0);
+    if (aHasImg !== bHasImg) return bHasImg ? 1 : -1; // Có hình xếp trước
+
+    return 0;
+});
+
+// [CẬP NHẬT] Rented: Chỉ lấy 6 căn mới nhất (Thay vì 12)
+const limitedRentedRooms = rentedRooms.slice(0, 6);
+
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
 // Metadata
 const pageTitle = `Cho thuê phòng trọ ${districtName} giá rẻ, chính chủ - thochothuetro.com`;

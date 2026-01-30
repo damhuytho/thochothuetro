@@ -66,7 +66,7 @@ const searchSchema = {
                 </button>
             </div>
             
-            <div class="p-3 bg-white border-bottom shadow-sm" style="z-index: 10;">
+            <div class="p-3 bg-white border-bottom shadow-sm" style="position: relative; z-index: 100;">
                 <div class="row g-3">
                     <div class="col-6">
                         <label class="map-filter-label">KHU VỰC</label>
@@ -184,7 +184,33 @@ const searchSchema = {
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
     .btn-white { background-color: #fff !important; border: 1px solid #ddd !important; color: #333 !important; transition: all 0.2s; border-radius: 8px; }
     .btn-white:hover, .btn-white:focus { border-color: #f1c40f !important; background-color: #fffcf5 !important; }
-    .dropdown-menu { font-size: 0.9rem; border-radius: 8px; margin-top: 5px !important; }
+    /* [CẬP NHẬT] Menu cao hơn, có thanh cuộn */
+    .dropdown-menu { 
+        font-size: 1rem; 
+        border-radius: 8px; 
+        margin-top: 5px !important;
+        
+        /* Thêm 2 dòng này để khung to ra */
+        max-height: 450px; 
+        overflow-y: auto;
+    }
+    /* [THÊM MỚI] Làm cho các dòng chữ thoáng và dễ bấm hơn */
+    .dropdown-item {
+        padding: 12px 20px !important; /* Tăng khoảng cách bấm */
+        font-size: 1rem !important;    /* Chữ to hơn */
+        font-weight: 500;              /* Chữ đậm hơn */
+        border-bottom: 1px solid #f0f0f0; /* Gạch mờ ngăn cách */
+    }
+    
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .dropdown-item:active, .dropdown-item.active { 
+        background-color: #f1c40f; 
+        color: #000; 
+        font-weight: 600; 
+    }
     .dropdown-item:active, .dropdown-item.active { background-color: #f1c40f; color: #000; font-weight: 600; }
     .custom-check-map { display: flex; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
     .custom-check-map input { display: none; }
