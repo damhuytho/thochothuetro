@@ -405,29 +405,46 @@ const searchSchema = {
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Tự động tạo menu Dropdown cho Quận
-        const ddMenuDistrict = document.getElementById('dd-menu-district');
-        const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
+    document.addEventListener('astro:page-load', () => {
         
-        districts.forEach(d => {
-            const li = document.createElement('li');
-            li.innerHTML = `<a class="dropdown-item" href="#" onclick="setMapFilter('map-district', '${d}', 'Quận ${d}', this)">Quận ${d}</a>`;
-            ddMenuDistrict.appendChild(li);
-        });
-
-        // Set mặc định Phú Nhuận nếu cần
-        if (districts.includes('Phú Nhuận')) {
-            // Logic tùy chọn: Nếu bạn muốn mặc định chọn Phú Nhuận thì bỏ comment dòng dưới
-            // setMapFilter('map-district', 'Phú Nhuận', 'Quận Phú Nhuận', ...); 
-            // Tuy nhiên với bản đồ thì nên để "Tất cả" ban đầu cho trực quan.
+        // 1. Dọn dẹp map cũ
+        if (map) {
+            map.remove();
+            map = null;
         }
 
+        // --- [SỬA LẠI ĐOẠN NÀY] ---
+        // Thay vì tìm 'map-district' (input), ta tìm cái MENU danh sách 'dd-menu-district'
+        const ddMenuDistrict = document.getElementById('dd-menu-district');
+        
+        if (ddMenuDistrict) {
+            // Reset lại menu, chỉ giữ lại mục "Tất cả" đầu tiên
+            ddMenuDistrict.innerHTML = '<li><a class="dropdown-item active" href="#" onclick="setMapFilter(\'map-district\', \'all\', \'Tất cả\', this)">Tất cả</a></li>';
+            
+            // Lấy danh sách quận
+            const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
+            
+            // Tạo các thẻ <li> và <a> đúng chuẩn Bootstrap Dropdown
+            districts.forEach(d => {
+                const li = document.createElement('li');
+                // Chú ý: Hàm setMapFilter cần truyền đúng tham số
+                li.innerHTML = `<a class="dropdown-item" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a>`;
+                ddMenuDistrict.appendChild(li);
+            });
+        }
+        // --- [KẾT THÚC SỬA] ---
+
+        // 3. Khởi tạo lại Map
         map = L.map('full-map-view').setView([10.801646, 106.663158], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         
-        document.querySelectorAll('.amenity-cb').forEach(input => { input.addEventListener('change', filterAndRender); });
-        
+        // 4. Gán lại sự kiện change cho các input
+        // Lưu ý: Dropdown Bootstrap dùng onclick, không dùng sự kiện change của select
+        // Chỉ cần gán lại cho checkbox tiện ích
+        const inputs = document.querySelectorAll('.amenity-cb'); 
+        inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
+
+        // 5. Render lần đầu
         filterAndRender();
     });
 </script>

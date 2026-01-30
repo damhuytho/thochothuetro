@@ -251,7 +251,7 @@ function createSlug(text) {
 </Layout>
 
 <script is:inline>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('astro:page-load', () => {
     const params = new URLSearchParams(window.location.search);
     const queryString = params.toString();
     const viewMoreWrappers = Array.from(document.querySelectorAll('.view-more-wrapper'));
