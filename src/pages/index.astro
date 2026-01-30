@@ -6,10 +6,12 @@ import CommitmentFooter from '../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// --- SERVER SIDE DATA ---
 const dataPath = path.join(process.cwd(), 'public', 'data.json');
 const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 const allRooms = jsonData.rooms.filter(r => r.status === 'active');
 
+// Logic sắp xếp: Có Promotion lên đầu
 function sortRooms(rooms) {
     return rooms.sort((a, b) => {
         if (a.promotion && !b.promotion) return -1;
@@ -18,23 +20,61 @@ function sortRooms(rooms) {
     });
 }
 
+// Gom nhóm theo quận
 const districtNames = [...new Set(allRooms.map(r => r.district))];
 let districtsData = districtNames.map(name => {
     return { name: name, rooms: sortRooms(allRooms.filter(r => r.district === name)) };
 });
+// Quận nào nhiều phòng hiển thị trước
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
 
+// Helper tạo Slug
 function createSlug(text) {
-    if (text === 'Tân Bình') return 'tan-binh';
-    if (text === 'Phú Nhuận') return 'phu-nhuan';
-    return text.toLowerCase().replace(/ /g, '-');
+    if (!text) return '';
+    return text.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
 }
+
+// --- SEO CONFIG ---
+const pageTitle = "Thọ Cho Thuê Trọ - Phòng Trọ, Căn Hộ Dịch Vụ TP.HCM Giá Tốt";
+const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ chính chủ tại Tân Bình, Phú Nhuận. Giờ giấc tự do, full nội thất, an ninh 24/7. Giá từ 3 - 15 triệu.";
+const siteURL = Astro.site || 'https://thochothuetro.com';
+
+// SCHEMA JSON-LD (Dành cho trang chủ doanh nghiệp)
+const schemaOrg = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Thọ Cho Thuê Trọ",
+  "image": `${siteURL}/logo.png`,
+  "url": siteURL,
+  "telephone": "0925 996 992",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Hồ Chí Minh",
+    "addressCountry": "VN"
+  },
+  "priceRange": "3000000VND-15000000VND",
+  "description": pageDesc
+};
 ---
 
-<Layout title="Thọ Cho Thuê Trọ - Trang Chủ">
-        <!-- BANNER HERO FULL WIDTH (NGOÀI CONTAINER) -->
-    <div class="banner-hero-wrapper mb-4 shadow-lg">
-        <div class="banner-bg"></div>
+<Layout title={pageTitle} description={pageDesc}>
+    
+    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaOrg)} />
+
+    <div class="banner-hero-wrapper mb-5 shadow-lg">
+        
+        <img src="https://img.thochothuetro.com/banner.webp" 
+             alt="Phòng trọ tiện nghi TP.HCM" 
+             class="banner-bg-img"
+             fetchpriority="high" 
+             decoding="async"
+             width="1920" height="600">
+             
         <div class="banner-overlay"></div>
         
         <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
@@ -46,7 +86,8 @@ function createSlug(text) {
                     </h1>
                     
                     <p class="hero-desc text-white-50 mb-4 animate-slide-up delay-1">
-                        Hệ thống hơn 500+ phòng trọ an ninh, giờ giấc tự do, nội thất cao cấp. <br class="d-none d-lg-block">
+                        Hệ thống hơn 500+ phòng trọ an ninh, giờ giấc tự do, nội thất cao cấp.
+                        <br class="d-none d-lg-block">
                         Giá chỉ từ <strong class="text-white">3 - 15 triệu/tháng</strong>.
                     </p>
 
@@ -67,141 +108,21 @@ function createSlug(text) {
         </div>
     </div>
 
-    <style>
-        /* 1. SETUP CONTAINER & BACKGROUND */
-        .banner-hero-wrapper {
-            position: relative;
-            height: 420px; /* Chiều cao mặc định desktop */
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-            overflow: hidden;
-        }
-
-        .banner-bg {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('https://img.thochothuetro.com/banner.webp');
-            background-size: cover;
-            background-position: center;
-            animation: kenBurns 20s infinite alternate; /* Hiệu ứng zoom nhẹ */
-            z-index: 0;
-        }
-
-        .banner-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            /* Gradient đen mờ để làm nổi chữ */
-            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
-            z-index: 1;
-            backdrop-filter: blur(2px); /* Làm mờ nhẹ ảnh nền để chữ nét hơn */
-        }
-
-        /* 2. TYPOGRAPHY (CỠ CHỮ) */
-        .hero-title {
-            font-size: 3rem; /* Desktop */
-            line-height: 1.2;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        
-        .text-gradient-gold {
-            color: #d9b205; /* Màu vàng thương hiệu */
-        }
-
-        .hero-desc {
-            font-size: 1.1rem;
-            max-width: 600px;
-            font-weight: 300;
-        }
-
-        /* 3. MOBILE OPTIMIZATION (< 768px) */
-        @media (max-width: 768px) {
-            .banner-hero-wrapper {
-                height: 320px; /* Giảm chiều cao banner trên mobile */
-            }
-
-            .hero-title {
-                font-size: 1.6rem; /* Chữ nhỏ lại vừa vặn */
-                margin-top: 1rem;
-            }
-
-            .hero-desc {
-                font-size: 0.9rem; /* Chữ mô tả nhỏ lại */
-                padding: 0 10px;
-                display: -webkit-box;
-                -webkit-line-clamp: 2; /* Giới hạn 2 dòng mô tả */
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-        }
-
-        /* 4. LUXURY BADGE (GLASSMORPHISM) */
-        .badge-luxury {
-            background: rgba(255, 255, 255, 0.1); /* Nền trong suốt */
-            border: 1px solid rgba(217, 178, 5, 0.5); /* Viền vàng mờ */
-            color: white;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-        
-        /* Hiệu ứng khi hover vào badge (chỉ desktop) */
-        @media (min-width: 992px) {
-            .badge-luxury:hover {
-                background: rgba(217, 178, 5, 0.2);
-                border-color: #d9b205;
-                transform: translateY(-3px);
-            }
-        }
-
-        /* Mobile Badge nhỏ hơn */
-        @media (max-width: 576px) {
-            .badge-luxury {
-                padding: 5px 12px;
-                font-size: 0.75rem;
-                background: rgba(0, 0, 0, 0.4); /* Nền tối hơn chút trên mobile để dễ đọc */
-            }
-        }
-
-        /* 5. ANIMATIONS */
-        @keyframes kenBurns {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
-
-        .animate-slide-up {
-            opacity: 0;
-            animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-
-        .delay-1 { animation-delay: 0.2s; }
-        .delay-2 { animation-delay: 0.4s; }
-
-        @keyframes slideUpFade {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
-
     <div class="container my-4">
         <div class="row">
-            <!-- SIDEBAR FILTER BÊN TRÁI -->
-            <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="col-lg-3 mb-5 mb-lg-0">
              <SidebarFilter />
             </div>
 
-            <!-- CARDS CĂNG HỘ BÊN PHẢI -->
             <div class="col-lg-9">
+                <div id="intro-banner" class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <h2 class="h5 fw-bold text-dark m-0 text-uppercase border-start border-4 border-warning ps-3">
+                            Khám phá phòng mới nhất
+                        </h2>
+                    </div>
+                </div>
+
                 {districtsData.map((dData) => (
                     <div class="district-section mb-5" data-district={dData.name}>
                         
@@ -218,11 +139,12 @@ function createSlug(text) {
                                      data-district={room.district}
                                      data-price={room.price}
                                      data-type={room.type}
+                                     data-status={room.status}
                                      data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
                                      data-pet={room.pet ? "yes" : "no"}
                                      data-district-index={idx}>
                                     
-                                    <CardRoom room={room} />
+                                    <CardRoom room={room} priority={idx < 3} />
                                 
                                 </div>
                             ))}
@@ -230,7 +152,7 @@ function createSlug(text) {
 
                         <div class="text-center mt-3 view-more-wrapper" data-district={dData.name} data-total-rooms={dData.rooms.length}>
                             <a class="btn btn-outline-warning text-dark fw-bold btn-sm view-more-link" href="#">
-                                Xem thêm <span class="remaining-count">{dData.rooms.length - 6}</span> căn khác
+                                Xem thêm <span class="remaining-count">{Math.max(0, dData.rooms.length - 6)}</span> căn khác
                                 <i class="fas fa-chevron-right ms-2"></i>
                             </a>
                         </div>
@@ -250,35 +172,158 @@ function createSlug(text) {
 
 </Layout>
 
+<style>
+    /* 1. SETUP CONTAINER & BACKGROUND */
+    .banner-hero-wrapper {
+        position: relative;
+        height: 420px;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        overflow: hidden;
+        background-color: #333; /* Màu nền dự phòng */
+    }
+
+    /* [MỚI] CSS cho thẻ IMG background */
+    .banner-bg-img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; /* Đảm bảo ảnh phủ kín không bị méo */
+        object-position: center;
+        z-index: 0;
+        animation: kenBurns 20s infinite alternate;
+    }
+
+    .banner-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+        z-index: 1;
+        /* Bỏ backdrop-filter ở overlay lớn để đỡ lag trên mobile yếu */
+    }
+
+    /* 2. TYPOGRAPHY */
+    .hero-title {
+        font-size: 3rem;
+        line-height: 1.2;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    
+    .text-gradient-gold { color: #d9b205; }
+
+    .hero-desc {
+        font-size: 1.1rem;
+        max-width: 600px;
+        font-weight: 300;
+    }
+
+    /* 3. MOBILE OPTIMIZATION */
+    @media (max-width: 768px) {
+        .banner-hero-wrapper { height: 320px; }
+        .hero-title { font-size: 1.6rem; margin-top: 1rem; }
+        .hero-desc {
+            font-size: 0.9rem;
+            padding: 0 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+
+    /* 4. LUXURY BADGE */
+    .badge-luxury {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(217, 178, 5, 0.5);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    @media (min-width: 992px) {
+        .badge-luxury:hover {
+            background: rgba(217, 178, 5, 0.2);
+            border-color: #d9b205;
+            transform: translateY(-3px);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .badge-luxury {
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    /* 5. ANIMATIONS */
+    @keyframes kenBurns {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.1); }
+    }
+
+    .animate-slide-up {
+        opacity: 0;
+        animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
 <script is:inline>
 document.addEventListener('astro:page-load', () => {
+    // --- 1. SETUP VARS ---
     const params = new URLSearchParams(window.location.search);
     const queryString = params.toString();
     const viewMoreWrappers = Array.from(document.querySelectorAll('.view-more-wrapper'));
     const introBanner = document.getElementById('intro-banner');
     const noResult = document.getElementById('no-result');
+    
+    // Helper: Tạo Slug chuẩn
+    const toSlug = (district) => {
+        if(!district) return '';
+        return district.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[đĐ]/g, 'd')
+            .replace(/[^a-z0-9\s]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
+    };
 
-    const toSlug = (district) => district === 'Tân Bình' ? 'tan-binh' : (district === 'Phú Nhuận' ? 'phu-nhuan' : district.toLowerCase().replace(/ /g, '-'));
-
+    // Helper: Check có ảnh
     function hasImage(el) {
         const img = el.querySelector('img');
         if (!img) return false;
         const src = (img.getAttribute('src') || '').trim();
-        if (!src) return false;
-        if (src.endsWith('/logo.png') || src.includes('logo')) return false;
+        if (!src || src.includes('logo')) return false;
         return true;
     }
 
+    // Helper: Sắp xếp (Ưu tiên có ảnh) và cắt đuôi Rented
     function sortAndCap(items) {
         const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
         const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
+        
         const byImage = (a, b) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
         active.sort(byImage);
         rented.sort(byImage);
-        const rentedCapped = rented.slice(0, 10);
+        
+        const rentedCapped = rented.slice(0, 6); // Giới hạn Rented hiển thị ít thôi
         return [...active, ...rentedCapped];
     }
 
+    // --- 2. GOM NHÓM DOM ELEMENTS ---
     const allItems = Array.from(document.querySelectorAll('.room-item'));
     const itemsByDistrict = {};
     allItems.forEach(item => {
@@ -292,6 +337,7 @@ document.addEventListener('astro:page-load', () => {
         Array.from(container.querySelectorAll('.room-item')).forEach(el => el.style.display = 'none');
     }
 
+    // --- 3. LOGIC HIỂN THỊ MẶC ĐỊNH (Không có Filter) ---
     if (!queryString) {
         if (introBanner) introBanner.classList.remove('d-none');
         let anyVisible = false;
@@ -299,11 +345,16 @@ document.addEventListener('astro:page-load', () => {
         viewMoreWrappers.forEach(wrapper => {
             const district = wrapper.getAttribute('data-district');
             const list = itemsByDistrict[district] || [];
+            
+            // Sắp xếp lại để đẩy căn có ảnh lên đầu
             const sorted = sortAndCap(list);
             const matchedCount = sorted.length;
-            const remaining = Math.max(0, matchedCount - 6);
+            const remaining = Math.max(0, matchedCount - 6); // Mặc định hiện 6 căn
 
             const container = wrapper.parentElement.querySelector('.room-list-container');
+            // Re-append để đúng thứ tự sort
+            sorted.forEach(el => container.appendChild(el));
+
             hideAllInContainer(container);
             sorted.slice(0, 6).forEach(el => { el.style.display = 'block'; anyVisible = true; });
 
@@ -325,9 +376,10 @@ document.addEventListener('astro:page-load', () => {
             if (!anyVisible) noResult.classList.remove('d-none');
             else noResult.classList.add('d-none');
         }
-        return;
+        return; // DỪNG Ở ĐÂY NẾU KHÔNG CÓ FILTER
     }
 
+    // --- 4. LOGIC KHI CÓ FILTER ---
     if (introBanner) introBanner.classList.add('d-none');
 
     const fDistrict = params.get('district');
@@ -344,12 +396,14 @@ document.addEventListener('astro:page-load', () => {
 
     allItems.forEach(item => {
         let matches = true;
-
+        // Filter District
         if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) matches = false;
-
+        
+        // Filter Type
         const itemType = (item.getAttribute('data-type') || '').toLowerCase();
         if (matches && fType !== 'all' && itemType !== fType) matches = false;
 
+        // Filter Price
         if (matches && fPrice && fPrice !== 'all') {
             const price = parseInt(item.getAttribute('data-price')) / 1000000;
             if (fPrice === 'duoi-5' && price >= 5) matches = false;
@@ -357,6 +411,7 @@ document.addEventListener('astro:page-load', () => {
             if (fPrice === 'over8' && price < 8) matches = false;
         }
 
+        // Filter Amenities
         if (matches && fAmenities.length > 0) {
             const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
             const petAllowed = item.getAttribute('data-pet') === 'yes';
@@ -369,7 +424,6 @@ document.addEventListener('astro:page-load', () => {
                     if (!keypoints.includes(ami)) { matches = false; break; }
                 }
             }
-
             if (matches && selectedSpecial.length > 0) {
                 let hasAtLeastOne = false;
                 if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
@@ -380,6 +434,7 @@ document.addEventListener('astro:page-load', () => {
 
         const district = item.getAttribute('data-district') || 'unknown';
         if (!matchedMap[district]) matchedMap[district] = [];
+        
         if (matches) {
             matchedMap[district].push(item);
             totalMatched++;
@@ -388,6 +443,7 @@ document.addEventListener('astro:page-load', () => {
         }
     });
 
+    // Render kết quả Filter
     viewMoreWrappers.forEach(wrapper => {
         const district = wrapper.getAttribute('data-district');
         const matchedList = matchedMap[district] || [];
@@ -397,6 +453,11 @@ document.addEventListener('astro:page-load', () => {
 
         const container = wrapper.parentElement.querySelector('.room-list-container');
         hideAllInContainer(container);
+        
+        // Re-append để đúng thứ tự sort
+        sorted.forEach(el => container.appendChild(el));
+        
+        // Hiện 6 căn đầu
         sorted.slice(0, 6).forEach(el => el.style.display = 'block');
 
         if (remaining > 0) {
@@ -420,8 +481,3 @@ document.addEventListener('astro:page-load', () => {
     }
 });
 </script>
-
-<style>
-    .hover-link:hover { color: #f39c12 !important; text-decoration: underline !important; }
-    .view-more-wrapper { margin-top: 15px; }
-</style>
