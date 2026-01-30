@@ -25,23 +25,44 @@ export async function getStaticPaths() {
 // 2. LẤY DỮ LIỆU TỪ PROPS
 const { room, allRooms } = Astro.props;
 
-// 3. XỬ LÝ HÌNH ẢNH (Logic cũ vẫn giữ để xử lý Collage)
-const sourceDetail = (room.image_detail || []).filter(img => img.includes('_web'));
-const sourceCollage = (room.image_collage || []).filter(img => img.includes('_web'));
-let images = [...sourceDetail];
-if (images.length < 6) {
-    const missingCount = 6 - images.length;
-    const moreImages = sourceCollage.slice(0, missingCount);
-    images = [...images, ...moreImages];
+// 3. XỬ LÝ HÌNH ẢNH (Tối ưu Mobile/Desktop)
+function getOptimizedImages(keyword) {
+    const sourceDetail = (room.image_detail || []).filter(img => img.includes(keyword));
+    const sourceCollage = (room.image_collage || []).filter(img => img.includes(keyword));
+    
+    let result = [...sourceDetail];
+    
+    if (result.length < 6) {
+        const missingCount = 6 - result.length;
+        if (sourceCollage.length > 0) {
+            result = [...result, ...sourceCollage.slice(0, missingCount)];
+        }
+    }
+    return result.slice(0, 6);
 }
-images = images.slice(0, 6);
 
-// Ảnh Collage Đơn
-const collageList = room.image_collage || [];
-let collageImage = collageList.find(img => img.includes('_web'));
-if (!collageImage && collageList.length > 0) collageImage = collageList[0];
-if (!collageImage && images.length > 1) collageImage = images[1];
+// Tạo 2 bộ ảnh riêng biệt: Web (Desktop) và Medium (Mobile)
+const imagesWeb = getOptimizedImages('_web');
+let imagesMobile = getOptimizedImages('_medium'); 
 
+// Fallback: Nếu không có ảnh medium thì dùng web để tránh lỗi
+if (imagesMobile.length === 0) imagesMobile = imagesWeb; 
+
+// QUAN TRỌNG: Giữ biến 'images' trỏ về bản Web để KHÔNG LỖI SEO/SCHEMA
+const images = imagesWeb; 
+
+// Xử lý Ảnh Collage Đơn (Cột AE)
+const collageListWeb = (room.image_collage || []).filter(img => img.includes('_web'));
+const collageListMobile = (room.image_collage || []).filter(img => img.includes('_medium'));
+
+let collageImageWeb = collageListWeb[0] || imagesWeb[1];
+let collageImageMobile = collageListMobile[0] || imagesMobile[1];
+
+// Nếu không tìm thấy, ẩn khối collage
+if (!collageListWeb.length && imagesWeb.length <= 1) collageImageWeb = null;
+if (!collageImageWeb) collageImageMobile = null;
+
+// --- ĐÂY LÀ DÒNG GÂY LỖI TRƯỚC ĐÓ (Giờ chỉ còn 1 dòng duy nhất) ---
 const seoImage = (images.length > 0) ? images[0] : '/logo.png';
 const cleanAddress = hideNumber(room.address);
 
@@ -150,39 +171,44 @@ const schemaBreadcrumb = {
                 <div class="mb-4 bg-white rounded-3 overflow-hidden border shadow-sm">
                     {images && images.length > 0 ? (
                         <div class="gallery-wrapper">
-                            {/* Ảnh chính lớn nhất - Tỷ lệ 4:3 */}
-                            <div id="gallery-main-frame" class="position-relative bg-dark" 
-                                 style="aspect-ratio: 4/3; width: 100%; overflow: hidden;">
-                                <img 
-                                    src={images[0]} 
-                                    id="main-image" 
-                                    class="w-100 h-100 d-block" 
-                                    style="object-fit: contain;" 
-                                    alt={pageTitle}
-                                    fetchpriority="high" 
-                                    loading="eager" 
-                                    decoding="sync"
-                                />
-                            </div>
-                            
-                            {/* Thanh ảnh nhỏ nằm bên dưới ảnh chính */}
-                            <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar" 
-                                 style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
-                                {images.map((img, index) => (
-                                    <img 
-                                        src={img} 
-                                        class={index === 0 ? "rounded border cursor-pointer gallery-thumb active" : "rounded border cursor-pointer gallery-thumb"} 
-                                        style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
-                                        onclick={`changeImage('${img}', this)`}
-                                        loading="lazy" 
-                                        decoding="async"
-                                        width="80" 
-                                        height="60"
-                                        alt={`Ảnh ${index + 1}`} 
-                                    />
-                                ))}
-                            </div>
-                        </div>
+    {/* Ảnh chính lớn nhất - Tỷ lệ 4:3 - Dùng thẻ picture để responsive */}
+    <div id="gallery-main-frame" class="position-relative bg-dark" style="aspect-ratio: 4/3; width: 100%; overflow: hidden;">
+        <picture>
+            <source media="(max-width: 767px)" srcset={imagesMobile[0]} />
+            <img 
+                src={imagesWeb[0]} 
+                id="main-image" 
+                class="w-100 h-100 d-block" 
+                style="object-fit: contain;" 
+                alt={pageTitle}
+                fetchpriority="high" 
+                loading="eager" 
+                decoding="sync"
+            />
+        </picture>
+    </div>
+    
+    {/* Thanh ảnh nhỏ - Thumbnails dùng ảnh Mobile cho nhẹ */}
+    <div class="d-flex gap-2 p-2 overflow-auto bg-white border-top custom-scrollbar" 
+         style="white-space: nowrap; -webkit-overflow-scrolling: touch;">
+        {imagesWeb.map((imgWeb, index) => {
+            const imgMobile = imagesMobile[index] || imgWeb;
+            return (
+                <img 
+                    src={imgMobile} 
+                    class={index === 0 ? "rounded border cursor-pointer gallery-thumb active" : "rounded border cursor-pointer gallery-thumb"} 
+                    style="width: 80px; height: 60px; aspect-ratio: 4/3; object-fit: cover; flex-shrink: 0;"
+                    onclick={`changeImage('${imgWeb}', '${imgMobile}', this)`}
+                    loading="lazy" 
+                    decoding="async"
+                    width="80" 
+                    height="60"
+                    alt={`Ảnh ${index + 1}`} 
+                />
+            )
+        })}
+    </div>
+</div>
                     ) : (
                         <div class="d-flex align-items-center justify-content-center p-5 text-muted" style="aspect-ratio: 4/3;">
                             Đang cập nhật hình ảnh
@@ -221,11 +247,14 @@ const schemaBreadcrumb = {
                     </div>
                 </div>
 
-                {collageImage && (
-                    <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
-                        <img src={collageImage} class="w-100 d-block" loading="lazy" alt="Tiện ích bổ sung" style="height: auto;" />
-                    </div>
-                )}
+                {collageImageWeb && (
+    <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
+        <picture>
+            <source media="(max-width: 767px)" srcset={collageImageMobile || collageImageWeb} />
+            <img src={collageImageWeb} class="w-100 d-block" loading="lazy" alt="Tiện ích bổ sung" style="height: auto;" />
+        </picture>
+    </div>
+)}
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
                     <h2 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
