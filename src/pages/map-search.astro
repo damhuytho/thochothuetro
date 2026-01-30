@@ -19,60 +19,104 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
         
         <div id="full-map-view" class="map-viewport bg-white border-start position-relative"></div>
 
-        <div class="map-sidebar bg-light d-flex flex-column">
-            
-            <div class="p-3 border-bottom bg-white shadow-sm" style="z-index: 10;">
-                <h6 class="fw-bold mb-2 small text-uppercase d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-filter text-warning me-1"></i> Bộ lọc & Sắp xếp</span>
-                    <span class="badge bg-light text-secondary border fw-normal cursor-pointer" onclick="resetMapFilters()">Xóa lọc</span>
-                </h6>
-                
-                <div class="row g-2">
+    <div class="map-sidebar bg-light d-flex flex-column">
+    <div class="text-dark fw-bold text-uppercase py-3 px-3 d-flex align-items-center justify-content-between" 
+         style="background-color: #f1c40f; border-bottom: 1px solid #e0b40a; z-index: 11;">
+        <span style="font-size: 1rem; letter-spacing: 0.5px;">
+            <i class="fas fa-filter me-2"></i> BỘ LỌC TÌM KIẾM
+        </span>
+        <button class="btn btn-sm btn-white text-dark fw-bold border-0 shadow-sm py-1 px-2 d-flex align-items-center" 
+                onclick="resetMapFilters()" style="font-size: 0.8rem; border-radius: 6px;">
+            <i class="fas fa-redo-alt me-1"></i> XÓA LỌC
+        </button>
+    </div>
+    
+    <div class="p-3 bg-white border-bottom shadow-sm" style="z-index: 10;">
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="map-filter-label">KHU VỰC</label>
+                <select class="form-select form-select-sm custom-select-map fw-bold" id="map-district">
+                    <option value="all">Tất cả</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="map-filter-label">SẮP XẾP</label>
+                <select class="form-select form-select-sm custom-select-map" id="map-sort">
+                    <option value="default">Mặc định</option>
+                    <option value="price-asc">Giá thấp nhất</option>
+                    <option value="price-desc">Giá cao nhất</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="map-filter-label">LOẠI PHÒNG</label>
+                <select class="form-select form-select-sm custom-select-map" id="map-type">
+                    <option value="all">Tất cả</option>
+                    <option value="Studio">Studio</option>
+                    <option value="1PN">1 Phòng ngủ</option>
+                    <option value="2PN">2 Phòng ngủ</option>
+                    <option value="Duplex">Duplex</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="map-filter-label">MỨC GIÁ</label>
+                <select class="form-select form-select-sm custom-select-map" id="map-price">
+                    <option value="all">Tất cả</option>
+                    <option value="duoi-5">Dưới 5tr</option>
+                    <option value="5to8">5 - 8tr</option> 
+                    <option value="over8">Trên 8tr</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="map-filter-label">TIỆN ÍCH</label>
+                <div class="row g-2" id="map-amenities">
                     <div class="col-6">
-                        <select class="form-select form-select-sm fw-bold border-warning" id="map-district">
-                            <option value="all">Tất cả Khu vực</option>
-                        </select>
+                        <label class="custom-check-map">
+                            <input type="checkbox" class="amenity-cb" value="ban công">
+                            <span class="checkmark-map"></span> <span class="small">Ban công</span>
+                        </label>
                     </div>
                     <div class="col-6">
-                        <select class="form-select form-select-sm" id="map-sort">
-                            <option value="default">Sắp xếp: Mặc định</option>
-                            <option value="price-asc">Giá: Thấp đến Cao</option>
-                            <option value="price-desc">Giá: Cao đến Thấp</option>
-                        </select>
+                        <label class="custom-check-map">
+                            <input type="checkbox" class="amenity-cb" value="cửa sổ">
+                            <span class="checkmark-map"></span> <span class="small">Cửa sổ</span>
+                        </label>
                     </div>
                     <div class="col-6">
-                        <select class="form-select form-select-sm" id="map-type">
-                            <option value="all">Loại phòng: Tất cả</option>
-                            <option value="Studio">Studio</option>
-                            <option value="1PN">1 Phòng ngủ</option>
-                            <option value="2PN">2 Phòng ngủ</option>
-                            <option value="Duplex">Duplex</option>
-                        </select>
+                        <label class="custom-check-map">
+                            <input type="checkbox" class="amenity-cb" value="máy giặt">
+                            <span class="checkmark-map"></span> <span class="small">Máy giặt</span>
+                        </label>
                     </div>
                     <div class="col-6">
-    <select class="form-select form-select-sm" id="map-price">
-        <option value="all">Mức giá: Tất cả</option>
-        <option value="duoi-5">Dưới 5 Triệu</option>
-        <option value="5to8">5 - 8 Triệu</option> 
-        <option value="over8">Trên 8 Triệu</option>
-    </select>
-</div>
-
-                    <div class="col-12 mt-1">
-                        <div class="row g-2" id="map-amenities">
-                            <div class="col-6"><label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start"><input type="checkbox" class="form-check-input me-1 amenity-cb" value="ban công"> Ban công</label></div>
-                            <div class="col-6"><label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start"><input type="checkbox" class="form-check-input me-1 amenity-cb" value="cửa sổ"> Cửa sổ</label></div>
-                            <div class="col-6"><label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start"><input type="checkbox" class="form-check-input me-1 amenity-cb" value="máy giặt"> Máy giặt</label></div>
-                            <div class="col-6"><label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start"><input type="checkbox" class="form-check-input me-1 amenity-cb" value="thang máy"> Thang máy</label></div>
-                            <div class="col-6"><label class="btn btn-outline-secondary btn-sm w-100 border-0 bg-light small text-start"><input type="checkbox" class="form-check-input me-1 amenity-cb" value="pet"> Nuôi Pet</label></div>
-                        </div>
+                        <label class="custom-check-map">
+                            <input type="checkbox" class="amenity-cb" value="thang máy">
+                            <span class="checkmark-map"></span> <span class="small">Thang máy</span>
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <label class="custom-check-map">
+                            <input type="checkbox" class="amenity-cb" value="pet">
+                            <span class="checkmark-map"></span> <span class="small">Nuôi Pet</span>
+                        </label>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="flex-grow-1 p-2 p-md-3 list-scroll-container" id="map-list-container">
-                <div class="row g-2" id="map-grid"></div>
-                
+
+    <div class="px-3 py-2 bg-light border-bottom d-flex align-items-center justify-content-between sticky-result-bar">
+        <span class="small text-muted fw-bold text-uppercase" style="font-size: 0.75rem;">
+            <i class="fas fa-list-ul me-1"></i> Kết quả tìm kiếm
+        </span>
+        <span class="fw-bold text-dark" style="font-size: 0.9rem;">
+            Tìm thấy <span id="result-count-display" class="text-danger fw-bolder fs-6">0</span> căn
+        </span>
+    </div>
+    <div class="list-scroll-container" id="map-list-container">
+    <div class="flex-grow-1 p-2 p-md-3 list-scroll-container" id="map-list-container">
+        <div class="row g-2" id="map-grid"></div>
+        </div>
                 <div id="map-loading" class="text-center py-4 text-muted d-none">
                     <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
                 </div>
@@ -91,53 +135,230 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
 </Layout>
 
 <style>
+    /* =================================================================
+       1. CẤU HÌNH FIX NAVBAR & SCROLL SIDEBAR (DESKTOP)
+       ================================================================= */
+    
+    /* Ẩn Footer */
     :global(footer) { display: none !important; }
 
-    /* LAYOUT CHUNG */
-    .map-layout-wrapper { display: flex; height: calc(100vh - 76px); overflow: hidden; }
-    .map-sidebar { width: 400px; flex-shrink: 0; border-right: 1px solid #dee2e6; height: 100%; overflow: hidden; }
-    .list-scroll-container { overflow-y: auto; height: 100%; }
-    .map-viewport { flex-grow: 1; height: 100%; z-index: 1; }
+    /* --- DESKTOP (Màn hình > 992px) --- */
+    @media (min-width: 992px) {
+        
+        /* 1. KHÓA BODY: Giữ Navbar đứng yên tuyệt đối */
+        :global(body), :global(html) {
+            height: 100vh;
+            overflow: hidden !important; 
+        }
 
-    /* MOBILE LAYOUT */
-    @media (max-width: 991px) {
-        .map-layout-wrapper { flex-direction: column; height: auto !important; overflow: visible !important; }
-        .map-viewport { height: 50vh; width: 100%; position: relative; flex-shrink: 0; }
-        .map-sidebar { width: 100%; height: auto !important; overflow: visible !important; }
-        .list-scroll-container { overflow: visible !important; height: auto !important; }
+        /* 2. KHUNG BAO NGOÀI: Chiếm phần màn hình còn lại dưới Navbar */
+        .map-layout-wrapper {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 76px) !important; /* Trừ đi chiều cao Navbar */
+            margin-top: 0 !important;
+            position: relative;
+        }
+
+        /* 3. SIDEBAR: ĐÂY LÀ NƠI SẼ CUỘN */
+        .map-sidebar {
+            width: 400px;
+            flex-shrink: 0;
+            height: 100% !important; 
+            border-right: 1px solid #dee2e6;
+            background-color: #fff;
+            
+            /* QUAN TRỌNG: Cho phép cuộn toàn bộ sidebar (Filter + List) */
+            overflow-y: auto !important; 
+            display: block !important; /* Bỏ flex để nội dung trôi tự nhiên */
+            
+            /* Tùy chỉnh thanh cuộn cho đẹp */
+            scrollbar-width: thin;
+            scrollbar-color: #ccc #f1f1f1;
+        }
+
+        /* 4. DANH SÁCH PHÒNG: Hiển thị tự nhiên, không cuộn riêng */
+        .list-scroll-container {
+            height: auto !important;
+            overflow: visible !important;
+            padding-bottom: 50px;
+        }
+
+        /* 5. HEADER BỘ LỌC: Sẽ trôi đi khi cuộn Sidebar */
+        /* Không cần sticky ở đây nữa vì bạn muốn nó di chuyển */
+        
+        /* 6. BẢN ĐỒ: Đứng yên bên phải */
+        .map-viewport {
+            flex-grow: 1;
+            height: 100% !important;
+            width: 100%;
+        }
     }
-    .text-truncate-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;       /* Giới hạn 3 dòng */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    white-space: normal;         /* Cho phép xuống dòng */
-    line-height: 1.4;            /* Khoảng cách dòng cho dễ đọc */
-}
 
-/* TÌM VÀ SỬA ĐOẠN CSS NÀY TRONG THẺ <style> */
-.btn-popup-yellow {
-    background-color: #f1c40f !important; /* Vàng thương hiệu */
-    color: #1a1a1a !important; /* Chữ đen */
-    font-weight: 700 !important;
-    border: none;
-    padding: 8px 15px; /* Tăng padding cho nút to đẹp hơn */
-    border-radius: 50px; /* Bo tròn viên thuốc */
-    font-size: 0.85rem;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-    transition: all 0.2s;
-    text-decoration: none !important; /* Bắt buộc bỏ gạch chân */
-    display: block;
-    text-align: center;
-    margin-top: 5px;
+
+    /* =================================================================
+       2. GIAO DIỆN BỘ LỌC & TEXT
+       ================================================================= */
+
+    .map-filter-label { 
+        font-weight: 700; 
+        font-size: 0.8rem !important; 
+        color: #555;
+        margin-bottom: 6px; 
+        text-transform: uppercase; 
+        display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-select-map {
+        border: 1px solid #ddd !important;
+        border-radius: 8px !important;
+        font-size: 0.95rem !important;
+        padding: 8px 12px !important;
+        cursor: pointer;
+        background-color: #f9f9f9;
+    }
+    .custom-select-map:focus {
+        border-color: #f1c40f !important;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(241, 196, 15, 0.15) !important;
+        outline: none;
+    }
+
+    .btn-white {
+        background-color: #fff !important;
+        border: 1px solid #e0e0e0 !important;
+        color: #333 !important;
+        transition: all 0.2s;
+    }
+    .btn-white:hover {
+        background-color: #f2f2f2 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+
+    /* =================================================================
+       3. CHECKBOX (STYLE ĐẸP - ĐÃ FIX LỖI MẤT HÌNH)
+       ================================================================= */
+    
+    .custom-check-map {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        padding: 4px 0;
+    }
+    
+    .custom-check-map input { display: none; }
+
+    .checkmark-map {
+        height: 20px !important;
+        width: 20px !important;
+        background-color: #fff;      
+        border: 1px solid #bbb;      
+        border-radius: 4px;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .custom-check-map:hover .checkmark-map {
+        border-color: #f1c40f;
+    }
+
+    .custom-check-map input:checked ~ .checkmark-map {
+        background-color: #f1c40f;
+        border-color: #f1c40f;
+    }
+
+    .custom-check-map input:checked ~ .checkmark-map:after {
+        content: '\2713';
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 800;
+    }
+    
+    .custom-check-map span.small {
+        font-size: 0.95rem !important;
+        color: #333;
+    }
+
+
+    /* =================================================================
+       4. CÁC THÀNH PHẦN PHỤ
+       ================================================================= */
+    
+    .btn-popup-yellow {
+        background-color: #f1c40f !important; color: #1a1a1a !important;
+        font-weight: 700 !important; border: none; padding: 6px 0;
+        width: 100%; border-radius: 50px; font-size: 0.85rem;
+        text-align: center; display: block; text-decoration: none !important;
+        margin-top: 8px;
+    }
+    .btn-popup-yellow:hover {
+        background-color: #e0b40a !important; color: #000 !important;
+    }
+
+    .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
+
+    .text-truncate-3 {
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+
+    /* =================================================================
+       5. RESPONSIVE MOBILE (DƯỚI 992px)
+       ================================================================= */
+    
+    @media (max-width: 991px) {
+        /* Mobile: Trả lại trạng thái cuộn tự nhiên của trình duyệt */
+        :global(body), :global(html) {
+            height: auto;
+            overflow: visible !important;
+        }
+
+        .map-layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: auto !important;
+            margin-top: 0;
+        }
+
+        .map-sidebar {
+            width: 100%;
+            height: auto !important;
+            border-right: none;
+            display: block !important;
+            overflow-y: visible !important; /* Mobile không cuộn trong sidebar */
+        }
+
+        .list-scroll-container {
+            overflow: visible;
+            height: auto;
+            flex: none;
+            padding-bottom: 20px;
+        }
+
+        .map-viewport {
+            height: 50vh !important;
+            width: 100%;
+            position: relative;
+            order: -1; 
+        }
+    }
+    /* Làm cho thanh kết quả dính lại khi cuộn sidebar */
+.sticky-result-bar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0; /* Dính ngay mép trên */
+    z-index: 15; /* Nằm trên danh sách phòng nhưng dưới Header bộ lọc nếu có */
+    background-color: #f8f9fa !important; /* Màu nền xám nhẹ để tách biệt */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-.btn-popup-yellow:hover {
-    background-color: #e0b40a !important;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-    color: #000 !important;
-}
-    .custom-map-marker-yellow { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
 </style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -319,6 +540,10 @@ const allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status ==
         if (rentedRooms.length > 10) rentedRooms = rentedRooms.slice(0, 10);
         
         currentFiltered = [...activeRooms, ...rentedRooms];
+        // --- [THÊM DÒNG NÀY ĐỂ CẬP NHẬT SỐ LƯỢNG] ---
+        const countEl = document.getElementById('result-count-display');
+        if (countEl) countEl.textContent = currentFiltered.length;
+        // -------------------------------------------
         visibleCount = 6; // Reset số lượng hiển thị khi lọc lại
         
         renderListDOM();

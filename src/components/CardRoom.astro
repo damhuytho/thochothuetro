@@ -60,7 +60,7 @@ const isRented = room.status === 'rented';
             {cardTitle}
         </h6>
         <div class="mb-1 mb-md-2">
-            <span class="badge bg-light text-secondary border fw-normal room-code">
+            <span class="badge bg-light text-dark border fw-normal room-code">
                 {room.room_code}
             </span>
         </div>
@@ -74,7 +74,7 @@ const isRented = room.status === 'rented';
         </div>
         <div class="mt-auto">
             <hr class="my-1 my-md-2 opacity-25">
-            <div class="d-flex align-items-center text-muted fw-bold room-district">
+            <div class="d-flex align-items-center text-muted small room-district">
                 <i class="fas fa-map-marker-alt me-1 me-md-2 text-warning"></i> 
                 Quận {room.district}
             </div>
