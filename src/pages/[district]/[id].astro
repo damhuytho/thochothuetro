@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { formatPrice, hideNumber } from '../../utils/helpers.js';
 
-// --- 1. HELPER: TẠO SLUG (Dùng chung) ---
+// --- 1. HELPER: TẠO SLUG ---
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
@@ -23,9 +23,7 @@ export async function getStaticPaths() {
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
 
-  // Đã xóa hàm localCreateSlug trùng lặp để code gọn hơn
   return activeRooms.map((room) => {
-      // Tái sử dụng logic slug đơn giản
       const districtSlug = room.district.toString().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[đĐ]/g, 'd')
@@ -42,40 +40,51 @@ export async function getStaticPaths() {
 const { room, allRooms } = Astro.props;
 const currentDistrictSlug = createSlug(room.district);
 
-// Tối ưu logic ảnh: Đảm bảo luôn trả về mảng hợp lệ
-function getOptimizedImages(keyword) {
-    const sourceDetail = (room.image_detail || []).filter(img => img.includes(keyword));
-    const sourceCollage = (room.image_collage || []).filter(img => img.includes(keyword));
-    
-    // Ưu tiên ảnh chi tiết, nếu thiếu thì lấy thêm ảnh collage
-    let result = [...sourceDetail];
-    if (result.length < 6 && sourceCollage.length > 0) {
-        result = [...result, ...sourceCollage.slice(0, 6 - result.length)];
-    }
-    return result.slice(0, 6);
+// --- LOGIC ẢNH TỐI ƯU (Gallery & Collage) ---
+function filterImages(sourceArr, keyword) {
+    return (sourceArr || []).filter(img => img.includes(keyword));
 }
 
-// Logic fallback thông minh hơn
-const imagesWeb = getOptimizedImages('_web');
-// Nếu không có ảnh medium (mobile), dùng luôn ảnh web để tránh lỗi gãy ảnh
-let imagesMobile = getOptimizedImages('_medium');
+// 1. Xử lý Main Gallery
+const detailSource = room.image_detail || [];
+const collageSource = room.image_collage || [];
+
+// Lấy ảnh Web
+let imagesWeb = filterImages(detailSource, '_web');
+// Nếu thiếu ảnh detail, lấy bù từ collage
+if (imagesWeb.length < 6) {
+    const collageWeb = filterImages(collageSource, '_web');
+    imagesWeb = [...imagesWeb, ...collageWeb].slice(0, 6);
+}
+
+// Lấy ảnh Mobile (Medium) tương ứng
+let imagesMobile = filterImages(detailSource, '_medium');
+// Fallback: Nếu không có medium thì dùng web
 if (imagesMobile.length === 0) imagesMobile = imagesWeb;
+// Nếu thiếu số lượng mobile, lấy bù từ web (để đảm bảo map index không lỗi)
+if (imagesMobile.length < imagesWeb.length) {
+    imagesMobile = [...imagesMobile, ...imagesWeb.slice(imagesMobile.length)];
+}
 
-// Đảm bảo luôn có ít nhất 1 ảnh để tránh lỗi render
-const mainImageWeb = imagesWeb.length > 0 ? imagesWeb[0] : '/logo.png';
-const mainImageMobile = imagesMobile.length > 0 ? imagesMobile[0] : mainImageWeb;
+// Ảnh đại diện (LCP)
+const mainImageWeb = imagesWeb[0] || '/logo.png';
+const mainImageMobile = imagesMobile[0] || mainImageWeb;
 
-// Xử lý ảnh Collage
-const collageListWeb = (room.image_collage || []).filter(img => img.includes('_web'));
+// 2. Xử lý Collage Banner (Ảnh tiện ích) - ĐÃ FIX MOBILE
+const collageListWeb = filterImages(collageSource, '_web');
+const collageListMobile = filterImages(collageSource, '_medium');
+
+// Ưu tiên lấy ảnh collage, nếu không có lấy ảnh thứ 2 trong gallery
 const collageImageWeb = collageListWeb[0] || (imagesWeb.length > 1 ? imagesWeb[1] : null);
+// Logic mobile: Tìm medium tương ứng, nếu không có thì fallback về web
+const collageImageMobile = collageListMobile[0] || collageImageWeb;
 
+// --- DỮ LIỆU TEXT ---
 const cleanAddress = hideNumber(room.address);
 const rawKeypoints = room.keypoint ? room.keypoint.split(',') : [];
 
-// Tối ưu xử lý Keypoints (Regex chỉ chạy 1 lần)
 const keypointsList = rawKeypoints.map(k => {
     let text = k.split('|')[0].trim();
-    // Loại bỏ các tiền tố KM, 🎁
     return text.replace(/^(🎁|KM|Khuyến mãi|:\s*)+/i, '').trim();
 }).filter(k => k !== '');
 
@@ -83,10 +92,13 @@ const highlightFeature = keypointsList.find(k =>
     /ban công|cửa sổ|duplex|thang máy|tách bếp/i.test(k)
 ) || keypointsList[0] || 'Full nội thất';
 
-// --- SEO META ---
+// --- SEO META & ALT TEXT ---
 const pageTitle = `Cho thuê ${room.type} ${cleanAddress}, ${highlightFeature} - Giá ${formatPrice(room.price)}`;
 const pageDesc = `🔥 Chỉ ${formatPrice(room.price)}/tháng. Cho thuê ${room.type} tại ${room.district} (${cleanAddress}). ✅ ${keypointsList.slice(0, 3).join(', ')}. ☎️ 0925 996 992.`;
 const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${currentDistrictSlug}/${room.id}`;
+
+// Tạo Alt Text chuẩn SEO dùng chung
+const baseAltText = `Phòng trọ ${room.type} tại ${cleanAddress}, ${room.district}`;
 
 // Video helper
 function getVideoId(url) {
@@ -102,7 +114,7 @@ const schemaProduct = {
   "@type": "Apartment",
   "name": pageTitle,
   "description": pageDesc,
-  "image": imagesWeb, // Dùng ảnh chất lượng cao cho schema
+  "image": imagesWeb,
   "numberOfRooms": room.type.includes('2PN') ? 2 : 1,
   "petsAllowed": room.pet ? true : false,
   "address": {
@@ -133,7 +145,6 @@ const schemaBreadcrumb = {
   ]
 };
 
-// FAQ Schema (Giữ nguyên logic của bạn nhưng rút gọn code)
 const schemaFAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -150,7 +161,7 @@ const relatedRooms = allRooms.filter(r =>
 ).sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0)).slice(0, 6);
 ---
 
-<Layout title={pageTitle} description={pageDesc} image={mainImageWeb} preloadImage={mainImageWeb}>
+<Layout title={pageTitle} description={pageDesc} image={mainImageWeb} preloadImage={mainImageMobile}>
     
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaProduct)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaBreadcrumb)} />
@@ -203,7 +214,7 @@ const relatedRooms = allRooms.filter(r =>
                                         id="main-image" 
                                         class="w-100 h-100 d-block" 
                                         style="object-fit: contain;" 
-                                        alt={pageTitle}
+                                        alt={`${baseAltText} - Ảnh chính`}
                                         width="800" 
                                         height="600"
                                         fetchpriority="high" 
@@ -230,7 +241,7 @@ const relatedRooms = allRooms.filter(r =>
                                             decoding="async"
                                             width="80" 
                                             height="60"
-                                            alt={`Ảnh nhỏ ${index + 1}`} 
+                                            alt={`${baseAltText} - Hình ${index + 1}`} 
                                         />
                                     )
                                 })}
@@ -274,14 +285,15 @@ const relatedRooms = allRooms.filter(r =>
 
                 {collageImageWeb && (
                     <div class="mb-4 rounded-3 overflow-hidden shadow-sm">
-                        <img 
-                            src={collageImageWeb} 
-                            class="w-100 h-auto d-block" 
-                            loading="lazy" 
-                            width="800" 
-                            height="400" 
-                            alt="Tiện ích tổng quan" 
-                        />
+                        <picture>
+                            <source media="(max-width: 767px)" srcset={collageImageMobile} />
+                            <img 
+                                src={collageImageWeb} 
+                                class="w-100 h-auto d-block" 
+                                loading="lazy" 
+                                alt={`Tiện nghi và không gian ${baseAltText}`} 
+                            />
+                        </picture>
                     </div>
                 )}
 
@@ -335,7 +347,8 @@ const relatedRooms = allRooms.filter(r =>
                             
                             <div class="d-flex gap-2">
                                 <a href="tel:0925996992" class="btn btn-warning flex-grow-1 fw-bold rounded-pill shadow-sm text-dark btn-pulse">
-                                    <i class="fas fa-phone-alt me-2"></i> 0925 996 992                                </a>
+                                    <i class="fas fa-phone-alt me-2"></i> 0925 996 992
+                                </a>
                                 <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary flex-grow-1 fw-bold rounded-pill shadow-sm border-0" style="background-color: #0068ff;">
                                     Chat Zalo
                                 </a>
@@ -378,13 +391,12 @@ const relatedRooms = allRooms.filter(r =>
             </div>
 
             <div class="col-lg-4 d-none d-lg-block">
-                
                 <div class="mb-4">
                     <CommitmentSidebar />
                 </div>
                 
                 {videoId && (
-                    <div class="sticky-top" style="top: 70px; z-index: 10;">
+                    <div class="sticky-top" style="top: 100px; z-index: 10;">
                         <div class="card shadow-sm border-0 overflow-hidden">
                             <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
                                 <i class="fas fa-video me-2"></i> Video thực tế
@@ -429,7 +441,7 @@ const relatedRooms = allRooms.filter(r =>
 </style>
 
 <script is:inline>
-    // 1. Gallery Switcher (Giữ nguyên logic nhưng code gọn hơn)
+    // 1. Gallery Switcher
     function changeImage(webSrc, mobileSrc, el) {
         const mainImg = document.getElementById('main-image');
         const source = mainImg.previousElementSibling; // Thẻ source trong picture
@@ -441,30 +453,21 @@ const relatedRooms = allRooms.filter(r =>
         el.classList.add('active');
     }
 
-    // 2. Map Loader (Đã Fix lỗi xoay tròn & hiển thị)
+    // 2. Map Loader
     window.loadMap = function(placeholder, lat, lng, text) {
-        // 1. Hiện spinner
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
         
-        // Hàm khởi tạo bản đồ chính
         const executeMapInit = () => {
             const realMap = document.getElementById('real-map');
-            
-            // 2. Ẩn placeholder và Hiện khung map TRƯỚC
-            placeholder.classList.add('d-none'); // Dùng class d-none thay vì style inline để chắc chắn
+            placeholder.classList.add('d-none');
             realMap.classList.remove('d-none');
-            realMap.style.display = 'block'; // Ép hiển thị dạng block
+            realMap.style.display = 'block';
             
-            // Nếu map đã được init rồi thì chỉ cần resize lại
-            if (realMap._leaflet_id) {
-                return; 
-            }
+            if (realMap._leaflet_id) { return; }
 
-            // 3. Dùng setTimeout để chờ trình duyệt vẽ xong khung div rồi mới vẽ map
             setTimeout(() => {
                 try {
                     const map = L.map('real-map').setView([lat, lng], 16);
-                    
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
                         attribution: '&copy; OSM',
                         maxZoom: 19
@@ -474,7 +477,7 @@ const relatedRooms = allRooms.filter(r =>
                         className: 'custom-pin',
                         html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
                         iconSize: [34, 34],
-                        iconAnchor: [17, 34], // Canh giữa icon
+                        iconAnchor: [17, 34],
                         popupAnchor: [0, -35]
                     });
                     
@@ -482,26 +485,20 @@ const relatedRooms = allRooms.filter(r =>
                      .bindPopup(`<div class="text-center p-2"><b>${text}</b></div>`)
                      .openPopup();
 
-                    // 4. QUAN TRỌNG: Lệnh này bắt buộc map vẽ lại kích thước để tránh lỗi xám xịt
                     map.invalidateSize();
-                    
                 } catch (e) {
                     console.error("Lỗi khởi tạo map:", e);
                     placeholder.innerHTML = '<div class="text-danger p-3">Không thể tải bản đồ. Vui lòng thử lại sau.</div>';
                     placeholder.classList.remove('d-none');
                 }
-            }, 100); // Chờ 100ms
+            }, 100);
         };
 
-        // Load thư viện nếu chưa có
         if (typeof L === 'undefined') {
             const script = document.createElement('script');
-            // Đổi sang CDNJS cho ổn định hơn unpkg
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
             script.onload = executeMapInit;
-            script.onerror = () => {
-                placeholder.innerHTML = 'Lỗi kết nối máy chủ bản đồ.';
-            };
+            script.onerror = () => { placeholder.innerHTML = 'Lỗi kết nối máy chủ bản đồ.'; };
             document.head.appendChild(script);
             
             const css = document.createElement('link');
@@ -513,13 +510,13 @@ const relatedRooms = allRooms.filter(r =>
         }
     };
 
-    // 3. Video Loader (Sử dụng Event Delegation để tối ưu bộ nhớ)
+    // 3. Video Loader
     document.addEventListener('click', function(e) {
         const facade = e.target.closest('.video-facade');
         if (facade) {
             const id = facade.getAttribute('data-id');
             facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" class="w-100 h-100 border-0" allow="autoplay" allowfullscreen></iframe>`;
-            facade.classList.remove('video-facade'); // Xóa class để không bắt sự kiện nữa
+            facade.classList.remove('video-facade');
         }
     });
 </script>
