@@ -98,10 +98,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     <slot name="head" />
 
     <style is:global>
-        .offcanvas:not(.show) {
-        visibility: hidden !important;
-        display: none !important;
-        }
+        
         /* --- CRITICAL CSS (Above the fold) --- */
         :root {
             --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
@@ -360,6 +357,10 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
             display: flex !important;
             flex-direction: column !important;
         }
+        .app-offcanvas:not(.show) {
+        visibility: hidden !important;
+        display: none !important;
+    }
         .app-offcanvas.show {
             transform: none !important;
             visibility: visible !important;
@@ -434,10 +435,15 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     /* 5. Desktop Adjustments */
     @media (min-width: 992px) {
         .app-offcanvas {
-            background: transparent !important;
-            box-shadow: none !important;
-            width: auto !important;
-        }
+        visibility: visible !important;
+        display: flex !important;
+        transform: none !important;
+        position: static !important; /* Trả về vị trí tự nhiên */
+        height: auto !important;
+        width: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
         .nav-link:hover {
             color: #d9b205 !important;
             background: rgba(217, 178, 5, 0.08); /* Nền vàng nhạt khi hover */
