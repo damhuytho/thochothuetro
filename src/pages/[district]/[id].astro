@@ -54,8 +54,11 @@ let imagesWeb = filterImages(detailSource, '_web');
 // Nếu thiếu ảnh detail, lấy bù từ collage
 if (imagesWeb.length < 6) {
     const collageWeb = filterImages(collageSource, '_web');
-    imagesWeb = [...imagesWeb, ...collageWeb].slice(0, 6);
+    // Chỉ lấy thêm những ảnh chưa tồn tại để tránh trùng
+    const uniqueCollage = collageWeb.filter(img => !imagesWeb.includes(img));
+    imagesWeb = [...imagesWeb, ...uniqueCollage];
 }
+imagesWeb = imagesWeb.slice(0, 6);
 
 // Lấy ảnh Mobile (Medium) tương ứng
 let imagesMobile = filterImages(detailSource, '_medium');
@@ -63,9 +66,12 @@ let imagesMobile = filterImages(detailSource, '_medium');
 if (imagesMobile.length === 0) imagesMobile = imagesWeb;
 // Nếu thiếu số lượng mobile, lấy bù từ web (để đảm bảo map index không lỗi)
 if (imagesMobile.length < imagesWeb.length) {
-    imagesMobile = [...imagesMobile, ...imagesWeb.slice(imagesMobile.length)];
+    // Lấy thêm từ nguồn web cho đủ số lượng
+    const diff = imagesWeb.length - imagesMobile.length;
+    const fillers = imagesWeb.slice(-diff); // Lấy những ảnh cuối của web đắp vào
+    imagesMobile = [...imagesMobile, ...fillers];
 }
-
+imagesMobile = imagesMobile.slice(0, imagesWeb.length);
 // Ảnh đại diện (LCP)
 const mainImageWeb = imagesWeb[0] || '/logo.png';
 const mainImageMobile = imagesMobile[0] || mainImageWeb;
@@ -396,7 +402,7 @@ const relatedRooms = allRooms.filter(r =>
                 </div>
                 
                 {videoId && (
-                    <div class="sticky-top" style="top: 100px; z-index: 10;">
+                    <div class="sticky-top" style="top: 85px; z-index: 10;">
                         <div class="card shadow-sm border-0 overflow-hidden">
                             <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
                                 <i class="fas fa-video me-2"></i> Video thực tế
