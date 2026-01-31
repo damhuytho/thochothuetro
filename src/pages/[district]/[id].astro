@@ -1,4 +1,5 @@
 ---
+// --- 1. IMPORTS & SETUP ---
 import Layout from '../../layouts/Layout.astro';
 import CommitmentSidebar from '../../components/CommitmentSidebar.astro';
 import CardRoom from '../../components/CardRoom.astro';
@@ -6,7 +7,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { formatPrice, hideNumber } from '../../utils/helpers.js';
 
-// --- 1. HELPER: TẠO SLUG ---
+// --- 2. HELPER FUNCTIONS ---
+
+// Hàm tạo Slug URL chuẩn SEO
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
@@ -17,12 +20,19 @@ function createSlug(str) {
         .replace(/\s+/g, '-');
 }
 
-// --- 2. GET STATIC PATHS ---
+// Hàm lấy ID Video Youtube từ URL
+function getVideoId(url) {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/shorts\/))([\w-]{11})/);
+    return match ? match[1] : null;
+}
+
+// --- 3. GET STATIC PATHS (Tạo trang tĩnh từ data.json) ---
 export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
-
+  
   return activeRooms.map((room) => {
       const districtSlug = room.district.toString().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -36,22 +46,22 @@ export async function getStaticPaths() {
   });
 }
 
-// --- 3. XỬ LÝ DỮ LIỆU PAGE ---
+// --- 4. XỬ LÝ DỮ LIỆU PAGE (Logic chi tiết) ---
 const { room, allRooms } = Astro.props;
 const currentDistrictSlug = createSlug(room.district);
 
-// --- LOGIC ẢNH TỐI ƯU (Gallery & Collage) ---
+// --- LOGIC XỬ LÝ ẢNH (Giữ nguyên logic Fallback phức tạp của bạn) ---
 function filterImages(sourceArr, keyword) {
     return (sourceArr || []).filter(img => img.includes(keyword));
 }
 
-// 1. Xử lý Main Gallery
+// 4.1. Xử lý Main Gallery
 const detailSource = room.image_detail || [];
 const collageSource = room.image_collage || [];
 
 // Lấy ảnh Web
 let imagesWeb = filterImages(detailSource, '_web');
-// Nếu thiếu ảnh detail, lấy bù từ collage
+// Logic Fallback: Nếu thiếu ảnh detail, lấy bù từ collage
 if (imagesWeb.length < 6) {
     const collageWeb = filterImages(collageSource, '_web');
     // Chỉ lấy thêm những ảnh chưa tồn tại để tránh trùng
@@ -60,61 +70,51 @@ if (imagesWeb.length < 6) {
 }
 imagesWeb = imagesWeb.slice(0, 6);
 
-// Lấy ảnh Mobile (Medium) tương ứng
+// Lấy ảnh Mobile (Medium) tương ứng để tối ưu tốc độ tải trên điện thoại
 let imagesMobile = filterImages(detailSource, '_medium');
 // Fallback: Nếu không có medium thì dùng web
 if (imagesMobile.length === 0) imagesMobile = imagesWeb;
-// Nếu thiếu số lượng mobile, lấy bù từ web (để đảm bảo map index không lỗi)
+// Nếu thiếu số lượng mobile, lấy bù từ web (để đảm bảo map index không lỗi khi click gallery)
 if (imagesMobile.length < imagesWeb.length) {
-    // Lấy thêm từ nguồn web cho đủ số lượng
     const diff = imagesWeb.length - imagesMobile.length;
     const fillers = imagesWeb.slice(-diff); // Lấy những ảnh cuối của web đắp vào
     imagesMobile = [...imagesMobile, ...fillers];
 }
 imagesMobile = imagesMobile.slice(0, imagesWeb.length);
-// Ảnh đại diện (LCP)
+
+// Ảnh đại diện chính (LCP Image)
 const mainImageWeb = imagesWeb[0] || '/logo.png';
 const mainImageMobile = imagesMobile[0] || mainImageWeb;
 
-// 2. Xử lý Collage Banner (Ảnh tiện ích) - ĐÃ FIX MOBILE
+// 4.2. Xử lý Collage Banner (Ảnh tiện ích)
 const collageListWeb = filterImages(collageSource, '_web');
 const collageListMobile = filterImages(collageSource, '_medium');
 
 // Ưu tiên lấy ảnh collage, nếu không có lấy ảnh thứ 2 trong gallery
 const collageImageWeb = collageListWeb[0] || (imagesWeb.length > 1 ? imagesWeb[1] : null);
-// Logic mobile: Tìm medium tương ứng, nếu không có thì fallback về web
 const collageImageMobile = collageListMobile[0] || collageImageWeb;
 
-// --- DỮ LIỆU TEXT ---
+// --- DỮ LIỆU TEXT & TIỆN ÍCH ---
 const cleanAddress = hideNumber(room.address);
 const rawKeypoints = room.keypoint ? room.keypoint.split(',') : [];
-
+// Làm sạch text tiện ích (Bỏ icon, bỏ chữ KM...)
 const keypointsList = rawKeypoints.map(k => {
     let text = k.split('|')[0].trim();
     return text.replace(/^(🎁|KM|Khuyến mãi|:\s*)+/i, '').trim();
 }).filter(k => k !== '');
 
-const highlightFeature = keypointsList.find(k => 
-    /ban công|cửa sổ|duplex|thang máy|tách bếp/i.test(k)
-) || keypointsList[0] || 'Full nội thất';
+const highlightFeature = keypointsList.find(k => /ban công|cửa sổ|duplex|thang máy|tách bếp/i.test(k)) || keypointsList[0] || 'Full nội thất';
 
-// --- SEO META & ALT TEXT ---
+// --- SEO META TAGS ---
 const pageTitle = `Cho thuê ${room.type} ${cleanAddress}, ${highlightFeature} - Giá ${formatPrice(room.price)}`;
 const pageDesc = `🔥 Chỉ ${formatPrice(room.price)}/tháng. Cho thuê ${room.type} tại ${room.district} (${cleanAddress}). ✅ ${keypointsList.slice(0, 3).join(', ')}. ☎️ 0925 996 992.`;
 const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${currentDistrictSlug}/${room.id}`;
-
-// Tạo Alt Text chuẩn SEO dùng chung
 const baseAltText = `Phòng trọ ${room.type} tại ${cleanAddress}, ${room.district}`;
-
-// Video helper
-function getVideoId(url) {
-    if (!url) return null;
-    const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/shorts\/))([\w-]{11})/);
-    return match ? match[1] : null;
-}
 const videoId = getVideoId(room.video);
 
-// --- SCHEMA JSON-LD ---
+// --- SCHEMA JSON-LD (Giữ đầy đủ 3 loại Schema như cũ) ---
+
+// 1. Schema Product (Căn hộ)
 const schemaProduct = {
   "@context": "https://schema.org",
   "@type": "Apartment",
@@ -122,7 +122,7 @@ const schemaProduct = {
   "description": pageDesc,
   "image": imagesWeb,
   "numberOfRooms": room.type.includes('2PN') ? 2 : 1,
-  "petsAllowed": room.pet ? true : false,
+  "petsAllowed": !!room.pet,
   "address": {
     "@type": "PostalAddress",
     "streetAddress": cleanAddress,
@@ -141,6 +141,7 @@ const schemaProduct = {
   }
 };
 
+// 2. Schema Breadcrumb (Đường dẫn)
 const schemaBreadcrumb = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -151,6 +152,7 @@ const schemaBreadcrumb = {
   ]
 };
 
+// 3. Schema FAQ (Câu hỏi thường gặp)
 const schemaFAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -161,7 +163,7 @@ const schemaFAQ = {
   ].map(i => ({ "@type": "Question", "name": i.q, "acceptedAnswer": { "@type": "Answer", "text": i.a } }))
 };
 
-// Related Rooms Logic
+// Logic phòng liên quan
 const relatedRooms = allRooms.filter(r => 
     r.district === room.district && r.id !== room.id && Math.abs(r.price - room.price) <= 1500000
 ).sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0)).slice(0, 6);
@@ -179,7 +181,7 @@ const relatedRooms = allRooms.filter(r =>
     <meta slot="head" property="og:image" content={mainImageWeb} />
     <meta slot="head" property="og:url" content={canonicalURL} />
     
-    <div class="bg-white border-bottom mb-4 shadow-sm sticky-top-mobile" style="z-index: 1020; padding-top: 10px; padding-bottom: 10px;">
+    <div class="bg-white border-bottom mb-4 shadow-sm sticky-top-mobile" style="padding-top: 10px; padding-bottom: 10px;">
         <div class="container text-center">
             
             <h1 class="h5 fw-bold mb-2 text-dark text-uppercase d-none d-md-block" style="line-height: 1.4;">
@@ -207,6 +209,7 @@ const relatedRooms = allRooms.filter(r =>
 
     <div class="container pb-5 detail-container-standard">
         <div class="row g-4">
+            
             <div class="col-lg-8">
                 
                 <div class="mb-4 bg-white rounded-3 overflow-hidden border shadow-sm">
@@ -316,7 +319,7 @@ const relatedRooms = allRooms.filter(r =>
                     <div class="d-lg-none mb-4">
                         <div class="card shadow-sm border-0">
                              <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
-                                 <i class="fas fa-play-circle me-2"></i> Video thực tế
+                                <i class="fas fa-play-circle me-2"></i> Video thực tế
                              </div>
                              <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer video-facade" data-id={videoId}>
                                 <img 
@@ -397,6 +400,7 @@ const relatedRooms = allRooms.filter(r =>
             </div>
 
             <div class="col-lg-4 d-none d-lg-block">
+                
                 <div class="mb-4">
                     <CommitmentSidebar />
                 </div>
@@ -424,7 +428,7 @@ const relatedRooms = allRooms.filter(r =>
 </Layout>
 
 <style>
-    /* CSS Tối ưu */
+    /* 1. CSS Gốc từ file cũ */
     .text-warning { color: #d9b205 !important; }
     .bg-warning { background-color: #ffc107 !important; }
     .cursor-pointer { cursor: pointer; }
@@ -444,10 +448,21 @@ const relatedRooms = allRooms.filter(r =>
     @media (min-width: 1200px) { .detail-container-standard { max-width: 1140px; } }
     
     .animate-pulse { animation: pulse 2s infinite; }
+    
+    /* 2. CSS Tối ưu mới thêm vào */
+    /* Giữ Sticky Header không bị nhảy khi load */
+    .sticky-top-mobile { 
+        z-index: 1020; 
+        position: sticky; 
+        top: 80px; /* Sau Navbar chính */
+    }
+    @media (max-width: 991px) {
+        .sticky-top-mobile { top: 68px; }
+    }
 </style>
 
 <script is:inline>
-    // 1. Gallery Switcher
+    // --- 1. Gallery Switcher Logic ---
     function changeImage(webSrc, mobileSrc, el) {
         const mainImg = document.getElementById('main-image');
         const source = mainImg.previousElementSibling; // Thẻ source trong picture
@@ -459,8 +474,9 @@ const relatedRooms = allRooms.filter(r =>
         el.classList.add('active');
     }
 
-    // 2. Map Loader
+    // --- 2. Map Loader Logic (Chỉ tải thư viện Leaflet khi bấm vào) ---
     window.loadMap = function(placeholder, lat, lng, text) {
+        // Hiện loading spinner
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
         
         const executeMapInit = () => {
@@ -469,7 +485,7 @@ const relatedRooms = allRooms.filter(r =>
             realMap.classList.remove('d-none');
             realMap.style.display = 'block';
             
-            if (realMap._leaflet_id) { return; }
+            if (realMap._leaflet_id) { return; } // Tránh init 2 lần
 
             setTimeout(() => {
                 try {
@@ -479,6 +495,7 @@ const relatedRooms = allRooms.filter(r =>
                         maxZoom: 19
                     }).addTo(map);
                     
+                    // Custom Icon Pin
                     const icon = L.divIcon({
                         className: 'custom-pin',
                         html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
@@ -490,7 +507,6 @@ const relatedRooms = allRooms.filter(r =>
                     L.marker([lat, lng], {icon: icon}).addTo(map)
                      .bindPopup(`<div class="text-center p-2"><b>${text}</b></div>`)
                      .openPopup();
-
                     map.invalidateSize();
                 } catch (e) {
                     console.error("Lỗi khởi tạo map:", e);
@@ -500,6 +516,7 @@ const relatedRooms = allRooms.filter(r =>
             }, 100);
         };
 
+        // Kiểm tra xem Leaflet đã có chưa, nếu chưa thì load script
         if (typeof L === 'undefined') {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
@@ -516,13 +533,15 @@ const relatedRooms = allRooms.filter(r =>
         }
     };
 
-    // 3. Video Loader
+    // --- 3. Video Lazy Loader Logic ---
+    // Chỉ biến hình ảnh thành iframe Youtube khi người dùng bấm vào (tiết kiệm tải trang đầu)
     document.addEventListener('click', function(e) {
         const facade = e.target.closest('.video-facade');
         if (facade) {
             const id = facade.getAttribute('data-id');
+            // Thay thế nội dung bằng Iframe
             facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" class="w-100 h-100 border-0" allow="autoplay" allowfullscreen></iframe>`;
-            facade.classList.remove('video-facade');
+            facade.classList.remove('video-facade'); // Xóa class để không bắt sự kiện nữa
         }
     });
 </script>
