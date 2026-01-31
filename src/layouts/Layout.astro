@@ -332,30 +332,33 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     /* 4. Menu Offcanvas (Giao diện Mobile) */
     @media (max-width: 991px) {
         .app-offcanvas {
-            /* 1. SỬA LỖI TRONG SUỐT */
-            background-color: #ffffff !important;
-            --bs-offcanvas-bg: #ffffff !important; /* Ghi đè biến màu gốc của Bootstrap */
-            opacity: 1 !important;
-
-            /* 2. SỬA LỖI CHIỀU CAO & VỊ TRÍ */
+            /* 1. TRẠNG THÁI MẶC ĐỊNH (ĐÓNG) */
             position: fixed !important;
             top: 0 !important;
             right: 0 !important;
             bottom: 0 !important;
-            height: 100dvh !important; /* Dùng dvh để full màn hình chuẩn xác trên điện thoại */
-            
-            /* Kích thước & Hiệu ứng */
+            height: 100dvh !important;
             width: 85% !important;
             max-width: 300px !important;
+            z-index: 1055 !important;
+            
+            background-color: #ffffff !important;
+            --bs-offcanvas-bg: #ffffff !important;
+            
+            /* QUAN TRỌNG: Thiết lập trạng thái ẩn ngay lập tức để không bị nháy */
+            transform: translateX(100%); 
+            visibility: hidden;
+            transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            
             box-shadow: -5px 0 50px rgba(0,0,0,0.2) !important;
             border-left: 1px solid rgba(0,0,0,0.05);
             
-            /* Đảm bảo nằm trên cùng */
-            z-index: 1055 !important;
-            
-            /* Reset các thuộc tính Flex có thể gây lỗi bố cục */
             display: flex !important;
             flex-direction: column !important;
+        }
+        .app-offcanvas.show {
+            transform: none !important;
+            visibility: visible !important;
         }
         .offcanvas-header {
             flex-shrink: 0; /* Không cho phép bị co lại */
