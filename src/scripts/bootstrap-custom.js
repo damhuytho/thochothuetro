@@ -1,13 +1,14 @@
 // src/scripts/bootstrap-custom.js
 
-// Import các thành phần cần thiết: Menu, Bộ lọc, Cửa sổ bật lên (QC), Menu thả xuống
+// Import các thành phần: Collapse (Menu dọc), Modal (Popup), Dropdown, và Offcanvas (Menu trượt mobile)
 import Collapse from 'bootstrap/js/dist/collapse';
 import Modal from 'bootstrap/js/dist/modal';
 import Dropdown from 'bootstrap/js/dist/dropdown';
+import Offcanvas from 'bootstrap/js/dist/offcanvas'; // <--- MỚI THÊM
 
 // 1. Hàm khởi tạo tự động các thành phần UI
 const initBootstrap = () => {
-    // A. Khởi tạo Collapse (Menu & Filter)
+    // A. Khởi tạo Collapse
     const collapseEls = document.querySelectorAll('.collapse');
     collapseEls.forEach(el => {
         if (!Collapse.getInstance(el)) {
@@ -15,7 +16,7 @@ const initBootstrap = () => {
         }
     });
 
-    // B. Khởi tạo Dropdown (Menu thả xuống) - Tăng trải nghiệm mượt mà
+    // B. Khởi tạo Dropdown
     const dropdownEls = document.querySelectorAll('[data-bs-toggle="dropdown"]');
     dropdownEls.forEach(el => {
         if (!Dropdown.getInstance(el)) {
@@ -23,12 +24,19 @@ const initBootstrap = () => {
         }
     });
 
-    // C. Khởi tạo Tooltip/Popover nếu sau này cần (Hiện tại để trống để tiết kiệm)
+    // C. Khởi tạo Offcanvas (Quan trọng cho Mobile Menu) <--- MỚI THÊM
+    // Tìm tất cả phần tử có class .offcanvas để khởi tạo
+    const offcanvasEls = document.querySelectorAll('.offcanvas');
+    offcanvasEls.forEach(el => {
+        if (!Offcanvas.getInstance(el)) {
+            new Offcanvas(el);
+        }
+    });
 };
 
-// 2. Đưa các hàm điều khiển ra Window để gọi từ bất cứ đâu
+// 2. Đưa các hàm điều khiển ra Window để gọi (nếu cần xử lý bằng JS thủ công)
 
-// --- ĐIỀU KHIỂN COLLAPSE (Sidebar, Mobile Menu) ---
+// --- ĐIỀU KHIỂN COLLAPSE ---
 window.bsCollapse = (id, action = 'toggle') => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -39,27 +47,36 @@ window.bsCollapse = (id, action = 'toggle') => {
     else instance.toggle();
 };
 
-// --- ĐIỀU KHIỂN MODAL (Dùng cho Quảng cáo / Thông báo Popup) ---
-// Cách dùng: window.bsModal('id-modal-quang-cao', 'show');
-window.bsModal = (id, action = 'show') => {
+// --- ĐIỀU KHIỂN OFFCCANVAS (Menu Mobile) --- <--- MỚI THÊM
+window.bsOffcanvas = (id, action = 'toggle') => {
     const el = document.getElementById(id);
     if (!el) return;
-    const instance = Modal.getInstance(el) || new Modal(el); // Mặc định click ra ngoài sẽ đóng
+    const instance = Offcanvas.getInstance(el) || new Offcanvas(el);
     
     if (action === 'show') instance.show();
     else if (action === 'hide') instance.hide();
     else instance.toggle();
+};
+
+// --- ĐIỀU KHIỂN MODAL ---
+window.bsModal = (id, action = 'show') => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const instance = Modal.getInstance(el) || new Modal(el);
     
+    if (action === 'show') instance.show();
+    else if (action === 'hide') instance.hide();
+    else instance.toggle();
     return instance;
 };
 
-// --- ĐIỀU KHIỂN DROPDOWN (Nếu cần mở bằng code) ---
+// --- ĐIỀU KHIỂN DROPDOWN ---
 window.bsDropdown = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
     return Dropdown.getInstance(el) || new Dropdown(el);
 }
 
-// 3. Kích hoạt khi trang tải xong
-document.addEventListener('DOMContentLoaded', initBootstrap);
-document.addEventListener('astro:after-swap', initBootstrap); // Hỗ trợ Astro chuyển trang mượt
+// 3. Kích hoạt
+// Sử dụng 'astro:page-load' thay vì DOMContentLoaded để đảm bảo chạy đúng cả khi tải lần đầu và khi chuyển trang (View Transitions)
+document.addEventListener('astro:page-load', initBootstrap);

@@ -1,6 +1,5 @@
 ---
 // Import trực tiếp từ node_modules 
-// [FIX] Đã xóa dòng import bootstrap CSS ở đây để tránh bị chặn hiển thị (Render-blocking)
 import { ViewTransitions } from 'astro:transitions';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,17 +8,21 @@ export interface Props {
     title: string;
     description?: string;
     image?: string;
-    preloadImage?: string; /* Thêm biến này để Preload */
+    preloadImage?: string;
+    canonicalURL?: string;
 }
 
 const { 
     title, 
     description = "Hệ thống phòng trọ tiện nghi, giờ giấc tự do tại Tân Bình & Phú Nhuận. Cam kết hình thật, giá thật.",
     image = "/logo.png",
-    preloadImage 
+    preloadImage,
+    canonicalURL
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
+const siteURL = Astro.site || 'https://thochothuetro.com';
+const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 ---
 
 <!DOCTYPE html>
@@ -28,77 +31,117 @@ const currentPath = Astro.url.pathname;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <ViewTransitions />
+    
+    <!-- Favicon & PWA -->
     <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <meta name="theme-color" content="#d9b205" />
+    
     <meta name="generator" content={Astro.generator} />
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"></noscript>
+    <!-- Preconnect cho tốc độ tải nhanh hơn -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://img.thochothuetro.com">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
-    
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={image} />
-    <meta property="og:type" content="website" />
-    
+    <!-- Preload critical resources -->
     {preloadImage && (
         <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
     )}
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" as="style" />
 
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- CSS - Lazy load non-critical CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"></noscript>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    </noscript>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
+    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
     
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    </noscript>
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
+
+    <!-- SEO Meta Tags -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={fullURL} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={fullURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${siteURL}${image}`} />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:site_name" content="Thọ Cho Thuê Trọ" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={fullURL} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteURL}${image}`} />
+    
+    <!-- Additional SEO -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="author" content="Thọ Cho Thuê Trọ" />
+    <meta name="geo.region" content="VN-SG" />
+    <meta name="geo.placename" content="Ho Chi Minh City" />
+    
+    <slot name="head" />
 
     <style is:global>
-        /* --- GLOBAL STYLES --- */
+        /* --- CRITICAL CSS (Above the fold) --- */
         :root {
             --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
             --primary-color: #d9b205;
             --warning-color: #d9b205;
         }
 
-        /* 1. Thiết lập HTML/Body chuẩn để Sticky hoạt động */
+        /* 1. Thiết lập HTML/Body chuẩn */
         html, body {
-            height: auto !important; /* Không được để 100% hay 100vh */
+            height: auto !important;
         }
 
         body { 
             font-family: var(--bs-font-sans-serif);
             background-color: #f8f9fa; 
             color: #333;
-            /* Layout Flexbox để Footer dính đáy */
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            /* QUAN TRỌNG: KHÔNG ĐƯỢC có overflow ở đây */
+            margin: 0;
+            padding-top: 80px; 
+    
+             /* Padding bottom cho thanh menu dưới (giữ nguyên code cũ) */
+            padding-bottom: 80px !important;
         }
 
         /* 2. Main chiếm phần còn lại */
         main { 
-            flex: 1 0 auto; /* Co giãn linh hoạt */
+            flex: 1 0 auto;
             width: 100%;
         }
 
         /* Navbar Brand */
-        .navbar-brand img { height: 48px; width: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navbar-brand img { 
+            height: 48px; 
+            width: auto; 
+            box-shadow: none !important;
+        }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
 
         /* --- DESKTOP STYLES (>= 992px) --- */
         @media (min-width: 992px) {
@@ -111,160 +154,404 @@ const currentPath = Astro.url.pathname;
                 padding: 0.5rem 1rem !important;
                 transition: all 0.2s;
             }
-            .nav-link:hover, .nav-link.active { color: var(--primary-color) !important; }
+            .nav-link:hover, .nav-link.active { 
+                color: #d9b205 !important; 
+            }
         }
 
-        /* --- MOBILE STYLES (< 992px) --- */
-        @media (max-width: 991px) {
-            body { padding-bottom: 70px; }
-            
-            .desktop-nav-links { display: none !important; }
-            
-            /* Header Mobile gọn gàng */
-            .navbar-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-            }
+        /* =========================================
+       MOBILE BOTTOM NAVIGATION - NATIVE APP STYLE
+       ========================================= */
+    @media (max-width: 991px) {
 
-            /* Menu Đáy Mobile */
-            .mobile-bottom-nav {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 65px;
-                background: white;
-                box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                z-index: 9999;
-                padding-bottom: env(safe-area-inset-bottom);
-                border-top: 1px solid #f0f0f0;
-            }
-            
-            .nav-item-mobile {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                text-decoration: none;
-                color: #999;
-                font-size: 10px;
-                font-weight: 500;
-                flex: 1;
-                height: 100%;
-                background: transparent;
-                border: none;
-                padding: 0;
-                transition: color 0.2s;
-            }
-
-            .nav-item-mobile i {
-                font-size: 20px;
-                margin-bottom: 4px;
-            }
-
-            .nav-item-mobile.active {
-                color: var(--primary-color);
-                font-weight: 700;
-            }
-
-            /* Nút Map nổi bật ở giữa */
-            .nav-item-mobile.highlight { position: relative; top: -20px; }
-            .nav-item-mobile.highlight .icon-circle {
-                background: var(--warning-color);
-                width: 54px; height: 54px;
-                border-radius: 50%;
-                display: flex; align-items: center; justify-content: center;
-                box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4);
-                border: 4px solid #fff;
-                color: #212529;
-                transition: transform 0.2s;
-            }
-            .nav-item-mobile.highlight:active .icon-circle { transform: scale(0.95); }
+        /* 1. Tạo khoảng trống đáy để nội dung không bị che */
+        body { 
+            padding-bottom: 80px !important;
+            background-color: #f8f9fa; /* Nền body sáng nhẹ để làm nổi bật thanh nav */
         }
 
-        /* --- FOOTER CHUYÊN NGHIỆP --- */
+        /* 2. Container chính của thanh Nav */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 68px; /* Chiều cao chuẩn app */
+            
+            /* Hiệu ứng kính mờ (Glassmorphism) hiện đại */
+            background: rgba(255, 255, 255, 0.92); /* Nền trắng bán trong suốt */
+            backdrop-filter: blur(15px); /* Làm mờ nội dung bên dưới */
+            -webkit-backdrop-filter: blur(15px); /* Hỗ trợ Safari iOS */
+            
+            /* Đổ bóng mềm mại tạo chiều sâu thay vì border cứng */
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            border-top: 1px solid rgba(0, 0, 0, 0.05); /* Viền siêu mỏng tinh tế */
+            
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 9999;
+            padding-bottom: env(safe-area-inset-bottom); /* Xử lý cho iPhone tai thỏ */
+        }
+
+        /* 3. Style chung cho từng nút */
+        .nav-item-mobile {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border: none;
+            background: none;
+            padding: 8px 0;
+            
+            /* Màu mặc định (Inactive State) - Xám chuẩn iOS */
+            color: #8e8e93; 
+            
+            /* Hiệu ứng chuyển màu mượt mà */
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-tap-highlight-color: transparent; /* Bỏ highlight mặc định khi tap */
+        }
+
+        /* Icon và Text */
+        .nav-item-mobile i {
+            font-size: 22px; /* Kích thước icon chuẩn */
+            margin-bottom: 4px;
+        }
+
+        .nav-item-mobile span {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        /* 4. Trạng thái ACTIVE (Nút đang chọn) */
+        .nav-item-mobile.active {
+            color: #d9b205; /* Màu vàng thương hiệu của bạn */
+        }
+        .nav-item-mobile.active span {
+            font-weight: 700; /* Đậm hơn một chút khi active */
+        }
+
+        /* 5. Màu sắc riêng cho các nút chức năng đặc biệt */
+        
+        /* Nút Chia sẻ: Màu xanh lá khi chạm vào */
+        .nav-item-mobile.share-btn:active i {
+            color: #28a745;
+            transform: scale(1.1); /* Phóng to nhẹ khi bấm */
+        }
+
+        /* Nút Zalo: Màu xanh đặc trưng của Zalo */
+        .nav-item-mobile.zalo-btn {
+            color: #0068ff; /* Màu xanh Zalo gốc */
+            opacity: 0.9;
+        }
+        .nav-item-mobile.zalo-btn span {
+             font-weight: 600;
+        }
+        
+        /* Hiệu ứng khi bấm nút thường */
+        .nav-item-mobile:not(.active):not(.zalo-btn):active {
+             color: var(--primary-color); /* Đổi màu vàng khi chạm giữ */
+             transform: scale(0.95); /* Thu nhỏ nhẹ tạo cảm giác bấm thật */
+        }
+    }
+           /* =========================================
+       HEADER NAVIGATION - GLASSMORPHISM STYLE
+       ========================================= */
+    
+    /* 1. Header chính */
+.app-header {
+        background: rgba(255, 255, 255, 0.98); /* Tăng độ đậm màu nền để đỡ bị lộn xộn */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 1px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        padding: 10px 0;
+        /* Đảm bảo header nằm trên banner nhưng dưới Offcanvas */
+        z-index: 1040; 
+    }
+    
+    .brand-text {
+        font-size: 1.1rem;
+        color: #d9b205 !important; /* Màu vàng thương hiệu */
+        letter-spacing: -0.5px;
+    }
+    
+    .brand-slogan {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* 2. Hamburger Icon (Tùy biến đẹp hơn mặc định của Bootstrap) */
+.hamburger-icon {
+        width: 24px;
+        height: 18px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+.hamburger-icon span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: #333;
+        border-radius: 2px;
+    }
+    /* Hiệu ứng khi mở menu (nếu muốn JS thêm class) - Ở đây giữ đơn giản */
+
+    /* 3. Nút Call Action trên Header */
+    .btn-header-cta {
+        background: #d9b205 !important;
+        border: none;
+        color: #1a1a1a !important;
+        padding: 8px 20px;
+        transition: transform 0.2s;
+    }
+    .btn-header-cta:active {
+        transform: scale(0.96);
+    }
+    
+    /* Hiệu ứng rung icon điện thoại */
+    @keyframes ring {
+        0% { transform: rotate(0); }
+        10% { transform: rotate(30deg); }
+        30% { transform: rotate(-28deg); }
+        50% { transform: rotate(34deg); }
+        70% { transform: rotate(-32deg); }
+        90% { transform: rotate(30deg); }
+        100% { transform: rotate(0); }
+    }
+    .animate-ring {
+        animation: ring 4s infinite ease-in-out;
+    }
+
+    /* 4. Menu Offcanvas (Giao diện Mobile) */
+    @media (max-width: 991px) {
+        .app-offcanvas {
+            /* 1. SỬA LỖI TRONG SUỐT */
+            background-color: #ffffff !important;
+            --bs-offcanvas-bg: #ffffff !important; /* Ghi đè biến màu gốc của Bootstrap */
+            opacity: 1 !important;
+
+            /* 2. SỬA LỖI CHIỀU CAO & VỊ TRÍ */
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            height: 100dvh !important; /* Dùng dvh để full màn hình chuẩn xác trên điện thoại */
+            
+            /* Kích thước & Hiệu ứng */
+            width: 85% !important;
+            max-width: 300px !important;
+            box-shadow: -5px 0 50px rgba(0,0,0,0.2) !important;
+            border-left: 1px solid rgba(0,0,0,0.05);
+            
+            /* Đảm bảo nằm trên cùng */
+            z-index: 1055 !important;
+            
+            /* Reset các thuộc tính Flex có thể gây lỗi bố cục */
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .offcanvas-header {
+            flex-shrink: 0; /* Không cho phép bị co lại */
+            padding: 20px 25px;
+            border-bottom: 1px solid #f2f2f2;
+            background-color: #fff;
+        }
+        .offcanvas-body {
+            flex-grow: 1;
+            padding: 20px 25px;
+            overflow-y: auto !important; /* Cho phép cuộn nếu nội dung dài */
+            -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
+            background-color: #fff; /* Đảm bảo nền trắng cả ở đây */
+        }
+        .navbar-nav .nav-item {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .navbar-nav .nav-link {
+            padding: 14px 16px !important;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-nav .nav-link:active, 
+        .navbar-nav .nav-link:focus {
+            background-color: #fffbe6; /* Màu vàng nhạt */
+            color: #d9b205; /* Màu vàng đậm */
+            border: 1px solid #d9b205;
+        }
+        .navbar-nav .nav-link i {
+            width: 28px;
+            text-align: center;
+            color: #999;
+        }
+
+        .nav-link:active, .nav-link:focus {
+            background-color: #f8f9fa;
+            color: #d9b205;
+        }
+        btn-close {
+            opacity: 0.8;
+            padding: 10px;
+        }
+        .social-icon-mobile {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            text-decoration: none;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+    }
+
+    /* 5. Desktop Adjustments */
+    @media (min-width: 992px) {
+        .app-offcanvas {
+            background: transparent !important;
+            box-shadow: none !important;
+            width: auto !important;
+        }
+        .nav-link:hover {
+            color: #d9b205 !important;
+            background: rgba(217, 178, 5, 0.08); /* Nền vàng nhạt khi hover */
+        }
+    } 
+
+        /* --- FOOTER STYLES --- */
         footer {
             background-color: #1a1a1a;
             color: #e0e0e0;
-            font-size: 0.95rem;
+            flex-shrink: 0;
         }
-        footer h5, footer h6 {
-            color: #fff;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+
         footer a {
-            text-decoration: none;
             color: #e0e0e0;
-            transition: color 0.2s;
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
-        footer a:hover { 
-            color: var(--warning-color) !important;
+
+        footer a:hover {
+            color: var(--warning-color);
         }
+
         .footer-logo {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border: 2px solid var(--warning-color);
-            padding: 2px;
-            background: white;
-            border-radius: 50%;
+            height: 60px;
+            width: auto;
+            border-radius: 8px;
         }
+
         .social-link {
-            width: 36px;
-            height: 36px;
-            background: rgba(255,255,255,0.1);
-            display: inline-flex;
-            align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
-            margin-right: 10px;
-            transition: all 0.3s;
+            margin-right: 12px;
+            font-size: 18px;
+            transition: all 0.3s ease;
         }
-        .social-link:hover { background: var(--warning-color); color: #000; }
+
+        .social-link:hover {
+            background: var(--warning-color);
+            color: #1a1a1a !important;
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 <body>
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-2">
-        <div class="container navbar-container d-flex flex-nowrap">
-            
-            <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/" style="min-width: 0; flex-grow: 1;">
-                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;">
-
-                <div class="d-flex flex-column justify-content-center" style="overflow: hidden; min-height: 45px;">
-                    <span class="fw-bold text-dark brand-name-mobile" style="font-size: 0.95rem; line-height: 1.5; white-space: nowrap;">THỌ CHO THUÊ TRỌ</span>
-                    <span class="text-secondary brand-slogan-mobile" style="font-size: 0.65rem; font-weight: 500; line-height: 1.2;">Uy tín - Tận tâm - Nhiệt tình</span>
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top app-header">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" width="45" height="45" class="app-logo">
+                <div class="d-flex flex-column">
+                    <span class="brand-text fw-bold text-dark lh-1">THỌ CHO THUÊ TRỌ</span>
+                    <span class="brand-slogan text-muted d-none d-sm-block">Hệ thống phòng trọ tiện nghi</span>
                 </div>
             </a>
 
-            <a href="tel:0925996992" class="btn btn-sm btn-warning rounded-pill fw-bold text-dark shadow-sm btn-call-mobile px-2 px-md-3 flex-shrink-0 ms-2">
-                <i class="fas fa-phone-alt me-1"></i> <span class="d-none d-sm-inline">Gọi Ngay</span><span class="d-inline d-sm-none">Liên hệ</span>
-            </a>
+            <button class="navbar-toggler border-0 p-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
 
-            <div class="collapse navbar-collapse desktop-nav-links" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center gap-3">
-                    <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/tan-binh">Quận Tân Bình</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/phu-nhuan">Quận Phú Nhuận</a></li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/map-search">
-                            <i class="fas fa-map-marked-alt me-1" style="color: #DFA33D;"></i>Bản đồ
-                        </a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="/contact">Liên hệ</a></li>
-                    
-                    <li class="nav-item ms-2">
-                        <a href="tel:0925996992" class="btn btn-warning rounded-pill fw-bold text-dark px-4 shadow-sm border-0">
-                             <i class="fas fa-phone-alt me-2"></i> 0925 996 992
-                         </a>
-                    </li>
-                </ul>
+            <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
+                <div class="offcanvas-header border-bottom border-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="/logo.png" width="40" height="40" alt="Logo">
+                        <h5 class="offcanvas-title fw-bold" id="appMenuLabel">Menu</h5>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">
+                                <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Quận Tân Bình
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">
+                                <i class="fas fa-city me-2 d-lg-none text-warning"></i>Quận Phú Nhuận
+                            </a>
+                        </li>
+                        <li class="nav-item d-none d-lg-block">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
+                                <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ
+                            </a>
+                        </li>
+
+                        <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
+                            <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-header-cta">
+                                <i class="fas fa-phone-alt animate-ring"></i> 
+                                <span>0925 996 992</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="d-lg-none mt-auto pt-4 border-top">
+                        <p class="small text-muted mb-2 text-center">Kết nối với chúng tôi</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="https://zalo.me/0925996992" class="social-icon-mobile"><i class="fas fa-comment-dots"></i></a>
+                            <a href="https://www.facebook.com/profile.php?id=61584268626330" class="social-icon-mobile"><i class="fab fa-facebook-f"></i></a>
+                            <a href="https://www.tiktok.com/@thochothuetroo" class="social-icon-mobile"><i class="fab fa-tiktok"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -279,7 +566,7 @@ const currentPath = Astro.url.pathname;
                 
                 <div class="col-lg-5">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <img src="/logo.png" alt="Logo Footer" class="footer-logo">
+                        <img src="/logo.png" alt="Thọ Cho Thuê Trọ Logo" class="footer-logo" width="60" height="60" loading="lazy">
                         <div>
                             <h5 class="mb-1 text-warning">THỌ CHO THUÊ TRỌ</h5>
                             <span class="badge bg-light text-dark fw-bold">Hệ thống phòng trọ tiện nghi</span>
@@ -291,20 +578,20 @@ const currentPath = Astro.url.pathname;
                         Hình ảnh thực tế 100%, giá cả minh bạch, hỗ trợ xem phòng hoàn toàn miễn phí.
                     </p>
 
-                    <div class="d-flex">
-                        <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" class="social-link" title="Theo dõi trên Facebook">
+                    <div class="d-flex" role="navigation" aria-label="Social media links">
+                        <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" rel="noopener noreferrer" class="social-link" title="Theo dõi trên Facebook" aria-label="Facebook">
                             <i class="fab fa-facebook-f"></i>
                         </a>
                         
-                        <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" class="social-link" title="Xem video trên TikTok">
+                        <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" rel="noopener noreferrer" class="social-link" title="Xem video trên TikTok" aria-label="TikTok">
                             <i class="fab fa-tiktok"></i>
                         </a>
                         
-                        <a href="https://www.youtube.com/@thochothuetro" target="_blank" class="social-link" title="Đăng ký kênh YouTube">
+                        <a href="https://www.youtube.com/@thochothuetro" target="_blank" rel="noopener noreferrer" class="social-link" title="Đăng ký kênh YouTube" aria-label="YouTube">
                             <i class="fab fa-youtube"></i>
                         </a>
                         
-                        <a href="https://zalo.me/0925996992" target="_blank" class="social-link" title="Chat Zalo ngay">
+                        <a href="https://zalo.me/0925996992" target="_blank" rel="noopener noreferrer" class="social-link" title="Chat Zalo ngay" aria-label="Zalo">
                             <i class="fas fa-comment-dots"></i>
                         </a>
                     </div>
@@ -348,41 +635,31 @@ const currentPath = Astro.url.pathname;
         </div>
     </footer>
 
+    <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-nav">
-        <a href="/tan-binh" class={`nav-item-mobile ${currentPath.includes('tan-binh') ? 'active' : ''}`}>
-            <i class="fas fa-building"></i>
-            <span>Tân Bình</span>
-        </a>
+    <a href="/map-search" class={`nav-item-mobile ${currentPath.includes('map-search') ? 'active' : ''}`}>
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Bản đồ</span>
+    </a>
 
-        <a href="/phu-nhuan" class={`nav-item-mobile ${currentPath.includes('phu-nhuan') ? 'active' : ''}`}>
-            <i class="fas fa-city"></i>
-            <span>Phú Nhuận</span>
-        </a>
+    <button id="mobile-share-btn" class="nav-item-mobile share-btn">
+        <i class="fas fa-share-alt"></i>
+        <span>Chia sẻ</span>
+    </button>
 
-        <a href="/map-search" class="nav-item-mobile highlight">
-            <div class="icon-circle">
-                <i class="fas fa-map-marked-alt fs-4"></i>
-            </div>
-            <span class="mt-1 fw-bold text-dark">Bản Đồ</span>
-        </a>
+    <a href="https://zalo.me/0925996992" target="_blank" class="nav-item-mobile zalo-btn">
+        <i class="fas fa-comment-dots"></i>
+        <span>Zalo</span>
+    </a>
+</div>
 
-        <button id="mobile-share-btn" class="nav-item-mobile">
-            <i class="fas fa-share-alt text-success"></i>
-            <span>Chia sẻ</span>
-        </button>
-
-        <a href="https://zalo.me/0925996992" target="_blank" class="nav-item-mobile">
-            <i class="fas fa-comment-dots text-primary"></i>
-            <span>Zalo</span>
-        </a>
-    </div>
-
+    <!-- Scripts -->
     <script>
-         // Astro sẽ tự động gom nhóm, nén và tối ưu file này
-         import "../scripts/bootstrap-custom.js";
+        import "../scripts/bootstrap-custom.js";
     </script>
 
     <script is:inline>
+        // Mobile share functionality
         document.addEventListener('astro:page-load', () => {
             const shareBtn = document.getElementById('mobile-share-btn');
             if (shareBtn) {
@@ -393,40 +670,47 @@ const currentPath = Astro.url.pathname;
                         url: window.location.href
                     };
                     if (navigator.share) {
-                        try { await navigator.share(shareData); } catch (err) {}
+                        try { 
+                            await navigator.share(shareData); 
+                        } catch (err) {
+                            console.log('Share cancelled');
+                        }
                     } else {
                         try { 
                             await navigator.clipboard.writeText(window.location.href);
                             alert('Đã sao chép liên kết!');
-                        } catch (err) {}
+                        } catch (err) {
+                            console.log('Copy failed');
+                        }
                     }
                 });
             }
         });
     </script>
+
+    <!-- Service Worker Registration -->
     <script is:inline>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
-                        console.log('SW đã đăng ký thành công:', registration.scope);
+                        console.log('SW registered:', registration.scope);
                     })
                     .catch(error => {
-                        console.log('SW đăng ký thất bại:', error);
+                        console.log('SW registration failed:', error);
                     });
             });
         }
     </script>
+
+    <!-- Google Analytics -->
     <script is:inline>
-        // 1. Khởi tạo hàm global (Chạy ngay lập tức để hứng dữ liệu)
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
 
-        // 2. Logic chạy mỗi khi tải trang hoặc chuyển trang
         document.addEventListener('astro:page-load', () => {
             const gaId = 'G-RG0S5V71ZQ';
 
-            // A. Chỉ nạp thư viện Google 1 lần duy nhất (nếu chưa có)
             if (!document.getElementById('ga-lib')) {
                 const script = document.createElement('script');
                 script.id = 'ga-lib'; 
@@ -434,11 +718,9 @@ const currentPath = Astro.url.pathname;
                 script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
                 document.head.appendChild(script);
                 
-                // Khởi tạo thời gian
                 gtag('js', new Date());
             }
 
-            // B. Gửi tín hiệu Page View (Chạy mỗi khi khách vào trang mới)
             gtag('config', gaId, {
                 page_path: window.location.pathname
             });
