@@ -363,12 +363,12 @@ ul { padding-left: 0; list-style: none; }
     .badge-promo { font-size: 0.75rem; }
 
     @media (max-width: 576px) {
-        .room-title { font-size: 0.9rem; margin-bottom: 4px; }
+        .room-title { font-size: 0.95rem; margin-bottom: 4px; }
         .room-price { font-size: 0.95rem; }
-        .room-keypoint { font-size: 0.75rem; }
+        .room-keypoint { font-size: 0.85rem; }
         .room-code { font-size: 0.65rem; }
         .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
-        .room-district { font-size: 0.75rem; }
+        .room-district { font-size: 0.8rem; }
     }
     
     .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }

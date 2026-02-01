@@ -384,10 +384,10 @@ document.addEventListener('astro:page-load', () => {
     const noResult = document.getElementById('no-result');
     const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
 
-    // Helper: Create slug
-    const toSlug = (district) => {
-        if(!district) return '';
-        return district.toString().toLowerCase()
+    // 1. ĐỔI TÊN HÀM TỪ toSlug -> createSlug ĐỂ ĐỒNG BỘ VÀ TRÁNH LỖI
+    const createSlug = (text) => {
+        if(!text) return '';
+        return text.toString().toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[đĐ]/g, 'd')
             .replace(/[^a-z0-9\s]/g, '')
@@ -447,19 +447,21 @@ document.addEventListener('astro:page-load', () => {
             const remaining = Math.max(0, matchedCount - 6);
 
             const container = wrapper.parentElement.querySelector('.room-list-container');
-            sorted.forEach(el => container.appendChild(el));
-
-            hideAllInContainer(container);
-            sorted.slice(0, 6).forEach(el => { 
-                el.style.display = 'block'; 
-                anyVisible = true; 
-            });
+            if (container) {
+                sorted.forEach(el => container.appendChild(el));
+                hideAllInContainer(container);
+                sorted.slice(0, 6).forEach(el => { 
+                    el.style.display = 'block'; 
+                    anyVisible = true; 
+                });
+            }
 
             if (remaining > 0) {
                 const link = wrapper.querySelector('.view-more-link');
                 const countSpan = wrapper.querySelector('.remaining-count');
-                countSpan.textContent = remaining;
-                link.href = `/${toSlug(district)}`;
+                if (countSpan) countSpan.textContent = remaining;
+                // SỬ DỤNG createSlug Ở ĐÂY
+                if (link) link.href = `/${createSlug(district)}`;
                 wrapper.style.display = 'block';
             } else {
                 wrapper.style.display = 'none';
@@ -557,16 +559,18 @@ document.addEventListener('astro:page-load', () => {
         const remaining = Math.max(0, matchedCount - 6);
 
         const container = wrapper.parentElement.querySelector('.room-list-container');
-        hideAllInContainer(container);
-        
-        sorted.forEach(el => container.appendChild(el));
-        sorted.slice(0, 6).forEach(el => el.style.display = 'block');
+        if (container) {
+            hideAllInContainer(container);
+            sorted.forEach(el => container.appendChild(el));
+            sorted.slice(0, 6).forEach(el => el.style.display = 'block');
+        }
 
         if (remaining > 0) {
             const link = wrapper.querySelector('.view-more-link');
             const countSpan = wrapper.querySelector('.remaining-count');
-            countSpan.textContent = remaining;
-            link.href = `/${toSlug(district)}?${queryString}`;
+            if (countSpan) countSpan.textContent = remaining;
+            // SỬ DỤNG createSlug Ở ĐÂY
+            if (link) link.href = `/${createSlug(district)}?${queryString}`;
             wrapper.style.display = 'block';
         } else {
             wrapper.style.display = 'none';
