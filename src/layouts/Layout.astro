@@ -43,8 +43,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 
     <!-- Preconnect cho tốc độ tải nhanh hơn -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    
+        
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
@@ -54,7 +53,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     {preloadImage && (
         <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
     )}
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" as="style" />
+    
 
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
@@ -63,10 +62,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
     
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
-
-    <!-- SEO Meta Tags -->
+       <!-- SEO Meta Tags -->
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={fullURL} />
@@ -95,36 +91,42 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     <meta name="geo.placename" content="Ho Chi Minh City" />
     
     <slot name="head" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link rel="preload" href="https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2" as="font" type="font/woff2" crossorigin>
 
-    <style is:inline>
-      /* Font weight 400 (Normal) */
-      @font-face {
-        font-family: 'Be Vietnam Pro';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2) format('woff2');
-      }
-      /* Font weight 600 (Semi-bold) - Thường dùng cho tiêu đề */
-      @font-face {
-        font-family: 'Be Vietnam Pro';
-        font-style: normal;
-        font-weight: 600;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2) format('woff2');
-      }
-      /* Font weight 700 (Bold) */
-      @font-face {
-        font-family: 'Be Vietnam Pro';
-        font-style: normal;
-        font-weight: 700;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP73W6mZmsSjpxv0_M.woff2) format('woff2');
-      }
-    </style>
+<style is:inline>
+  /* Cấu hình hiển thị font siêu tốc */
+  @font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 400; /* Normal */
+    font-display: swap; /* Quan trọng: Hiện chữ ngay lập tức */
+    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 500; /* Medium */
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP76G6mZmsSjpxv0_M.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 600; /* SemiBold - Dùng cho tiêu đề */
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Be Vietnam Pro';
+    font-style: normal;
+    font-weight: 700; /* Bold */
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP73W6mZmsSjpxv0_M.woff2) format('woff2');
+  }
+</style>
 
     <style is:global>
         
