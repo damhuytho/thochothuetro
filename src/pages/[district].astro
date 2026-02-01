@@ -6,7 +6,7 @@ import CommitmentFooter from '../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Helper tạo Slug chuẩn (Dùng chung cho cả logic Server)
+// Helper tạo Slug chuẩn
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
@@ -22,10 +22,9 @@ export async function getStaticPaths() {
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-  // 1. Lấy danh sách tất cả các quận
   const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
 
-  // Logic slug nội bộ
+  // Logic slug nội bộ cho getStaticPaths
   function localCreateSlug(str) {
       if (!str) return '';
       return str.toString().toLowerCase()
@@ -36,7 +35,6 @@ export async function getStaticPaths() {
           .replace(/\s+/g, '-');
   }
 
-  // 2. Tạo path
   return uniqueDistricts.map(distName => {
       return {
           params: { district: localCreateSlug(distName) },
@@ -60,12 +58,10 @@ activeRooms.sort((a, b) => {
     const aPromo = !!a.promotion;
     const bPromo = !!b.promotion;
     if (aPromo !== bPromo) return bPromo ? 1 : -1; 
-
     // 2. Ưu tiên Có hình ảnh
     const aHasImg = (a.image_detail && a.image_detail.length > 0);
     const bHasImg = (b.image_detail && b.image_detail.length > 0);
     if (aHasImg !== bHasImg) return bHasImg ? 1 : -1;
-
     return 0;
 });
 
@@ -73,7 +69,7 @@ activeRooms.sort((a, b) => {
 const limitedRentedRooms = rentedRooms.slice(0, 6);
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
 
-// --- SEO CONFIG NÂNG CAO ---
+// --- SEO CONFIG ---
 const districtSEO = {
     "Tân Bình": {
         title: "Cho Thuê Phòng Trọ Quận Tân Bình Gần Sân Bay, Etown, Công Viên Hoàng Văn Thụ",
@@ -93,21 +89,11 @@ const districtSEO = {
     }
 };
 
-// Lấy thông tin riêng (nếu có)
 const specificInfo = districtSEO[districtName];
-
-const pageTitle = specificInfo?.title 
-    || `Cho Thuê Phòng Trọ Quận ${districtName} Giá Rẻ, Full Nội Thất - Thọ Cho Thuê Trọ`;
-
-const pageDesc = specificInfo?.desc 
-    || `Hệ thống 200+ phòng trọ, căn hộ dịch vụ tại Quận ${districtName}. Giờ giấc tự do, an ninh, có thang máy. Giá từ 3 - 8 triệu. Xem phòng ngay!`;
-
-const pageKeywords = specificInfo?.keywords
-    || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
-
-const introText = specificInfo?.intro 
-    || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **${districtName}**.`;
-
+const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} Giá Rẻ, Full Nội Thất - Thọ Cho Thuê Trọ`;
+const pageDesc = specificInfo?.desc || `Hệ thống 200+ phòng trọ, căn hộ dịch vụ tại Quận ${districtName}. Giờ giấc tự do, an ninh, có thang máy. Giá từ 3 - 8 triệu. Xem phòng ngay!`;
+const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
+const introText = specificInfo?.intro || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **${districtName}**.`;
 const h1Text = specificInfo?.h1 || `Cho Thuê Phòng Trọ ${districtName}`;
 const h2Text = specificInfo?.h2 || `Danh sách phòng trọ tiện nghi tại ${districtName}`;
 
@@ -115,12 +101,12 @@ const siteURL = Astro.site || 'https://thochothuetro.com';
 const canonicalURL = `${siteURL}/${currentSlug}`;
 const imageURL = `${siteURL}/logo.png`;
 
-// Tính toán giá min-max cho schema
+// Schema Price Calc
 const allPrices = initialDisplayRooms.map(r => r.price).filter(p => p > 0);
 const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : 3000000;
 const maxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 8000000;
 
-// 1. Schema Breadcrumb
+// Schema Objects (Giữ nguyên logic cũ của bạn vì đã tốt)
 const schemaBreadcrumb = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -130,7 +116,6 @@ const schemaBreadcrumb = {
   ]
 };
 
-// 2. Schema ItemList (Danh sách phòng) - Tối ưu với thông tin đầy đủ hơn
 const schemaItemList = {
   "@context": "https://schema.org",
   "@type": "ItemList",
@@ -152,7 +137,6 @@ const schemaItemList = {
   }))
 };
 
-// 3. Schema CollectionPage - Mới thêm cho SEO tốt hơn
 const schemaCollectionPage = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
@@ -160,9 +144,7 @@ const schemaCollectionPage = {
   "description": pageDesc,
   "url": canonicalURL,
   "image": imageURL,
-  "breadcrumb": {
-    "@id": `${canonicalURL}#breadcrumb`
-  },
+  "breadcrumb": { "@id": `${canonicalURL}#breadcrumb` },
   "mainEntity": {
     "@type": "OfferCatalog",
     "name": `Danh sách phòng trọ Quận ${districtName}`,
@@ -171,12 +153,7 @@ const schemaCollectionPage = {
       "itemOffered": {
         "@type": "Accommodation",
         "name": `${room.type} ${room.room_code}`,
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": room.district,
-          "addressRegion": "TP.HCM",
-          "addressCountry": "VN"
-        }
+        "address": { "@type": "PostalAddress", "addressLocality": room.district, "addressRegion": "TP.HCM", "addressCountry": "VN" }
       },
       "price": room.price,
       "priceCurrency": "VND",
@@ -192,7 +169,6 @@ const schemaCollectionPage = {
   }
 };
 
-// 4. Schema FAQ - Thêm cho SEO
 const schemaFAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -200,26 +176,17 @@ const schemaFAQ = {
     {
       "@type": "Question",
       "name": `Giá phòng trọ Quận ${districtName} bao nhiêu?`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": `Giá phòng trọ Quận ${districtName} dao động từ ${(minPrice/1000000).toFixed(1)} - ${(maxPrice/1000000).toFixed(1)} triệu/tháng tùy theo diện tích và tiện nghi.`
-      }
+      "acceptedAnswer": { "@type": "Answer", "text": `Giá phòng trọ Quận ${districtName} dao động từ ${(minPrice/1000000).toFixed(1)} - ${(maxPrice/1000000).toFixed(1)} triệu/tháng tùy theo diện tích và tiện nghi.` }
     },
     {
       "@type": "Question", 
       "name": `Phòng trọ Quận ${districtName} có những tiện ích gì?`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Phòng trọ có đầy đủ tiện nghi: giường, tủ, điều hòa, nóng lạnh, máy giặt chung, bảo vệ 24/7, thang máy, wifi miễn phí, giờ giấc tự do."
-      }
+      "acceptedAnswer": { "@type": "Answer", "text": "Phòng trọ có đầy đủ tiện nghi: giường, tủ, điều hòa, nóng lạnh, máy giặt chung, bảo vệ 24/7, thang máy, wifi miễn phí, giờ giấc tự do." }
     },
     {
       "@type": "Question",
       "name": `Có thể xem phòng trực tiếp không?`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Có, chúng tôi hỗ trợ xem phòng miễn phí 24/7. Liên hệ 0925996992 để đặt lịch xem phòng."
-      }
+      "acceptedAnswer": { "@type": "Answer", "text": "Có, chúng tôi hỗ trợ xem phòng miễn phí 24/7. Liên hệ 0925996992 để đặt lịch xem phòng." }
     }
   ]
 };
@@ -233,13 +200,11 @@ const schemaFAQ = {
     canonicalURL={canonicalURL}
 >
     
-    <!-- Structured Data -->
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaBreadcrumb)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaItemList)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaCollectionPage)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaFAQ)} />
 
-    <!-- Breadcrumb -->
     <div class="bg-light border-bottom py-3 mb-4">
         <div class="container">
             <nav aria-label="breadcrumb">
@@ -257,41 +222,28 @@ const schemaFAQ = {
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="container pb-5">
-        <div class="row">
-            <!-- Sidebar Filter -->
-            <aside class="col-lg-3 mb-5 mb-lg-0" role="complementary" aria-label="Bộ lọc tìm kiếm">
-                <SidebarFilter />
+        
+     <div class="row align-items-stretch"> <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column" role="complementary" aria-label="Bộ lọc tìm kiếm">
+              <SidebarFilter />
             </aside>
 
-            <!-- Room List -->
             <section class="col-lg-9" role="main">
-                <!-- SEO Content Header -->
                 <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
                     <h2 class="h5 fw-bold text-dark mb-3">{h2Text}</h2>
                     <p class="text-muted mb-2">
                         Tổng hợp <strong>{initialDisplayRooms.length} phòng trọ</strong> tại Quận {districtName} 
-                        với giá từ <strong class="text-warning">{(minPrice/1000000).toFixed(1)} - {(maxPrice/1000000).toFixed(1)} triệu</strong>/tháng. 
+                        với giá từ <strong class="text-warning">{(minPrice/1000000).toFixed(1)} - {(maxPrice/1000000).toFixed(1)} triệu</strong>/tháng.
                         Tất cả phòng đều có hình ảnh thực tế, giá cả minh bạch.
                     </p>
                     <div class="d-flex gap-2 flex-wrap">
-                        <span class="badge bg-light text-dark border">
-                            <i class="fas fa-check-circle text-success me-1"></i>Giờ giấc tự do
-                        </span>
-                        <span class="badge bg-light text-dark border">
-                            <i class="fas fa-check-circle text-success me-1"></i>An ninh 24/7
-                        </span>
-                        <span class="badge bg-light text-dark border">
-                            <i class="fas fa-check-circle text-success me-1"></i>Full nội thất
-                        </span>
-                        <span class="badge bg-light text-dark border">
-                            <i class="fas fa-check-circle text-success me-1"></i>Hỗ trợ xem phòng
-                        </span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-check-circle text-success me-1"></i>Giờ giấc tự do</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-check-circle text-success me-1"></i>An ninh 24/7</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-check-circle text-success me-1"></i>Full nội thất</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-check-circle text-success me-1"></i>Hỗ trợ xem phòng</span>
                     </div>
                 </div>
 
-                <!-- Sort & Filter Display -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-none d-md-block text-muted small fst-italic">
                         * Hiển thị <strong>{initialDisplayRooms.length}</strong> kết quả
@@ -306,10 +258,8 @@ const schemaFAQ = {
                     </div>
                 </div>
 
-                <!-- Room Cards -->
                 <div class="row g-2 g-md-3" id="district-room-container">
                     {initialDisplayRooms.map((room, idx) => {
-                        // Xử lý keypoint - có thể là array hoặc string
                         let keypointStr = '';
                         if (Array.isArray(room.keypoint)) {
                             keypointStr = room.keypoint.join(' ').toLowerCase();
@@ -317,8 +267,13 @@ const schemaFAQ = {
                             keypointStr = room.keypoint.toLowerCase();
                         }
                         
+                        // FIX CLS: Ẩn các phần tử > 12 ngay từ Server (HTML)
+                        // Không chờ JS chạy mới ẩn
+                        const shouldHide = idx >= 12;
+                        
                         return (
                             <div class="col-6 col-md-4 room-item"
+                                 style={shouldHide ? "display: none;" : ""}
                                  data-district={room.district}
                                  data-price={room.price}
                                  data-type={room.type}
@@ -328,13 +283,13 @@ const schemaFAQ = {
                                  data-keypoint={keypointStr}
                                  data-pet={room.pets_allowed ? "yes" : "no"}
                             >
-                                <CardRoom room={room} />
+                                {/* FIX LCP: Truyền priority cho 6 ảnh đầu tiên */}
+                                <CardRoom room={room} priority={idx < 6} />
                             </div>
                         );
                     })}
                 </div>
 
-                <!-- No Result Message -->
                 <div class="text-center py-5 d-none" id="no-result">
                     <i class="fas fa-search fa-3x text-muted mb-3"></i>
                     <h3 class="h5 text-muted">Không tìm thấy phòng phù hợp</h3>
@@ -344,20 +299,19 @@ const schemaFAQ = {
                     </button>
                 </div>
 
-                <!-- Load More Button -->
                 <div class="text-center mt-5 mb-4" id="load-more-wrapper">
                     <button id="btn-load-more" class="btn btn-outline-warning text-dark fw-bold px-5 rounded-pill shadow-sm py-2" aria-label="Xem thêm phòng trọ">
                         Xem thêm phòng <i class="fas fa-chevron-down ms-2"></i>
                     </button>
                 </div>
 
-                <!-- SEO Footer Content -->
                 <article class="bg-white rounded-3 shadow-sm p-4 mt-5">
                     <h2 class="h5 fw-bold text-dark mb-3">Tại sao nên chọn phòng trọ tại Quận {districtName}?</h2>
                     <div class="text-muted small" style="line-height: 1.8;">
                         <p>
                             Quận {districtName} là một trong những khu vực được nhiều người tìm kiếm phòng trọ nhất tại TP.HCM 
-                            nhờ vị trí thuận lợi và đầy đủ tiện ích. Với hơn {initialDisplayRooms.length} phòng trọ đang hoạt động, 
+                            nhờ vị trí thuận lợi và đầy đủ tiện ích.
+                            Với hơn {initialDisplayRooms.length} phòng trọ đang hoạt động, 
                             bạn sẽ dễ dàng tìm được không gian sống phù hợp với nhu cầu.
                         </p>
                         <p class="mb-0">
@@ -412,8 +366,9 @@ const schemaFAQ = {
         const filteredItems = allDomItems.filter(item => {
             let matches = true;
             
-            if (params.get('district') && params.get('district') !== 'all' && 
-                item.getAttribute('data-district') !== params.get('district')) matches = false;
+            // Check District từ data attribute (chính xác hơn)
+            const dDistrict = item.getAttribute('data-district');
+            if (params.get('district') && params.get('district') !== 'all' && dDistrict !== params.get('district')) matches = false;
 
             const itemType = (item.getAttribute('data-type') || '').toLowerCase();
             if (matches && fType !== 'all' && itemType !== fType) matches = false;
@@ -434,14 +389,10 @@ const schemaFAQ = {
                     if (!ami) continue;
                     if (ami === 'nuôi pet' || ami === 'nuoi pet') {
                         if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { 
-                            matches = false; 
-                            break; 
+                            matches = false; break; 
                         }
                     } else {
-                        if (!keypoints.includes(ami)) { 
-                            matches = false; 
-                            break; 
-                        }
+                        if (!keypoints.includes(ami)) { matches = false; break; }
                     }
                 }
                 if (matches && selectedSpecial.length > 0) {
@@ -458,7 +409,7 @@ const schemaFAQ = {
         const getPrice = (el) => parseInt(el.getAttribute('data-price') || '0');
         const hasImg = (el) => el.getAttribute('data-has-image') === 'yes';
         const isPromo = (el) => el.getAttribute('data-promotion') === 'yes';
-        
+
         let activeItems = filteredItems.filter(i => i.getAttribute('data-status') === 'active');
         let rentedItems = filteredItems.filter(i => i.getAttribute('data-status') === 'rented');
 
@@ -472,11 +423,9 @@ const schemaFAQ = {
                     const promoA = isPromo(a);
                     const promoB = isPromo(b);
                     if (promoA !== promoB) return promoB ? 1 : -1;
-
                     const imgA = hasImg(a);
                     const imgB = hasImg(b);
                     if (imgA !== imgB) return imgB ? 1 : -1;
-
                     return 0;
                 });
             }
@@ -484,7 +433,7 @@ const schemaFAQ = {
 
         sortFn(activeItems);
         sortFn(rentedItems);
-
+        // Ở trang district, chỉ hiển thị max 6 căn đã thuê nếu không có filter đặc biệt
         if (rentedItems.length > 6) rentedItems = rentedItems.slice(0, 6);
         
         const finalSortedList = [...activeItems, ...rentedItems];
@@ -492,12 +441,17 @@ const schemaFAQ = {
         // 3. RENDER UI
         const container = document.getElementById('district-room-container');
         if (container) {
+            // Ẩn tất cả trước
             allDomItems.forEach(el => el.style.display = 'none');
+            
+            // Sắp xếp lại DOM (để khi tab keyboard nó đi đúng thứ tự)
             finalSortedList.forEach(el => container.appendChild(el));
             
+            // Hiển thị theo itemsToShow
             finalSortedList.forEach((el, index) => {
                 if (index < itemsToShow) {
                     el.style.display = 'block';
+                    // Thêm animation nhẹ nếu chưa có
                     if (!el.classList.contains('animate__fadeIn')) {
                         el.classList.add('animate__animated', 'animate__fadeIn');
                     }
@@ -505,7 +459,7 @@ const schemaFAQ = {
             });
         }
 
-        // 4. UI Phụ
+        // 4. UI Phụ (Nút xem thêm, thông báo)
         const btnWrapper = document.getElementById('load-more-wrapper');
         const btn = document.getElementById('btn-load-more');
         const noResult = document.getElementById('no-result');

@@ -144,7 +144,45 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 </div>
 
 <style is:global>
-    /* CSS Dropdown & Button giữ nguyên từ phiên bản trước */
+/* Ép thẻ cha trực tiếp của sidebar phải cao bằng cột chứa nó */
+:global(aside .sidebar-sticky-wrapper) {
+    height: fit-content;
+}
+
+/* Quan trọng: Nếu sidebar nằm trong một div trung gian, ép div đó bung lụa */
+:global(aside > div), :global(aside > astro-island) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+    /* 1. SỬA LỖI VỊ TRÍ & CHIỀU CAO (QUAN TRỌNG NHẤT) */
+    .sidebar-sticky-wrapper {
+        position: -webkit-sticky !important; /* Hỗ trợ Safari */
+        position: sticky !important;         /* Bắt buộc dùng !important để đè các style rác */
+        top: 80px;                           /* Cách đỉnh màn hình 80px */
+        z-index: 90;
+        
+        /* QUAN TRỌNG: Sửa lỗi "Thẻ cha không cao hơn Sidebar" */
+        height: fit-content; 
+        max-height: calc(100vh - 100px);     /* Nếu sidebar quá dài, cho phép nó cuộn riêng */
+        overflow-y: auto;                    /* Cuộn nội dung bên trong sidebar nếu cần */
+    }
+    
+    /* Ẩn thanh cuộn của sidebar cho đẹp */
+    .sidebar-sticky-wrapper::-webkit-scrollbar { width: 4px; }
+    .sidebar-sticky-wrapper::-webkit-scrollbar-thumb { background: #eee; border-radius: 4px; }
+
+    /* 2. SỬA LỖI TYPO CŨ (font-weight: 400) */
+    .custom-check { 
+        display: flex; 
+        align-items: center; 
+        cursor: pointer; 
+        font-size: 1rem; 
+        margin-bottom: 4px; 
+        font-weight: 400; /* ĐÃ SỬA: 4 00 -> 400 */
+    }
+
+    /* --- CÁC CSS KHÁC GIỮ NGUYÊN --- */
     .btn-white { background: white; color: #333; }
     .btn-white:hover, .btn-white:focus { background: #f8f9fa; border-color: #f1c40f !important; }
     .dropdown-item.active, .dropdown-item:active { background-color: #f1c40f; color: #000; font-weight: 600; }
@@ -161,19 +199,17 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
     
     .filter-tags-scroll { flex: 1; display: flex; flex-wrap: wrap; white-space: normal; align-items: center; gap: 8px; padding-right: 10px; }
     .active-tag { display: inline-flex; align-items: center; background: #fff; color: #333; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; flex-shrink: 0; height: 32px; margin-bottom: 4px; }
+    
     .tag-type { border-left: 4px solid #3498db; } 
     .tag-price { border-left: 4px solid #f1c40f; background-color: #fffcf5; } 
     .tag-amenity { border-left: 4px solid #2ecc71; } 
     .btn-reset-mobile { width: 34px; height: 34px; background: #f8f9fa; color: #e74c3c; border: 1px solid #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 2px; }
 
-    .sidebar-sticky-wrapper { position: -webkit-sticky; position: sticky; top: 80px; z-index: 90; }
-    
     #toggle-filter-btn-container { display: none; }
     #toggle-filter-btn-container.visible { display: block !important; }
 
     .filter-label { font-weight: 700; font-size: 0.75rem; color: #666; margin-bottom: 4px; text-transform: uppercase; }
     
-    .custom-check { display: flex; align-items: center; cursor: pointer; font-size: 1rem; margin-bottom: 4px; font-weight: 4    00; }
     .custom-check input { display: none; }
     .checkmark { height: 16px; width: 16px; border: 1px solid #f1c40f; background-color: white; border-radius: 3px; margin-right: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .custom-check input:checked ~ .checkmark { background-color: #f1c40f; }
@@ -184,18 +220,9 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         #toggle-filter-btn-container { display: none !important; }
         .mobile-filter-bar { display: none !important; }
     }
-    /* --- [THÊM ĐOẠN NÀY ĐỂ MENU THOÁNG HƠN] --- */
-    .dropdown-item {
-        padding: 12px 20px !important; /* Tăng khoảng cách trên dưới trái phải */
-        font-size: 1rem !important;    /* Chữ to hơn một chút */
-        font-weight: 500;              /* Chữ đậm hơn cho dễ đọc */
-        border-bottom: 1px solid #f0f0f0; /* Thêm gạch mờ ngăn cách cho đẹp (tuỳ chọn) */
-    }
-    
-    /* Bỏ gạch chân ở dòng cuối cùng */
-    .dropdown-item:last-child {
-        border-bottom: none;
-    }
+
+    .dropdown-item { padding: 12px 20px !important; font-size: 1rem !important; font-weight: 500; border-bottom: 1px solid #f0f0f0; }
+    .dropdown-item:last-child { border-bottom: none; }
 </style>
 
 <script is:inline>

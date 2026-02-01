@@ -488,6 +488,32 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
             background: rgba(217, 178, 5, 0.1);
         }
     }
+    /* =========================================================
+           FIX LỖI STICKY SIDEBAR (QUAN TRỌNG)
+           Bắt buộc các thẻ bao quanh Sidebar phải cho phép hiển thị tràn (visible)
+           Nếu để hidden/auto/scroll thì Sticky sẽ chết.
+        ========================================================= */
+        
+        /* 1. Đảm bảo thẻ html/body cuộn tự nhiên, không tạo scroll ảo */
+        html, body {
+            overflow-x: clip !important; /* Dùng clip thay vì hidden để an toàn hơn cho sticky */
+            overflow-y: visible !important; /* Để trình duyệt quản lý thanh cuộn */
+        }
+
+        /* 2. Cứu cánh cho thẻ Main và Container */
+        main, 
+        .container, 
+        .row,
+        .col-lg-3, 
+        aside {
+            overflow: visible !important; 
+        }
+
+        /* 3. Ép cột Sidebar và cột Nội dung cao bằng nhau (Flex Stretch) */
+        /* Đây là điều kiện tiên quyết để sidebar có "đường ray" để trượt */
+        .row {
+            align-items: stretch !important;
+        }
     </style>
 </head>
 <body>

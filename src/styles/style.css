@@ -261,45 +261,38 @@ ul { padding-left: 0; list-style: none; }
     body { padding-bottom: 70px !important; }
 }
 /* =========================================================
-   FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN
+   FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN (ĐÃ SỬA LỖI)
    ========================================================= */
 
-/* 1. Đảm bảo hàng (row) cho phép các cột có chiều cao thực tế theo nội dung */
+/* 1. Đảm bảo hàng (row) luôn kéo giãn (STRETCH) để Sidebar cao bằng Content */
 .container .row {
-    align-items: flex-start !important; /* Quan trọng: Cho phép các cột có chiều cao khác nhau */
+    align-items: stretch !important; /* QUAN TRỌNG: Sửa từ flex-start thành stretch */
 }
 
-/* 2. Cấu trúc bao ngoài Sidebar (trong file .astro) */
+/* 2. Cấu trúc bao ngoài Sidebar */
 .col-lg-3 {
-    height: 100%; /* Đảm bảo cột cha có chiều cao để trượt */
+    height: auto; 
     position: relative;
 }
 
-/* 3. Lớp dính thực tế - Áp dụng trực tiếp vào wrapper của SidebarFilter */
+/* 3. Lớp dính thực tế */
 .sidebar-sticky-wrapper, 
 .sidebar-sticky-inner {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 20px !important; /* Khoảng cách từ mép trên trình duyệt khi dính */
+    top: 90px !important; /* ĐÃ SỬA: Tăng lên 90px để không bị Header (70px) che mất */
     z-index: 100;
-    
-    /* KHÔNG được có overflow ở đây nếu muốn dính theo trang web */
     overflow: visible !important; 
+    height: fit-content !important; /* Đảm bảo wrapper chỉ cao bằng nội dung */
 }
 
-/* 4. Tắt dính trên điện thoại để tránh lỗi hiển thị */
+/* 4. Tắt dính trên điện thoại */
 @media (max-width: 991px) {
-    .brand-name-mobile {
-        font-size: 0.9rem !important; /* Thu nhỏ chữ một chút */
-        line-height: 1.5 !important;  /* Tăng khoảng cách dòng để không mất dấu */
-        letter-spacing: -0.2px;       /* Ép sát các chữ cái để đủ chỗ nằm ngang */
-    }   
     .sidebar-sticky-wrapper,
     .sidebar-sticky-inner {
         position: static !important;
     }
 }
-
 /* =========================================
    NEW HEADER STYLE (Dùng chung cho cả 3 trang)
    ========================================= */
@@ -357,15 +350,15 @@ ul { padding-left: 0; list-style: none; }
 
     .room-title { font-size: 1rem; line-height: 1.4; }
     .room-price { font-size: 1.1rem; }
-    .room-keypoint { font-size: 0.75rem; }
+    .room-keypoint { font-size: 0.95rem; }
     .room-code { font-size: 0.75rem; }
-    .room-district { font-size: 0.75rem; }
+    .room-district { font-size: 0.85rem; }
     .badge-promo { font-size: 0.75rem; }
 
     @media (max-width: 576px) {
         .room-title { font-size: 0.95rem; margin-bottom: 4px; }
         .room-price { font-size: 0.95rem; }
-        .room-keypoint { font-size: 0.85rem; }
+        .room-keypoint { font-size: 0.9rem; }
         .room-code { font-size: 0.65rem; }
         .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
         .room-district { font-size: 0.8rem; }
