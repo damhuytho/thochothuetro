@@ -127,26 +127,22 @@ const breadcrumbSchema = {
 
 <Layout title={pageTitle} description={pageDesc}>
     <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner-mobile.webp" as="image" type="image/webp" media="(max-width: 767px)" fetchpriority="high" />
-    
     <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner.webp" as="image" type="image/webp" media="(min-width: 768px)" fetchpriority="high" />
-    <!-- Schema Markup -->
+    
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaOrg)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(itemListSchema)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumbSchema)} />
 
-    <!-- Hero Banner Section -->
     <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg" aria-label="Hero banner">
-        
      <picture>
          <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
-    
          <source media="(min-width: 768px)" srcset="https://img.thochothuetro.com/banner.webp" width="1920" height="600">
-    
+         
          <img src="https://img.thochothuetro.com/banner.webp" 
          alt="Phòng trọ tiện nghi, giá rẻ tại Tân Bình và Phú Nhuận TP.HCM" 
          class="banner-bg-img"
          fetchpriority="high" 
-         decoding="async"
+         decoding="sync"
          width="1920" 
          height="600"
          loading="eager">
@@ -185,15 +181,12 @@ const breadcrumbSchema = {
         </div>
     </section>
 
-    <!-- Main Content -->
     <div class="container my-4">
         <div class="row">
-            <!-- Sidebar Filter -->
             <aside class="col-lg-3 mb-5 mb-lg-0" aria-label="Bộ lọc tìm kiếm">
                 <SidebarFilter />
             </aside>
 
-            <!-- Room Listings -->
             <main class="col-lg-9">
                 <div id="intro-banner" class="mb-4">
                     <div class="d-flex align-items-center mb-3">
@@ -250,7 +243,6 @@ const breadcrumbSchema = {
         </div>
     </div>
 
-    <!-- Commitment Footer -->
     <CommitmentFooter />
 </Layout>
 
@@ -476,7 +468,6 @@ document.addEventListener('astro:page-load', () => {
             const section = wrapper.parentElement;
             if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
         });
-
         if (noResult) {
             noResult.classList.toggle('d-none', anyVisible);
         }
@@ -485,7 +476,6 @@ document.addEventListener('astro:page-load', () => {
 
     // WITH FILTER
     if (introBanner) introBanner.classList.add('d-none');
-
     const fDistrict = params.get('district');
     const fType = (params.get('type') || 'all').toLowerCase();
     const fPrice = params.get('price');
@@ -497,7 +487,6 @@ document.addEventListener('astro:page-load', () => {
 
     const matchedMap = {};
     let totalMatched = 0;
-
     allItems.forEach(item => {
         let matches = true;
 

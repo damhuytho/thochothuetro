@@ -1,5 +1,5 @@
 ---
-const { room, priority = false } = Astro.props; // THÊM priority = false
+const { room, priority = false } = Astro.props; 
 
 function hideNumber(address) {
     if (!address) return "";
@@ -24,7 +24,6 @@ function createSlug(str) {
 
 const images = room.image_detail || []; 
 let displayImage = '/logo.png';
-
 if (images.length > 0) {
     const thumbImg = images.find(img => img.includes('_thumb'));
     displayImage = thumbImg ? thumbImg : images[0];
@@ -38,14 +37,13 @@ const isRented = room.status === 'rented';
 <div class={`card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}`}>
    <a href={detailLink} class="stretched-link"></a>
 
-    
     <div class="position-relative">
         <img src={displayImage} 
              class="card-img-top room-img" 
              alt={`Cho thuê ${room.type} ${room.address}, ${room.district}`}
              width="400" height="300"
              loading={priority ? "eager" : "lazy"} 
-             fetchpriority={priority ? "high" : "auto"}
+             fetchpriority={priority ? "auto" : "low"}
              decoding="async"
              style="aspect-ratio: 4/3; object-fit: cover; width: 100%; height: auto;">
         
