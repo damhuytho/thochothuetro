@@ -407,7 +407,7 @@ const relatedRooms = allRooms.filter(r =>
                 
                 {videoId && (
                     <div class="sticky-top" style="top: 85px; z-index: 10;">
-                        <div class="card shadow-sm border-0 overflow-hidden">
+                        <div class="card shadow-sm border-0 overflow-hidden" style="max-width: 85%; margin: 0 auto;">
                             <div class="card-header bg-warning text-dark fw-bold py-2 small text-uppercase">
                                 <i class="fas fa-video me-2"></i> Video thực tế
                             </div>
@@ -454,10 +454,11 @@ const relatedRooms = allRooms.filter(r =>
     .sticky-top-mobile { 
         z-index: 1020; 
         position: sticky; 
-        top: 80px; /* Sau Navbar chính */
+        top: 0px;
+        
     }
     @media (max-width: 991px) {
-        .sticky-top-mobile { top: 68px; }
+        .sticky-top-mobile { top: 0px; }
     }
 </style>
 
@@ -540,7 +541,8 @@ const relatedRooms = allRooms.filter(r =>
         if (facade) {
             const id = facade.getAttribute('data-id');
             // Thay thế nội dung bằng Iframe
-            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" class="w-100 h-100 border-0" allow="autoplay" allowfullscreen></iframe>`;
+            // Thêm &loop=1 và &playlist=${id} vào đường dẫn
+            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1&playlist=${id}" class="w-100 h-100 border-0" allow="autoplay" allowfullscreen></iframe>`;
             facade.classList.remove('video-facade'); // Xóa class để không bắt sự kiện nữa
         }
     });

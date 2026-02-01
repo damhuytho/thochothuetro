@@ -1,0 +1,43 @@
+// src/styles/main.scss
+
+// 1. CẤU HÌNH BIẾN (Ghi đè mặc định)
+$primary: #d9b205; 
+$warning: #d9b205;
+$body-bg: #f8f9fa;
+$font-family-base: 'Be Vietnam Pro', sans-serif;
+
+// 2. IMPORT BOOTSTRAP
+
+// --- Core (Bắt buộc theo thứ tự này) ---
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// --- Reset & Base Styles (QUAN TRỌNG: Sửa lỗi của bạn ở đây) ---
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot"; // <--- ĐÂY LÀ FILE BẠN THIẾU
+
+// --- Layout & Components ---
+@import "bootstrap/scss/type";       // Type cần Reboot để chạy được
+@import "bootstrap/scss/images";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/helpers";
+
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/card";
+@import "bootstrap/scss/dropdown";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/modal";
+@import "bootstrap/scss/close";
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/breadcrumb";
+@import "bootstrap/scss/offcanvas";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/forms"; 
+
+// --- Utilities API (Luôn để cuối cùng) ---
+@import "bootstrap/scss/utilities/api";

@@ -3,6 +3,8 @@
 import { ViewTransitions } from 'astro:transitions';
 import fs from 'node:fs';
 import path from 'node:path';
+import '../styles/main.scss';
+import '../styles/style.css';
 
 export interface Props {
     title: string;
@@ -54,10 +56,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     )}
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" as="style" />
 
-    <!-- CSS - Lazy load non-critical CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"></noscript>
-
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
     <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
     
@@ -118,9 +117,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            margin: 0;
-            padding-top: 70px; 
-    
+            margin: 0;    
              /* Padding bottom cho thanh menu dưới (giữ nguyên code cũ) */
             padding-bottom: 80px !important;
         }
@@ -143,7 +140,129 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #999; }
+    /* =========================================================
+       4. FIX MENU MOBILE - PHIÊN BẢN HOÀN THIỆN (FINAL)
+       ========================================================= */
+    @media (max-width: 991px) {
+        .app-offcanvas {
+            /* 1. VỊ TRÍ & KÍCH THƯỚC (Giữ nguyên vì đã chuẩn) */
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            left: auto !important;
+            
+            width: 85vw !important;
+            max-width: 320px !important;
+            height: 100vh !important;
+            
+            background-color: #ffffff !important;
+            z-index: 1050 !important;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.15) !important;
+            border-left: 1px solid rgba(0,0,0,0.05) !important;
+            
+            /* 2. TRẠNG THÁI ĐÓNG (Mặc định) */
+            /* Đẩy sang phải 100% */
+            transform: translate3d(100%, 0, 0) !important; 
+            visibility: hidden !important;
+            
+            /* Luôn bật transition để bắt mọi chuyển động */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0.4s !important;
+            
+            display: flex !important;
+            flex-direction: column !important;
+        }
 
+        /* 3. TRẠNG THÁI MỞ & ĐANG MỞ (QUAN TRỌNG: Thêm .showing) */
+        /* .showing: Class Bootstrap thêm vào KHI ĐANG trượt ra */
+        /* .show: Class Bootstrap thêm vào KHI ĐÃ trượt xong */
+        .app-offcanvas.show,
+        .app-offcanvas.showing { 
+            transform: translate3d(0, 0, 0) !important; /* Trượt về 0 */
+            visibility: visible !important;
+            
+            /* Reset delay visibility = 0s để hiện ngay khi bắt đầu trượt */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0s !important;
+        }
+
+        /* 4. TRẠNG THÁI ĐANG ĐÓNG (.hiding) */
+        /* Đảm bảo khi bấm đóng nó cũng mượt */
+        .app-offcanvas.hiding {
+            transform: translate3d(100%, 0, 0) !important;
+            visibility: visible !important; /* Vẫn hiện trong lúc đang trượt về */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
+
+        /* Nội dung bên trong */
+        .offcanvas-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid #f2f2f2;
+            min-height: 70px;
+        }
+
+        .offcanvas-body {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto !important;
+            overscroll-behavior: contain;
+        }
+        
+        .btn-close {
+            opacity: 1 !important;
+            padding: 10px !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+        }
+        /* FIX LOGO BỊ MÉO TRONG MENU */
+        .offcanvas-header img {
+            width: 40px !important;       /* Cố định chiều rộng */
+            height: 40px !important;      /* Cố định chiều cao */
+            object-fit: contain;          /* QUAN TRỌNG: Giữ nguyên tỷ lệ ảnh, không cho phép bị kéo dãn */
+            flex-shrink: 0;               /* QUAN TRỌNG: Ngăn không cho flexbox ép nhỏ ảnh */
+            border-radius: 6px;           /* (Tùy chọn) Bo góc nhẹ cho đẹp */
+        }
+    
+
+        /* Link menu trong mobile */
+        .navbar-nav .nav-item {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .navbar-nav .nav-link {
+            padding: 12px 16px !important;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            color: #333 !important;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .navbar-nav .nav-link:active {
+            background-color: #fffbe6;
+            color: #d9b205 !important;
+            transform: scale(0.97);
+        }
+
+        .social-icon-mobile {
+            width: 44px;
+            height: 44px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+    }
         /* --- DESKTOP STYLES (>= 992px) --- */
         @media (min-width: 992px) {
             .mobile-bottom-nav { display: none !important; } 
@@ -330,107 +449,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
         animation: ring 4s infinite ease-in-out;
     }
 
-    /* 4. Menu Offcanvas (Giao diện Mobile) */
-    @media (max-width: 991px) {
-        .app-offcanvas {
-            /* 1. TRẠNG THÁI MẶC ĐỊNH (ĐÓNG) */
-            position: fixed !important;
-            top: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            height: 100dvh !important;
-            width: 85% !important;
-            max-width: 300px !important;
-            z-index: 11000 !important;
-            
-            background-color: #ffffff !important;
-            --bs-offcanvas-bg: #ffffff !important;
-            
-            /* QUAN TRỌNG: Thiết lập trạng thái ẩn ngay lập tức để không bị nháy */
-            transform: translateX(100%); 
-            visibility: hidden;
-            transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            
-            box-shadow: -5px 0 50px rgba(0,0,0,0.2) !important;
-            border-left: 1px solid rgba(0,0,0,0.05);
-            
-            display: flex !important;
-            flex-direction: column !important;
-        }
-        .app-offcanvas:not(.show) {
-        visibility: hidden !important;
-        display: none !important;
-    }
-        .app-offcanvas.show {
-            transform: none !important;
-            visibility: visible !important;
-        }
-        .offcanvas-header {
-            flex-shrink: 0; /* Không cho phép bị co lại */
-            padding: 20px 25px;
-            border-bottom: 1px solid #f2f2f2;
-            background-color: #fff;
-        }
-        .offcanvas-body {
-            flex-grow: 1;
-            padding: 20px 25px;
-            overflow-y: auto !important; /* Cho phép cuộn nếu nội dung dài */
-            -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iOS */
-            background-color: #fff; /* Đảm bảo nền trắng cả ở đây */
-        }
-        .navbar-nav .nav-item {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        
-        .navbar-nav .nav-link {
-            padding: 14px 16px !important;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-            color: #333;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-        }
-        
-        .navbar-nav .nav-link:active, 
-        .navbar-nav .nav-link:focus {
-            background-color: #fffbe6; /* Màu vàng nhạt */
-            color: #d9b205; /* Màu vàng đậm */
-            border: 1px solid #d9b205;
-        }
-        .navbar-nav .nav-link i {
-            width: 28px;
-            text-align: center;
-            color: #999;
-        }
-
-        .nav-link:active, .nav-link:focus {
-            background-color: #f8f9fa;
-            color: #d9b205;
-        }
-        btn-close {
-            opacity: 0.8;
-            padding: 10px;
-        }
-        .social-icon-mobile {
-            width: 40px;
-            height: 40px;
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #555;
-            text-decoration: none;
-            font-size: 18px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-    }
+    
 
     /* 5. Desktop Adjustments */
     @media (min-width: 992px) {
@@ -513,59 +532,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
                 </div>
             </button>
 
-            <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
-                <div class="offcanvas-header border-bottom border-light">
-                    <div class="d-flex align-items-center gap-2">
-                        <img src="/logo.png" width="40" height="40" alt="Logo">
-                        <h5 class="offcanvas-title fw-bold" id="appMenuLabel">Menu</h5>
-                    </div>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">
-                                <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">
-                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Quận Tân Bình
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">
-                                <i class="fas fa-city me-2 d-lg-none text-warning"></i>Quận Phú Nhuận
-                            </a>
-                        </li>
-                        <li class="nav-item d-none d-lg-block">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
-                                <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ
-                            </a>
-                        </li>
-
-                        <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
-                            <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-header-cta">
-                                <i class="fas fa-phone-alt animate-ring"></i> 
-                                <span>0925 996 992</span>
-                            </a>
-                        </li>
-                    </ul>
-
-                    <div class="d-lg-none mt-auto pt-4 border-top">
-                        <p class="small text-muted mb-2 text-center">Kết nối với chúng tôi</p>
-                        <div class="d-flex justify-content-center gap-3">
-                            <a href="https://zalo.me/0925996992" class="social-icon-mobile"><i class="fas fa-comment-dots"></i></a>
-                            <a href="https://www.facebook.com/profile.php?id=61584268626330" class="social-icon-mobile"><i class="fab fa-facebook-f"></i></a>
-                            <a href="https://www.tiktok.com/@thochothuetroo" class="social-icon-mobile"><i class="fab fa-tiktok"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </nav>
 
@@ -739,5 +706,58 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
             });
         });
     </script>
+    <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
+                <div class="offcanvas-header border-bottom border-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="/logo.png" width="40" height="40" alt="Logo">
+                        <h5 class="offcanvas-title fw-bold" id="appMenuLabel">Menu</h5>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">
+                                <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Quận Tân Bình
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">
+                                <i class="fas fa-city me-2 d-lg-none text-warning"></i>Quận Phú Nhuận
+                            </a>
+                        </li>
+                        <li class="nav-item d-none d-lg-block">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
+                                <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ
+                            </a>
+                        </li>
+
+                        <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
+                            <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-header-cta">
+                                <i class="fas fa-phone-alt animate-ring"></i> 
+                                <span>0925 996 992</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="d-lg-none mt-auto pt-4 border-top">
+                        <p class="small text-muted mb-2 text-center">Kết nối với chúng tôi</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="https://zalo.me/0925996992" class="social-icon-mobile"><i class="fas fa-comment-dots"></i></a>
+                            <a href="https://www.facebook.com/profile.php?id=61584268626330" class="social-icon-mobile"><i class="fab fa-facebook-f"></i></a>
+                            <a href="https://www.tiktok.com/@thochothuetroo" class="social-icon-mobile"><i class="fab fa-tiktok"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 </body>
 </html>

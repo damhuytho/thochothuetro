@@ -14,5 +14,8 @@
     "astro": "^5.16.15",
     "bootstrap": "^5.3.8",
     "critical": "^7.2.1"
+  },
+  "devDependencies": {
+    "sass": "^1.97.3"
   }
 }

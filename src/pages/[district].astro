@@ -251,8 +251,8 @@ const schemaFAQ = {
             <h1 class="h3 fw-bold text-uppercase mb-2 text-dark">
               {h1Text} <span class="text-warning">{districtName}</span>
             </h1>
-            <p class="text-muted mb-0 small" style="max-width: 800px;">
-              <i class="fas fa-info-circle me-1 text-warning"></i> <span set:html={introText}></span>
+            <p class="text-muted mb-0" style="max-width: 800px; line-height: 1.6;">
+             <i class="fas fa-info-circle me-1 text-warning"></i> <span set:html={introText}></span>
             </p>
         </div>
     </div>
@@ -270,7 +270,7 @@ const schemaFAQ = {
                 <!-- SEO Content Header -->
                 <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
                     <h2 class="h5 fw-bold text-dark mb-3">{h2Text}</h2>
-                    <p class="text-muted small mb-2">
+                    <p class="text-muted mb-2">
                         Tổng hợp <strong>{initialDisplayRooms.length} phòng trọ</strong> tại Quận {districtName} 
                         với giá từ <strong class="text-warning">{(minPrice/1000000).toFixed(1)} - {(maxPrice/1000000).toFixed(1)} triệu</strong>/tháng. 
                         Tất cả phòng đều có hình ảnh thực tế, giá cả minh bạch.
