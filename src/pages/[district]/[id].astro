@@ -105,10 +105,27 @@ const collageImageMobile = collageListMobile[0] || collageImageWeb;
 const cleanAddress = hideNumber(room.address);
 const rawKeypoints = room.keypoint ? room.keypoint.split(',') : [];
 
+// --- XỬ LÝ TIỆN ÍCH (CẮT BỎ PHẦN KHUYẾN MÃI PHÍA SAU) ---
 const keypointsList = rawKeypoints.map(k => {
-    let text = k.split('|')[0].trim();
-    return text.replace(/^(🎁|KM|Khuyến mãi|:\s*)+/i, '').trim();
-}).filter(k => k !== '');
+    // 1. Chuẩn hóa chuỗi ban đầu
+    let text = k.trim();
+
+    // 2. Regex tìm điểm bắt đầu của Khuyến mãi để cắt bỏ từ đó về sau
+    // Tìm các ký tự phân cách (dấu cách, gạch ngang, phẩy...) đứng trước các từ khóa KM
+    const promoPattern = /[\s\-•,.]*(?:🎁|🧧|⚡|🔥|📢|KM|Khuyến mãi|Khuyen mai|Ưu đãi|Uu dai|Tặng|Tang|Giảm|Giam|Free|Lì xì|Voucher|Deal).*/i;
+
+    // Thực hiện thay thế: Gặp từ khóa KM là xóa sạch phần sau nó
+    // VD: "Lầu 1 🎁 KM Giảm..." -> "Lầu 1"
+    text = text.replace(promoPattern, '');
+
+    // 3. Làm sạch lại lần cuối (xóa dấu gạch đứng | và khoảng trắng thừa)
+    text = text.split('|')[0].trim();
+    
+    // Xóa các ký tự đầu dòng thừa thãi nếu có (- + *)
+    text = text.replace(/^[-+•*]+/, '').trim();
+
+    return text;
+}).filter(k => k !== '' && k.length > 1); // Lọc bỏ dòng nào sau khi cắt mà bị rỗng
 
 const highlightFeature = keypointsList.find(k => /ban công|cửa sổ|duplex|thang máy|tách bếp/i.test(k)) || keypointsList[0] || 'Full nội thất';
 

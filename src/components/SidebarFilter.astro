@@ -304,12 +304,7 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 
         const finalUrl = `${targetPath}${params.toString() ? '?' + params.toString() : ''}`;
 
-        if (window.innerWidth < 992 && typeof window.bsCollapse === 'function') {
-            window.bsCollapse('filter-form-body', 'hide');
-            setTimeout(() => { window.location.href = finalUrl; }, 300);
-        } else {
-            window.location.href = finalUrl;
-        }
+        window.location.href = finalUrl;
     }
 
     window.expandFilter = function() {
