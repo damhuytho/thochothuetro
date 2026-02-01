@@ -720,29 +720,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
         }
     </script>
 
-    <!-- Google Analytics -->
-    <script is:inline>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-
-        document.addEventListener('astro:page-load', () => {
-            const gaId = 'G-RG0S5V71ZQ';
-
-            if (!document.getElementById('ga-lib')) {
-                const script = document.createElement('script');
-                script.id = 'ga-lib'; 
-                script.async = true;
-                script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-                document.head.appendChild(script);
-                
-                gtag('js', new Date());
-            }
-
-            gtag('config', gaId, {
-                page_path: window.location.pathname
-            });
-        });
-    </script>
+    
     <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
                 <div class="offcanvas-header border-bottom border-light">
                     <div class="d-flex align-items-center gap-2">
