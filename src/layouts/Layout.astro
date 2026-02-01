@@ -510,6 +510,19 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
             color: #1a1a1a !important;
             transform: translateY(-3px);
         }
+        @media (min-width: 992px) {
+        .app-offcanvas {
+            display: none !important;
+        }
+        /* Tinh chỉnh lại màu chữ menu Desktop cho dễ nhìn trên nền kính */
+        .navbar-nav .nav-link {
+            color: #333 !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #d9b205 !important;
+            background: rgba(217, 178, 5, 0.1);
+        }
+    }
     </style>
 </head>
 <body>
@@ -531,7 +544,31 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
                     <span></span>
                 </div>
             </button>
-
+            <div class="collapse navbar-collapse justify-content-end d-none d-lg-flex" id="desktopMenu">
+                <ul class="navbar-nav align-items-center gap-3">
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">Quận Tân Bình</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">Quận Phú Nhuận</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">Liên hệ</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold px-4 py-2 shadow-sm btn-header-cta d-flex align-items-center gap-2">
+                            <i class="fas fa-phone-alt animate-ring"></i> 
+                            <span>0925 996 992</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
             
         </div>
     </nav>
