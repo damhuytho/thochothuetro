@@ -335,21 +335,25 @@ const schemaFAQ = {
     const ITEMS_PER_LOAD = 6;
     let lastFilterParams = '';
 
-    function handleLoadMore() {
+    // Hàm xử lý khi bấm nút (Đưa ra ngoài để không bị tạo lại nhiều lần)
+    function handleLoadMore(e) {
+        if(e) e.preventDefault(); // Ngăn chặn hành động mặc định
+        console.log("Đang tải thêm phòng...", itemsToShow);
         itemsToShow += ITEMS_PER_LOAD;
-        renderRooms();
+        renderRooms(); // Render lại giao diện
     }
 
     function renderRooms() {
         const params = new URLSearchParams(window.location.search);
         const currentFilterParams = params.toString();
         
-        // Reset phân trang nếu bộ lọc đổi
+        // Reset phân trang nếu bộ lọc thay đổi
         if (lastFilterParams !== currentFilterParams) {
             itemsToShow = (window.innerWidth < 768) ? 8 : 12;
             lastFilterParams = currentFilterParams;
         }
 
+        // --- 1. LẤY DỮ LIỆU TỪ BỘ LỌC (Giữ nguyên logic của bạn) ---
         const fType = (params.get('type') || 'all').toLowerCase();
         const fPrice = params.get('price');
         const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
@@ -362,11 +366,10 @@ const schemaFAQ = {
 
         const allDomItems = Array.from(document.querySelectorAll('.room-item'));
         
-        // 1. LỌC (FILTER)
+        // --- 2. LỌC ITEMS ---
         const filteredItems = allDomItems.filter(item => {
             let matches = true;
             
-            // Check District từ data attribute (chính xác hơn)
             const dDistrict = item.getAttribute('data-district');
             if (params.get('district') && params.get('district') !== 'all' && dDistrict !== params.get('district')) matches = false;
 
@@ -405,7 +408,7 @@ const schemaFAQ = {
             return matches;
         });
 
-        // 2. SẮP XẾP (SORT)
+        // --- 3. SẮP XẾP ITEMS ---
         const getPrice = (el) => parseInt(el.getAttribute('data-price') || '0');
         const hasImg = (el) => el.getAttribute('data-has-image') === 'yes';
         const isPromo = (el) => el.getAttribute('data-promotion') === 'yes';
@@ -438,20 +441,21 @@ const schemaFAQ = {
         
         const finalSortedList = [...activeItems, ...rentedItems];
 
-        // 3. RENDER UI
+        // --- 4. RENDER UI & XỬ LÝ NÚT XEM THÊM (SỬA LỖI) ---
         const container = document.getElementById('district-room-container');
         if (container) {
             // Ẩn tất cả trước
             allDomItems.forEach(el => el.style.display = 'none');
             
-            // Sắp xếp lại DOM (để khi tab keyboard nó đi đúng thứ tự)
+            // Sắp xếp lại DOM
             finalSortedList.forEach(el => container.appendChild(el));
             
-            // Hiển thị theo itemsToShow
+            // Hiển thị các phần tử trong giới hạn itemsToShow
             finalSortedList.forEach((el, index) => {
                 if (index < itemsToShow) {
-                    el.style.display = 'block';
-                    // Thêm animation nhẹ nếu chưa có
+                    // Dùng style trực tiếp để đảm bảo hiện
+                    el.style.display = 'block'; 
+                    // Thêm animation
                     if (!el.classList.contains('animate__fadeIn')) {
                         el.classList.add('animate__animated', 'animate__fadeIn');
                     }
@@ -459,21 +463,27 @@ const schemaFAQ = {
             });
         }
 
-        // 4. UI Phụ (Nút xem thêm, thông báo)
+        // Xử lý nút "Xem thêm"
         const btnWrapper = document.getElementById('load-more-wrapper');
         const btn = document.getElementById('btn-load-more');
         const noResult = document.getElementById('no-result');
 
         if (btnWrapper && btn) {
             const remaining = Math.max(0, finalSortedList.length - itemsToShow);
+            
             if (finalSortedList.length > itemsToShow) {
-                btn.innerHTML = `Xem thêm ${remaining} căn nữa <i class="fas fa-chevron-down ms-2"></i>`;
+                // Hiển thị nút và cập nhật text
                 btnWrapper.style.display = 'block';
-                btn.onclick = handleLoadMore;
+                btn.innerHTML = `Xem thêm ${remaining} phòng <i class="fas fa-chevron-down ms-2"></i>`;
+                
+                // QUAN TRỌNG: Gán lại sự kiện onclick mỗi lần render để tránh mất sự kiện
+                btn.onclick = handleLoadMore; 
             } else if (finalSortedList.length > 0) {
+                // Đã hiển thị hết
                 btnWrapper.style.display = 'block';
                 btnWrapper.innerHTML = '<span class="text-muted small fst-italic">Đã hiển thị hết danh sách</span>';
             } else {
+                // Không có phòng nào
                 btnWrapper.style.display = 'none';
             }
         }
@@ -484,13 +494,16 @@ const schemaFAQ = {
         }
     }
 
+    // Khởi chạy lần đầu
     document.addEventListener('DOMContentLoaded', () => {
         renderRooms();
+        
+        // Gắn sự kiện change cho sort select
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) sortSelect.addEventListener('change', renderRooms);
     });
     
-    // Optimize scroll performance
+    // Tối ưu scroll
     window.addEventListener('scroll', function() {
         requestAnimationFrame(() => {
             // Scroll-based animations if needed
