@@ -44,7 +44,7 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     <!-- Preconnect cho tốc độ tải nhanh hơn -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
@@ -95,6 +95,36 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     <meta name="geo.placename" content="Ho Chi Minh City" />
     
     <slot name="head" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="preload" href="https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2" as="font" type="font/woff2" crossorigin>
+
+    <style is:inline>
+      /* Font weight 400 (Normal) */
+      @font-face {
+        font-family: 'Be Vietnam Pro';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2) format('woff2');
+      }
+      /* Font weight 600 (Semi-bold) - Thường dùng cho tiêu đề */
+      @font-face {
+        font-family: 'Be Vietnam Pro';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2) format('woff2');
+      }
+      /* Font weight 700 (Bold) */
+      @font-face {
+        font-family: 'Be Vietnam Pro';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP73W6mZmsSjpxv0_M.woff2) format('woff2');
+      }
+    </style>
 
     <style is:global>
         
