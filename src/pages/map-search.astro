@@ -33,7 +33,8 @@ const searchSchema = {
 };
 ---
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://tile.openstreetmap.org">
 <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
 
 <Layout title={pageTitle} description={pageDesc}>
@@ -220,6 +221,18 @@ const searchSchema = {
     .sticky-result-bar { position: sticky; top: 0; z-index: 15; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .btn-popup-yellow { background-color: #f1c40f !important; color: #1a1a1a !important; font-weight: 700 !important; border: none; padding: 6px 0; width: 100%; border-radius: 50px; font-size: 0.85rem; text-align: center; display: block; text-decoration: none !important; margin-top: 8px; }
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
+    .map-viewport { 
+    flex-grow: 1; 
+    height: 100% !important; 
+    width: 100%;
+    /* KỸ THUẬT FACADE: Ảnh nền nhẹ (<30KB) thay thế trong lúc chờ map thật */
+    background-color: #e5e3df; /* Màu nền chuẩn của Google Maps/OSM */
+    background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp'); /* Bạn cần tạo ảnh này */
+    background-size: cover;
+    background-position: center;
+    }
+
+
 </style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
@@ -322,8 +335,8 @@ const searchSchema = {
         document.querySelectorAll('.amenity-cb').forEach(cb => cb.checked = false);
         filterAndRender();
     };
-
-    function renderCardHTML(room) {
+    // 1. Sửa hàm renderCardHTML nhận thêm tham số index
+    function renderCardHTML(room, index) {
         const images = room.image_detail || [];
         let displayImg = '/logo.png';
         if (images.length > 0) {
@@ -337,13 +350,16 @@ const searchSchema = {
         const link = `/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
         const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
-
+    // 2. Logic LCP: Nếu là 2 ảnh đầu tiên thì KHÔNG lazy load
+        const isLCP = index < 2;
+        const loadingAttr = isLCP ? 'eager' : 'lazy';
+        const fetchPriority = isLCP ? 'fetchpriority="high"' : '';
         return `
         <div class="col-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" 
                  onclick="window.location.href='${link}'" style="cursor: pointer;">
                 <div class="ratio ratio-4x3 bg-light position-relative">
-                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy">
+                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="${loadingAttr}" ${fetchPriority}>
                     ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
                     ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
                 </div>
@@ -428,7 +444,7 @@ const searchSchema = {
         const noResult = document.getElementById('map-no-result');
         const visibleItems = currentFiltered.slice(0, visibleCount);
         
-        grid.innerHTML = visibleItems.map(renderCardHTML).join('');
+        grid.innerHTML = visibleItems.map((room, index) => renderCardHTML(room, index)).join('');
         
         if (loadMoreBtn) {
             if (currentFiltered.length > visibleCount) {
