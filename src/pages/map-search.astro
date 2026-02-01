@@ -167,19 +167,58 @@ const searchSchema = {
 
 <style>
     :global(footer) { display: none !important; }
-    
+    .map-viewport {
+        background-color: #e5e3df; /* Màu nền xám chuẩn Google Maps tránh nhấp nháy trắng */
+        /* Thay đường dẫn ảnh của bạn vào đây */
+        background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp'); 
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        z-index: 1; /* Đảm bảo bản đồ nằm trên các lớp nền khác */
+    }
     @media (min-width: 992px) {
         :global(body), :global(html) { height: 100vh; overflow: hidden !important; }
-        .map-layout-wrapper { display: flex; width: 100%; height: calc(100vh - 76px) !important; position: relative; }
-        .map-sidebar { width: 400px; flex-shrink: 0; height: 100% !important; border-right: 1px solid #dee2e6; overflow-y: auto !important; display: block !important; scrollbar-width: thin; }
-        .map-viewport { flex-grow: 1; height: 100% !important; width: 100%; }
+        .map-layout-wrapper { 
+            display: flex; 
+            width: 100%; 
+            height: calc(100vh - 70px) !important; /* Trừ đi chiều cao Header */
+            position: relative; 
+        }
+        .map-sidebar { 
+            width: 400px; 
+            flex-shrink: 0; 
+            height: 100% !important; 
+            border-right: 1px solid #dee2e6; 
+            overflow-y: auto !important; 
+            display: block !important; 
+        }
+        .map-viewport { 
+            flex-grow: 1; 
+            height: 100% !important; 
+            width: 100%; 
+        }
         .list-scroll-container { overflow: visible !important; padding-bottom: 50px; }
     }
+    
     @media (max-width: 991px) {
         :global(body), :global(html) { height: auto; overflow: visible !important; }
-        .map-layout-wrapper { display: flex; flex-direction: column; height: auto !important; }
-        .map-sidebar { width: 100%; height: auto !important; overflow-y: visible !important; }
-        .map-viewport { height: 50vh !important; width: 100%; position: relative; order: -1; }
+        .map-layout-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            height: auto !important; 
+        }
+        .map-sidebar { 
+            width: 100%; 
+            height: auto !important; 
+            overflow-y: visible !important; 
+            order: 2; /* Sidebar nằm dưới */
+        }
+        .map-viewport { 
+            height: 50vh !important; 
+            min-height: 350px; /* Đảm bảo không quá bé trên đt nhỏ */
+            width: 100%; 
+            order: 1; /* Map nằm trên */
+        }
     }
 
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
