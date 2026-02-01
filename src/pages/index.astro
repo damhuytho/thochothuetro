@@ -125,8 +125,10 @@ const breadcrumbSchema = {
 };
 ---
 
-<Layout title={pageTitle} description={pageDesc} preloadImage="https://img.thochothuetro.com/banner.webp">
+<Layout title={pageTitle} description={pageDesc}>
+    <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner-mobile.webp" as="image" type="image/webp" media="(max-width: 767px)" fetchpriority="high" />
     
+    <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner.webp" as="image" type="image/webp" media="(min-width: 768px)" fetchpriority="high" />
     <!-- Schema Markup -->
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaOrg)} />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(itemListSchema)} />
@@ -135,14 +137,20 @@ const breadcrumbSchema = {
     <!-- Hero Banner Section -->
     <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg" aria-label="Hero banner">
         
-        <img src="https://img.thochothuetro.com/banner.webp" 
-             alt="Phòng trọ tiện nghi, giá rẻ tại Tân Bình và Phú Nhuận TP.HCM" 
-             class="banner-bg-img"
-             fetchpriority="high" 
-             decoding="async"
-             width="1920" 
-             height="600"
-             loading="eager">
+     <picture>
+         <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
+    
+         <source media="(min-width: 768px)" srcset="https://img.thochothuetro.com/banner.webp" width="1920" height="600">
+    
+         <img src="https://img.thochothuetro.com/banner.webp" 
+         alt="Phòng trọ tiện nghi, giá rẻ tại Tân Bình và Phú Nhuận TP.HCM" 
+         class="banner-bg-img"
+         fetchpriority="high" 
+         decoding="async"
+         width="1920" 
+         height="600"
+         loading="eager">
+     </picture>
              
         <div class="banner-overlay"></div>
         
@@ -369,6 +377,11 @@ const breadcrumbSchema = {
             padding: 0.5rem 0.9rem;
         }
     }
+    /* Áp dụng cho container chứa danh sách phòng */
+.room-list-container {
+    content-visibility: auto;
+    contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của khu vực này để thanh cuộn không bị nhảy */
+}
 </style>
 
 <script>
