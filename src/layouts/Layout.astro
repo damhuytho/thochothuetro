@@ -92,41 +92,18 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
     
     <slot name="head" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="preload" href="https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2" as="font" type="font/woff2" crossorigin>
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" 
+        media="print" 
+        onload="this.media='all'"
+    >
 
-<style is:inline>
-  /* Cấu hình hiển thị font siêu tốc */
-  @font-face {
-    font-family: 'Be Vietnam Pro';
-    font-style: normal;
-    font-weight: 400; /* Normal */
-    font-display: swap; /* Quan trọng: Hiện chữ ngay lập tức */
-    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP7526mZmsSjpxv0_M.woff2) format('woff2');
-  }
-  @font-face {
-    font-family: 'Be Vietnam Pro';
-    font-style: normal;
-    font-weight: 500; /* Medium */
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP76G6mZmsSjpxv0_M.woff2) format('woff2');
-  }
-  @font-face {
-    font-family: 'Be Vietnam Pro';
-    font-style: normal;
-    font-weight: 600; /* SemiBold - Dùng cho tiêu đề */
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP74m6mZmsSjpxv0_M.woff2) format('woff2');
-  }
-  @font-face {
-    font-family: 'Be Vietnam Pro';
-    font-style: normal;
-    font-weight: 700; /* Bold */
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/bevietnampro/v11/q5uDVT7zM6B0Ad1z6STP73W6mZmsSjpxv0_M.woff2) format('woff2');
-  }
-</style>
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+    </noscript>
 
     <style is:global>
         
