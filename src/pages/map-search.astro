@@ -38,6 +38,13 @@ const searchSchema = {
 <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
 
 <Layout title={pageTitle} description={pageDesc}>
+    <link 
+        slot="head" 
+        rel="preload" 
+        as="image" 
+        href="https://img.thochothuetro.com/map_placeholder_hcm.webp" 
+        fetchpriority="high"
+    />
     
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(searchSchema)} />
 
