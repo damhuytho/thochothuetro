@@ -103,6 +103,13 @@ const collageImageMobile = collageListMobile[0] || collageImageWeb;
 
 // --- DỮ LIỆU TEXT & SEO ---
 const cleanAddress = hideNumber(room.address);
+
+// [MỚI] Logic chọn mô tả: Ưu tiên AI nếu > 50 ký tự, ngược lại dùng mô tả cũ
+const finalDesc = (room.desc_ai_detail && room.desc_ai_detail.length > 50) 
+    ? room.desc_ai_detail 
+    : room.desc;
+
+
 const rawKeypoints = room.keypoint ? room.keypoint.split(',') : [];
 
 // --- XỬ LÝ TIỆN ÍCH (CẮT BỎ PHẦN KHUYẾN MÃI PHÍA SAU) ---
@@ -329,11 +336,11 @@ const relatedRooms = allRooms.filter(r =>
 
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
                     <h3 class="h6 fw-bold border-bottom pb-2 mb-3 text-uppercase text-secondary">
-                        <i class="fas fa-align-left me-2"></i> Mô tả chi tiết
+                      <i class="fas fa-align-left me-2"></i> Mô tả chi tiết
                     </h3>
-                    <div class="content-text" style="white-space: pre-line; line-height: 1.7; color: #444;">
-                        {room.desc}
-                    </div>
+                      <div class="content-text" style="white-space: pre-line; line-height: 1.7; color: #444;">
+                     {finalDesc}
+                     </div>
                 </div>
 
                 {videoId && (

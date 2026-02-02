@@ -1,3 +1,64 @@
-User-agent: *
-Allow: /
+# --------------------------------------------------
+# 1. KHAI BÁO SITEMAP (Rất quan trọng)
+# Thay domain.com bằng tên miền thật của bạn
+# --------------------------------------------------
 Sitemap: https://thochothuetro.com/sitemap.xml
+
+# --------------------------------------------------
+# 2. CHO PHÉP CÁC BOT TÌM KIẾM & AI UY TÍN
+# --------------------------------------------------
+
+# Google (Search & Ads & Gemini)
+User-agent: Googlebot
+User-agent: Google-Extended
+User-agent: AdsBot-Google
+Allow: /
+
+# Bing & Copilot
+User-agent: bingbot
+User-agent: BingPreview
+Allow: /
+
+# OpenAI (ChatGPT)
+User-agent: GPTBot
+Allow: /
+
+# Anthropic (Claude) - Đã sửa lại tên đúng
+User-agent: ClaudeBot
+Allow: /
+
+# Apple Bot (Siri/Spotlight)
+User-agent: Applebot
+Allow: /
+
+# --------------------------------------------------
+# 3. CHẶN CÁC BOT SEO & CRAWLER NGỐN TÀI NGUYÊN
+# --------------------------------------------------
+
+# Chặn bot SEO (Ahrefs, Semrush, Majestic, Moz...)
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: MJ12bot
+User-agent: DotBot
+User-agent: Rogerbot
+User-agent: PetalBot
+Disallow: /
+
+# Chặn bot Crawler dữ liệu (Common Crawl, TikTok, v.v...)
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: FacebookBot
+Disallow: /
+
+# --------------------------------------------------
+# 4. QUY TẮC CHUNG CHO TẤT CẢ BOT CÒN LẠI
+# --------------------------------------------------
+User-agent: *
+# Chặn truy cập vào các đường dẫn hệ thống/nhạy cảm
+Disallow: /private/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /cart/
+Disallow: /*?* # (Tùy chọn) Chặn crawl các đường dẫn chứa tham số tìm kiếm để tránh duplicate content
+Allow: /
