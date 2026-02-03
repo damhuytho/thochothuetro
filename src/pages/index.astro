@@ -1,587 +1,104 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SidebarFilter from '../components/SidebarFilter.astro';
-import CardRoom from '../components/CardRoom.astro';
-import CommitmentFooter from '../components/CommitmentFooter.astro';
-import fs from 'node:fs';
-import path from 'node:path';
+import { ViewTransitions } from 'astro:transitions';
 
-// --- SERVER SIDE DATA ---
-const dataPath = path.join(process.cwd(), 'public', 'data.json');
-const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-const allRooms = jsonData.rooms.filter(r => r.status === 'active');
-
-// Logic sắp xếp: Có Promotion lên đầu
-function sortRooms(rooms) {
-    return rooms.sort((a, b) => {
-        if (a.promotion && !b.promotion) return -1;
-        if (!a.promotion && b.promotion) return 1;
-        return 0;
-    });
-}
-
-// Gom nhóm theo quận
-const districtNames = [...new Set(allRooms.map(r => r.district))];
-let districtsData = districtNames.map(name => {
-    return { name: name, rooms: sortRooms(allRooms.filter(r => r.district === name)) };
-});
-districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
-
-// Helper tạo Slug
-function createSlug(text) {
-    if (!text) return '';
-    return text.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-}
-
-// --- SEO CONFIG ---
-const pageTitle = "Phòng Trọ Giá Rẻ TP.HCM - Tân Bình & Phú Nhuận | Thọ Cho Thuê Trọ";
-const pageDesc = "🏠 Phòng trọ, căn hộ dịch vụ giá rẻ tại Tân Bình, Phú Nhuận TP.HCM. ✅ Giờ giấc tự do ✅ Full nội thất ✅ An ninh 24/7. Giá 3-15 triệu/tháng. Xem phòng miễn phí!";
-const siteURL = Astro.site || 'https://thochothuetro.com';
-
-// Tính toán số liệu cho Schema
-const totalRooms = allRooms.length;
-const minPrice = Math.min(...allRooms.map(r => r.price));
-const maxPrice = Math.max(...allRooms.map(r => r.price));
-
-// SCHEMA JSON-LD cho LocalBusiness + AggregateOffer
-const schemaOrg = {
-  "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  "name": "Thọ Cho Thuê Trọ",
-  "image": `${siteURL}/logo.png`,
-  "logo": `${siteURL}/logo.png`,
-  "url": siteURL,
-  "telephone": "+84925996992",
-  "priceRange": "3000000VND-15000000VND",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Hồ Chí Minh",
-    "addressRegion": "Tân Bình, Phú Nhuận",
-    "addressCountry": "VN"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": "10.7769",
-    "longitude": "106.6297"
-  },
-  "openingHoursSpecification": {
-    "@type": "OpeningHoursSpecification",
-    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    "opens": "00:00",
-    "closes": "23:59"
-  },
-  "sameAs": [
-    "https://www.facebook.com/profile.php?id=61584268626330",
-    "https://www.tiktok.com/@thochothuetroo",
-    "https://www.youtube.com/@thochothuetro",
-    "https://zalo.me/0925996992"
-  ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "reviewCount": "127"
-  },
-  "description": pageDesc
-};
-
-// Schema cho ItemList (danh sách phòng)
-const itemListSchema = {
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "itemListElement": allRooms.slice(0, 10).map((room, index) => ({
-    "@type": "ListItem",
-    "position": index + 1,
-    "item": {
-      "@type": "Accommodation",
-      "name": room.title,
-      "url": `${siteURL}/room/${room.id}`,
-      "image": room.images?.[0] || `${siteURL}/logo.png`,
-      "offers": {
-        "@type": "Offer",
-        "price": room.price,
-        "priceCurrency": "VND"
-      }
-    }
-  }))
-};
-
-// BreadcrumbList Schema
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Trang chủ",
-      "item": siteURL
-    }
-  ]
-};
+// Trang Landing Page: Chỉ dùng để điều hướng
+const pageTitle = "Hệ thống phòng trọ Thọ Cho Thuê Trọ - Hà Nội & TP.HCM";
+const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, giá rẻ tại Hà Nội và TP.HCM. Giờ giấc tự do, full nội thất.";
 ---
 
-<Layout title={pageTitle} description={pageDesc}>
-    <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner-mobile.webp" as="image" type="image/webp" media="(max-width: 767px)" fetchpriority="high" />
-    <link slot="head" rel="preload" href="https://img.thochothuetro.com/banner.webp" as="image" type="image/webp" media="(min-width: 768px)" fetchpriority="high" />
-    
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaOrg)} />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(itemListSchema)} />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumbSchema)} />
+<Layout title={pageTitle} description={pageDesc} isLanding={true}>
+    <section class="landing-hero d-flex align-items-center justify-content-center">
+        <div class="overlay"></div>
+        <div class="content text-center position-relative z-2 container">
+            <img src="/logo.png" alt="Logo" width="100" height="100" class="mb-4 animate-up logo-landing">
+            <h1 class="text-white fw-bold text-uppercase mb-3 animate-up delay-1">
+                Chào mừng bạn đến với <br> <span class="text-warning">Thọ Cho Thuê Trọ</span>
+            </h1>
+            <p class="text-white-50 mb-5 fs-5 animate-up delay-2" style="max-width: 600px; margin: 0 auto;">
+                Vui lòng chọn khu vực bạn muốn tìm phòng
+            </p>
 
-    <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg" aria-label="Hero banner">
-     <picture>
-         <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
-         <source media="(min-width: 768px)" srcset="https://img.thochothuetro.com/banner.webp" width="1920" height="600">
-         
-         <img src="https://img.thochothuetro.com/banner.webp" 
-         alt="Phòng trọ tiện nghi, giá rẻ tại Tân Bình và Phú Nhuận TP.HCM" 
-         class="banner-bg-img"
-         fetchpriority="high" 
-         decoding="sync"
-         width="1920" 
-         height="600"
-         loading="eager">
-     </picture>
-             
-        <div class="banner-overlay"></div>
-        
-        <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
-            <div class="row w-100">
-                <div class="col-lg-8 col-md-10 mx-auto mx-lg-0 text-center text-lg-start">
-                    
-                    <h1 class="hero-title fw-bold text-white mb-2 mb-md-3 animate-slide-up">
-                        Tìm Phòng Trọ <span class="text-gradient-gold">Tiện Nghi</span> <br class="d-md-none"> & Giá Rẻ Tại TP.HCM
-                    </h1>
-                    
-                    <p class="hero-desc text-white-50 mb-4 animate-slide-up delay-1">
-                        Hệ thống hơn {totalRooms}+ phòng trọ an ninh, giờ giấc tự do, nội thất cao cấp.
-                        <br class="d-none d-lg-block">
-                        Giá chỉ từ <strong class="text-white">3 - 15 triệu/tháng</strong>.
-                    </p>
+            <div class="row g-4 justify-content-center animate-up delay-3">
+                <div class="col-md-5 col-lg-4">
+                    <a href="/ho-chi-minh" class="city-card card border-0 rounded-4 overflow-hidden text-decoration-none shadow-lg">
+                        <div class="city-img-wrapper">
+                            <img src="https://img.thochothuetro.com/banner-mobile.webp" alt="Phòng trọ Hồ Chí Minh" class="w-100 h-100 object-fit-cover city-img">
+                            <div class="city-overlay d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-building fa-3x text-warning mb-3"></i>
+                                <h2 class="h3 fw-bold text-white m-0">TP. HỒ CHÍ MINH</h2>
+                                <span class="btn btn-warning btn-sm rounded-pill fw-bold mt-3 px-4">Xem ngay</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
 
-                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2 gap-md-3 animate-slide-up delay-2">
-                        <div class="badge-luxury">
-                            <i class="fas fa-couch text-warning me-2"></i>Full nội thất
+                <div class="col-md-5 col-lg-4">
+                    <a href="/ha-noi" class="city-card card border-0 rounded-4 overflow-hidden text-decoration-none shadow-lg">
+                        <div class="city-img-wrapper">
+                            <img src="https://img.thochothuetro.com/banner.webp" alt="Phòng trọ Hà Nội" class="w-100 h-100 object-fit-cover city-img">
+                            <div class="city-overlay d-flex flex-column align-items-center justify-content-center">
+                                <i class="fas fa-landmark fa-3x text-warning mb-3"></i>
+                                <h2 class="h3 fw-bold text-white m-0">HÀ NỘI</h2>
+                                <span class="btn btn-warning btn-sm rounded-pill fw-bold mt-3 px-4">Xem ngay</span>
+                            </div>
                         </div>
-                        <div class="badge-luxury">
-                            <i class="fas fa-key text-warning me-2"></i>Giờ tự do
-                        </div>
-                        <div class="badge-luxury">
-                            <i class="fas fa-shield-alt text-warning me-2"></i>An ninh 24/7
-                        </div>
-                    </div>
-
+                    </a>
                 </div>
             </div>
         </div>
     </section>
-
-    <div class="container my-4">
-        
-        <div class="row align-items-stretch"> <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column" role="complementary" aria-label="Bộ lọc tìm kiếm">
-                <SidebarFilter />
-            </aside>
-
-            <main class="col-lg-9">
-                <div id="intro-banner" class="mb-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <h2 class="h5 fw-bold text-dark m-0 text-uppercase border-start border-4 border-warning ps-3">
-                            Khám phá phòng mới nhất
-                        </h2>
-                    </div>
-                </div>
-
-                {districtsData.map((dData) => (
-                    <section class="district-section mb-5" data-district={dData.name} aria-labelledby={`heading-${createSlug(dData.name)}`}>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
-                            <h2 id={`heading-${createSlug(dData.name)}`} class="h5 fw-bold text-dark m-0 text-uppercase">
-                                <span class="text-warning me-2"><i class="fas fa-building"></i></span> 
-                                PHÒNG TRỌ {dData.name.toUpperCase()}
-                            </h2>
-                        </div>
-                        
-                        <div class="row g-2 g-md-3 room-list-container" data-district-slug={createSlug(dData.name)}>
-                            {dData.rooms.map((room, idx) => (
-                                <article class="col-6 col-md-4 room-item"
-                                     data-district={room.district}
-                                     data-price={room.price}
-                                     data-type={room.type}
-                                     data-status={room.status}
-                                     data-keypoint={room.keypoint ? room.keypoint.toLowerCase() : ""}
-                                     data-pet={room.pet ? "yes" : "no"}
-                                     data-district-index={idx}>
-                                    
-                                    <CardRoom room={room} priority={idx < 6} />
-                                
-                                </article>
-                            ))}
-                        </div>
-
-                        <div class="text-center mt-3 view-more-wrapper" data-district={dData.name} data-total-rooms={dData.rooms.length}>
-                            <a class="btn btn-outline-warning text-dark fw-bold btn-sm view-more-link" 
-                               href={`/${createSlug(dData.name)}`}
-                               aria-label={`Xem thêm phòng trọ tại ${dData.name}`}>
-                                Xem thêm <span class="remaining-count">{Math.max(0, dData.rooms.length - 6)}</span> căn khác
-                                <i class="fas fa-chevron-right ms-2"></i>
-                            </a>
-                        </div>
-                    </section>
-                ))}
-                
-                <div id="no-result" class="text-center py-5 d-none" role="status" aria-live="polite">
-                    <img src="/logo.png" width="80" height="80" class="mb-3 opacity-50" style="filter: grayscale(1);" alt="Không tìm thấy phòng" loading="lazy">
-                    <p class="text-muted">Không tìm thấy phòng phù hợp với tiêu chí của bạn.</p>
-                    <a href="/" class="btn btn-outline-warning text-dark fw-bold btn-sm">Xóa bộ lọc</a>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <CommitmentFooter />
 </Layout>
 
 <style>
-    /* HERO BANNER STYLES */
-    .banner-hero-wrapper {
+    .landing-hero {
         position: relative;
-        height: 380px;
-        width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
+        min-height: 100vh;
+        background-color: #1a1a1a;
+        background-image: url('https://img.thochothuetro.com/banner.webp');
+        background-size: cover;
+        background-position: center;
         overflow: hidden;
-        background-color: #222;
     }
-
-    @media (min-width: 768px) {
-        .banner-hero-wrapper {
-            height: 450px;
-        }
-    }
-
-    .banner-bg-img {
+    .overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(8px);
     }
-
-    .banner-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
-        z-index: 1;
+    .city-card {
+        transition: transform 0.3s ease;
     }
-
-    .banner-content {
+    .city-card:hover {
+        transform: translateY(-10px);
+    }
+    .city-img-wrapper {
         position: relative;
-        z-index: 2;
+        height: 300px;
+    }
+    .city-img {
+        transition: transform 0.5s ease;
+    }
+    .city-card:hover .city-img {
+        transform: scale(1.1);
+    }
+    .city-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        transition: background 0.3s;
+    }
+    .city-card:hover .city-overlay {
+        background: rgba(0,0,0,0.3);
     }
 
-    /* HERO TEXT STYLES */
-    .hero-title {
-        font-size: clamp(1.75rem, 5vw, 3.2rem);
-        line-height: 1.2;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-    }
+    /* Animation */
+    .animate-up { opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s forwards; }
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+    .delay-3 { animation-delay: 0.6s; }
 
-    .text-gradient-gold {
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
     }
-
-    .hero-desc {
-        font-size: clamp(0.95rem, 2vw, 1.15rem);
-        line-height: 1.6;
-    }
-
-    /* BADGE LUXURY */
-    .badge-luxury {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.6rem 1.2rem;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        border-radius: 25px;
-        color: white;
-        font-size: 0.9rem;
-        font-weight: 600;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.3s ease;
-    }
-
-    .badge-luxury:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-    }
-
-    /* ANIMATIONS */
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-slide-up {
-        animation: slideUp 0.8s ease-out forwards;
-        opacity: 0;
-    }
-
-    .animate-slide-up.delay-1 {
-        animation-delay: 0.2s;
-    }
-
-    .animate-slide-up.delay-2 {
-        animation-delay: 0.4s;
-    }
-
-    /* RESPONSIVE ADJUSTMENTS */
-    @media (max-width: 991px) {
-        .banner-hero-wrapper {
-            height: 350px;
-        }
-        
-        .hero-title {
-            font-size: 1.75rem;
-        }
-        
-        .badge-luxury {
-            font-size: 0.75rem;
-            padding: 0.5rem 0.9rem;
-        }
-    }
-    /* Áp dụng cho container chứa danh sách phòng */
-.room-list-container {
-    content-visibility: auto;
-    contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của khu vực này để thanh cuộn không bị nhảy */
-}
 </style>
-
-<script>
-// CLIENT-SIDE FILTER & SORTING LOGIC
-document.addEventListener('astro:page-load', () => {
-    const queryString = window.location.search.substring(1);
-    const params = new URLSearchParams(queryString);
-    const introBanner = document.getElementById('intro-banner');
-    const noResult = document.getElementById('no-result');
-    const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
-
-    // 1. ĐỔI TÊN HÀM TỪ toSlug -> createSlug ĐỂ ĐỒNG BỘ VÀ TRÁNH LỖI
-    const createSlug = (text) => {
-        if(!text) return '';
-        return text.toString().toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[đĐ]/g, 'd')
-            .replace(/[^a-z0-9\s]/g, '')
-            .trim()
-            .replace(/\s+/g, '-');
-    };
-
-    // Helper: Check if item has valid image
-    function hasImage(el) {
-        const img = el.querySelector('img');
-        if (!img) return false;
-        const src = (img.getAttribute('src') || '').trim();
-        if (!src || src.includes('logo')) return false;
-        return true;
-    }
-
-    // Helper: Sort items (prioritize images) and cap rented
-    function sortAndCap(items) {
-        const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
-        const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
-        
-        const byImage = (a, b) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
-        active.sort(byImage);
-        rented.sort(byImage);
-        
-        const rentedCapped = rented.slice(0, 6);
-        return [...active, ...rentedCapped];
-    }
-
-    // Group items by district
-    const allItems = Array.from(document.querySelectorAll('.room-item'));
-    const itemsByDistrict = {};
-    allItems.forEach(item => {
-        const district = item.getAttribute('data-district') || 'unknown';
-        if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
-        itemsByDistrict[district].push(item);
-    });
-
-    function hideAllInContainer(container) {
-        if (!container) return;
-        Array.from(container.querySelectorAll('.room-item')).forEach(el => {
-            el.style.display = 'none';
-        });
-    }
-
-    // NO FILTER - Default display
-    if (!queryString) {
-        if (introBanner) introBanner.classList.remove('d-none');
-        let anyVisible = false;
-
-        viewMoreWrappers.forEach(wrapper => {
-            const district = wrapper.getAttribute('data-district');
-            const list = itemsByDistrict[district] || [];
-            
-            const sorted = sortAndCap(list);
-            const matchedCount = sorted.length;
-            const remaining = Math.max(0, matchedCount - 6);
-
-            const container = wrapper.parentElement.querySelector('.room-list-container');
-            if (container) {
-                sorted.forEach(el => container.appendChild(el));
-                hideAllInContainer(container);
-                sorted.slice(0, 6).forEach(el => { 
-                    el.style.display = 'block'; 
-                    anyVisible = true; 
-                });
-            }
-
-            if (remaining > 0) {
-                const link = wrapper.querySelector('.view-more-link');
-                const countSpan = wrapper.querySelector('.remaining-count');
-                if (countSpan) countSpan.textContent = remaining;
-                // SỬ DỤNG createSlug Ở ĐÂY
-                if (link) link.href = `/${createSlug(district)}`;
-                wrapper.style.display = 'block';
-            } else {
-                wrapper.style.display = 'none';
-            }
-
-            const section = wrapper.parentElement;
-            if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
-        });
-        if (noResult) {
-            noResult.classList.toggle('d-none', anyVisible);
-        }
-        return;
-    }
-
-    // WITH FILTER
-    if (introBanner) introBanner.classList.add('d-none');
-    const fDistrict = params.get('district');
-    const fType = (params.get('type') || 'all').toLowerCase();
-    const fPrice = params.get('price');
-    const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
-    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
-    const specialGroup = ['ban công', 'cửa sổ'];
-    const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-    const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-
-    const matchedMap = {};
-    let totalMatched = 0;
-    allItems.forEach(item => {
-        let matches = true;
-
-        // Filter by district
-        if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) {
-            matches = false;
-        }
-        
-        // Filter by type
-        const itemType = (item.getAttribute('data-type') || '').toLowerCase();
-        if (matches && fType !== 'all' && itemType !== fType) {
-            matches = false;
-        }
-
-        // Filter by price
-        if (matches && fPrice && fPrice !== 'all') {
-            const price = parseInt(item.getAttribute('data-price')) / 1000000;
-            if (fPrice === 'duoi-5' && price >= 5) matches = false;
-            if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
-            if (fPrice === 'over8' && price < 8) matches = false;
-        }
-
-        // Filter by amenities
-        if (matches && fAmenities.length > 0) {
-            const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
-            const petAllowed = item.getAttribute('data-pet') === 'yes';
-
-            for (let ami of selectedNormal) {
-                if (!ami) continue;
-                if (ami === 'nuôi pet' || ami === 'nuoi pet') {
-                    if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) {
-                        matches = false;
-                        break;
-                    }
-                } else {
-                    if (!keypoints.includes(ami)) {
-                        matches = false;
-                        break;
-                    }
-                }
-            }
-
-            if (matches && selectedSpecial.length > 0) {
-                let hasAtLeastOne = false;
-                if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                if (!hasAtLeastOne) matches = false;
-            }
-        }
-
-        const district = item.getAttribute('data-district') || 'unknown';
-        if (!matchedMap[district]) matchedMap[district] = [];
-        
-        if (matches) {
-            matchedMap[district].push(item);
-            totalMatched++;
-        } else {
-            item.style.display = 'none';
-        }
-    });
-
-    // Render filtered results
-    viewMoreWrappers.forEach(wrapper => {
-        const district = wrapper.getAttribute('data-district');
-        const matchedList = matchedMap[district] || [];
-        const sorted = sortAndCap(matchedList);
-        const matchedCount = sorted.length;
-        const remaining = Math.max(0, matchedCount - 6);
-
-        const container = wrapper.parentElement.querySelector('.room-list-container');
-        if (container) {
-            hideAllInContainer(container);
-            sorted.forEach(el => container.appendChild(el));
-            sorted.slice(0, 6).forEach(el => el.style.display = 'block');
-        }
-
-        if (remaining > 0) {
-            const link = wrapper.querySelector('.view-more-link');
-            const countSpan = wrapper.querySelector('.remaining-count');
-            if (countSpan) countSpan.textContent = remaining;
-            // SỬ DỤNG createSlug Ở ĐÂY
-            if (link) link.href = `/${createSlug(district)}?${queryString}`;
-            wrapper.style.display = 'block';
-        } else {
-            wrapper.style.display = 'none';
-        }
-
-        const section = wrapper.parentElement;
-        if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
-    });
-
-    if (noResult) {
-        noResult.classList.toggle('d-none', totalMatched > 0);
-    }
-});
-</script>

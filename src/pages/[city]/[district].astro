@@ -1,8 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import SidebarFilter from '../components/SidebarFilter.astro';
-import CardRoom from '../components/CardRoom.astro';
-import CommitmentFooter from '../components/CommitmentFooter.astro';
+import Layout from '../../layouts/Layout.astro';
+import SidebarFilter from '../../components/SidebarFilter.astro';
+import CardRoom from '../../components/CardRoom.astro';
+import CommitmentFooter from '../../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -22,32 +22,51 @@ export async function getStaticPaths() {
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-  const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
-
-  // Logic slug nội bộ cho getStaticPaths
+  // Helper tạo slug nội bộ
   function localCreateSlug(str) {
       if (!str) return '';
       return str.toString().toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .replace(/[đĐ]/g, 'd')
-          .replace(/[^a-z0-9\s]/g, '')
-          .trim()
-          .replace(/\s+/g, '-');
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd')
+          .replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
   }
 
-  return uniqueDistricts.map(distName => {
-      return {
-          params: { district: localCreateSlug(distName) },
-          props: { 
-              districtName: distName, 
-              allRooms: validRooms.filter(r => r.district === distName) 
-          }
-      };
+  // Tạo danh sách các đường dẫn duy nhất (City + District)
+  const paths = [];
+  const uniqueKeys = new Set();
+
+  validRooms.forEach(room => {
+      // Xác định City code (mặc định hochiminh nếu thiếu)
+      const cityCode = room.city ? room.city : 'hochiminh';
+      const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+      const distSlug = localCreateSlug(room.district);
+      const key = `${citySlug}-${distSlug}`;
+
+      if (!uniqueKeys.has(key)) {
+          uniqueKeys.add(key);
+          // Lọc sẵn phòng của quận này để truyền vào props
+          const roomsInDist = validRooms.filter(r => {
+              const rCity = r.city ? r.city : 'hochiminh';
+              return rCity === cityCode && r.district === room.district;
+          });
+
+          paths.push({
+              params: { city: citySlug, district: distSlug },
+              props: { 
+                  districtName: room.district, 
+                  cityCode: cityCode,
+                  allRooms: roomsInDist 
+              }
+          });
+      }
   });
+
+  return paths;
 }
 
-const { districtName, allRooms } = Astro.props;
-const currentSlug = createSlug(districtName);
+// Lấy Params và Props mới
+const { districtName, allRooms, cityCode } = Astro.props;
+const { city, district } = Astro.params;
+const currentSlug = district; 
 
 // --- SERVER-SIDE SORTING ---
 const activeRooms = allRooms.filter(r => r.status === 'active');
@@ -90,12 +109,13 @@ const districtSEO = {
 };
 
 const specificInfo = districtSEO[districtName];
-const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} Giá Rẻ, Full Nội Thất - Thọ Cho Thuê Trọ`;
-const pageDesc = specificInfo?.desc || `Hệ thống 200+ phòng trọ, căn hộ dịch vụ tại Quận ${districtName}. Giờ giấc tự do, an ninh, có thang máy. Giá từ 3 - 8 triệu. Xem phòng ngay!`;
+const cityName = cityCode === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
+const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} ${cityName} Giá Rẻ, Full Nội Thất`;
+const pageDesc = specificInfo?.desc || `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName}, ${cityName}. Giờ giấc tự do, an ninh, có thang máy. Xem phòng ngay!`;
 const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
-const introText = specificInfo?.intro || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **${districtName}**.`;
+const introText = specificInfo?.intro || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **Quận ${districtName}** (${cityName}).`;
 const h1Text = specificInfo?.h1 || `Cho Thuê Phòng Trọ ${districtName}`;
-const h2Text = specificInfo?.h2 || `Danh sách phòng trọ tiện nghi tại ${districtName}`;
+const h2Text = specificInfo?.h2 || `Danh sách phòng trọ tại ${districtName} ${cityName}`;
 
 const siteURL = Astro.site || 'https://thochothuetro.com';
 const canonicalURL = `${siteURL}/${currentSlug}`;
@@ -198,6 +218,7 @@ const schemaFAQ = {
     keywords={pageKeywords}
     image={imageURL}
     canonicalURL={canonicalURL}
+    currentCity={cityCode}
 >
     
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaBreadcrumb)} />
@@ -208,11 +229,15 @@ const schemaFAQ = {
     <div class="bg-light border-bottom py-3 mb-4">
         <div class="container">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1 small">
+                 <ol class="breadcrumb mb-1 small">
                     <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                    <li class="breadcrumb-item">
+                        <a href={`/${city}`} class="text-decoration-none text-muted">{cityName}</a>
+                    </li>
                     <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Quận {districtName}</li>
                 </ol>
             </nav>
+      
             <h1 class="h3 fw-bold text-uppercase mb-2 text-dark">
               {h1Text} <span class="text-warning">{districtName}</span>
             </h1>
@@ -223,9 +248,9 @@ const schemaFAQ = {
     </div>
 
     <div class="container pb-5">
-        
-     <div class="row align-items-stretch"> <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column" role="complementary" aria-label="Bộ lọc tìm kiếm">
-              <SidebarFilter />
+        <div class="row align-items-stretch"> 
+            <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column" role="complementary">
+                <SidebarFilter currentCity={cityCode} />
             </aside>
 
             <section class="col-lg-9" role="main">

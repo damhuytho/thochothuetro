@@ -1,5 +1,5 @@
 ---
-const { room, priority = false } = Astro.props; 
+const { room, priority = false, citySlug = 'ho-chi-minh' } = Astro.props; 
 
 function hideNumber(address) {
     if (!address) return "";
@@ -30,7 +30,7 @@ if (images.length > 0) {
 }
 
 const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;
-const detailLink = `/${createSlug(room.district)}/${room.id}`;
+const detailLink = `/${citySlug}/${createSlug(room.district)}/${room.id}`;
 const isRented = room.status === 'rented';
 ---
 

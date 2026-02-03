@@ -1,11 +1,11 @@
 ---
 // --- 1. IMPORTS & SETUP ---
-import Layout from '../../layouts/Layout.astro';
-import CommitmentSidebar from '../../components/CommitmentSidebar.astro';
-import CardRoom from '../../components/CardRoom.astro';
+import Layout from '../../../layouts/Layout.astro';
+import CommitmentSidebar from '../../../components/CommitmentSidebar.astro';
+import CardRoom from '../../../components/CardRoom.astro';
+import { formatPrice, hideNumber } from '../../../utils/helpers.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import { formatPrice, hideNumber } from '../../utils/helpers.js';
 
 // --- 2. HELPER FUNCTIONS (Dùng cho việc Render trang) ---
 // Hàm này chỉ chạy khi render component
@@ -30,29 +30,43 @@ export async function getStaticPaths() {
   const dataPath = path.join(process.cwd(), 'public', 'data.json');
   const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
-  
-  // FIX LỖI: Định nghĩa hàm slug riêng hoặc dùng trực tiếp trong đây vì getStaticPaths không thấy hàm bên ngoài
+
+  // Hàm slug nội bộ (giữ nguyên logic slug của bạn)
   const makeSlug = (str) => {
       if (!str) return '';
       return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[đĐ]/g, 'd')
+          .replace(/[^a-z0-9\s]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
   };
 
   return activeRooms.map((room) => {
+      // [MỚI] Xác định City Slug cho từng phòng
+      const cityCode = room.city ? room.city : 'hochiminh';
+      const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
       const districtSlug = makeSlug(room.district);
+      
       return {
-        params: { district: districtSlug, id: room.id },
-        props: { room, allRooms: activeRooms },
+        // [QUAN TRỌNG] Phải có đủ 3 params: city, district, id
+        params: { city: citySlug, district: districtSlug, id: room.id },
+        props: { 
+            room, 
+            allRooms: activeRooms, 
+            cityCode, 
+            citySlug // Truyền thêm biến này để dùng bên dưới
+        },
       };
   });
 }
 
 // --- 4. XỬ LÝ DỮ LIỆU PAGE ---
-const { room, allRooms } = Astro.props;
+const { room, allRooms, cityCode, citySlug } = Astro.props;
+// Nếu muốn chắc chắn, gán mặc định luôn
+const currentCityCode = cityCode || 'hochiminh';
+const currentCitySlug = citySlug || 'ho-chi-minh';
+const currentCityName = currentCityCode === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
 const currentDistrictSlug = createSlug(room.district);
 
 // --- LOGIC XỬ LÝ ẢNH ---
@@ -194,7 +208,7 @@ const relatedRooms = allRooms.filter(r =>
 ).sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0)).slice(0, 6);
 ---
 
-<Layout title={pageTitle} description={pageDesc} image={mainImageWeb}>
+<Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb}>
     <link slot="head" rel="preload" href={mainImageMobile} as="image" media="(max-width: 767px)" fetchpriority="high" />
     <link slot="head" rel="preload" href={mainImageWeb} as="image" media="(min-width: 768px)" fetchpriority="high" />
 

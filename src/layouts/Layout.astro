@@ -12,6 +12,7 @@ export interface Props {
     image?: string;
     preloadImage?: string;
     canonicalURL?: string;
+    currentCity?: string; // [MỚI] Thêm prop này để biết đang ở HN hay HCM
 }
 
 const { 
@@ -19,12 +20,46 @@ const {
     description = "Hệ thống phòng trọ tiện nghi, giờ giấc tự do tại Tân Bình & Phú Nhuận. Cam kết hình thật, giá thật.",
     image = "/logo.png",
     preloadImage,
-    canonicalURL
+    canonicalURL,
+    currentCity // [MỚI]
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 const siteURL = Astro.site || 'https://thochothuetro.com';
 const fullURL = canonicalURL || `${siteURL}${currentPath}`;
+
+// --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA ---
+let menuDistricts = [];
+let citySlug = '';
+let cityName = '';
+
+// Helper Slug (dùng nội bộ trong Layout)
+function createSlug(str) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+}
+
+if (currentCity) {
+    citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+    cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
+    
+    try {
+        const dataPath = path.join(process.cwd(), 'public', 'data.json');
+        const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        
+        // Lọc quận theo thành phố hiện tại
+        const filtered = jsonData.rooms.filter(r => {
+            const rCity = r.city ? r.city : 'hochiminh'; // Fallback nếu data cũ
+            return rCity === currentCity;
+        });
+        // Lấy danh sách quận duy nhất
+        menuDistricts = [...new Set(filtered.map(r => r.district).filter(d => d))].sort();
+    } catch (e) {
+        console.error("Error loading menu data", e);
+    }
+}
 ---
 
 <!DOCTYPE html>
@@ -539,12 +574,34 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
                     <li class="nav-item">
                         <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">Quận Tân Bình</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">Quận Phú Nhuận</a>
-                    </li>
+                    
+                    {/* [MỚI] MENU ĐỘNG: Nếu có currentCity thì hiện danh sách quận của city đó */}
+                    {currentCity && menuDistricts.length > 0 ? (
+                        /* Cách 1: Dropdown (Gọn gàng) */
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold px-3 py-2 rounded-pill" href="#" role="button" data-bs-toggle="dropdown">
+                                Khu vực {cityName}
+                            </a>
+                            <ul class="dropdown-menu shadow border-0 rounded-3">
+                                {menuDistricts.map(dist => (
+                                    <li>
+                                        <a class="dropdown-item" href={`/${citySlug}/${createSlug(dist)}`}>
+                                            Quận {dist}
+                                        </a>
+                                    </li>
+                                ))}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger fw-bold" href="/">Đổi Thành Phố</a></li>
+                            </ul>
+                        </li>
+                    ) : (
+                        /* Nếu ở trang chủ (không có city) hoặc lỗi data, giữ link mặc định an toàn */
+                         <>
+                            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">TP.HCM</a></li>
+                            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
+                         </>
+                    )}
+
                     <li class="nav-item">
                         <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
                     </li>
@@ -721,19 +778,45 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
                         <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/tan-binh">
-                        <i class="fas fa-building me-2 d-lg-none text-warning"></i>Quận Tân Bình
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/phu-nhuan">
-                        <i class="fas fa-city me-2 d-lg-none text-warning"></i>Quận Phú Nhuận
-                    </a>
-                </li>
+
+                {/* [MỚI] MENU MOBILE ĐỘNG */}
+                {currentCity && menuDistricts.length > 0 ? (
+                    <>
+                        <li class="nav-item px-3 py-2 text-muted small fw-bold text-uppercase border-bottom mb-2">
+                            Khu vực {cityName}
+                        </li>
+                        {menuDistricts.map(dist => (
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${citySlug}/${createSlug(dist)}`}>
+                                    <i class="fas fa-map-marker-alt me-2 d-lg-none text-warning"></i>Quận {dist}
+                                </a>
+                            </li>
+                        ))}
+                        <li class="nav-item mt-2">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill text-danger" href="/">
+                                <i class="fas fa-sync-alt me-2 d-lg-none"></i>Đổi Thành Phố
+                            </a>
+                        </li>
+                    </>
+                ) : (
+                    <>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>TP. Hồ Chí Minh
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">
+                                <i class="fas fa-landmark me-2 d-lg-none text-warning"></i>Hà Nội
+                            </a>
+                        </li>
+                    </>
+                )}
+
                 <li class="nav-item d-none d-lg-block">
                     <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
                 </li>
+                
                 <li class="nav-item">
                     <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
                         <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ

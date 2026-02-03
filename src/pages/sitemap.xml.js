@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const SITE_URL = "https://thochothuetro.com";
 
-// Hàm tạo slug chuẩn (Giống các file khác để link khớp nhau 100%)
+// Hàm tạo slug chuẩn (Giống các file khác)
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
@@ -14,12 +14,20 @@ function createSlug(str) {
         .replace(/\s+/g, '-');
 }
 
+// Hàm lấy slug thành phố
+function getCitySlug(cityCode) {
+    if (cityCode === 'hanoi') return 'ha-noi';
+    return 'ho-chi-minh'; // Mặc định là HCM
+}
+
 export async function GET() {
   // 1. Các trang Cố định (Home, Map, Contact)
   const basePages = [
-    { url: '', changefreq: 'daily', priority: 1.0 },          // Trang chủ
-    { url: 'map-search', changefreq: 'weekly', priority: 0.8 }, // Bản đồ
-    { url: 'contact', changefreq: 'monthly', priority: 0.5 },   // Liên hệ
+    { url: '', changefreq: 'daily', priority: 1.0 },            // Trang chủ (Landing)
+    { url: 'ha-noi', changefreq: 'daily', priority: 0.9 },      // Trang chủ Hà Nội
+    { url: 'ho-chi-minh', changefreq: 'daily', priority: 0.9 }, // Trang chủ HCM
+    { url: 'map-search', changefreq: 'weekly', priority: 0.8 }, 
+    { url: 'contact', changefreq: 'monthly', priority: 0.5 },   
   ];
 
   let districtPages = [];
@@ -29,25 +37,37 @@ export async function GET() {
     const dataPath = path.join(process.cwd(), 'public', 'data.json');
     const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
     
-    // Lấy danh sách phòng hợp lệ
+    // Lấy danh sách phòng hợp lệ (active hoặc rented)
     const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-    // 2. [TỰ ĐỘNG] Tạo trang Quận từ data
-    // Lấy danh sách các quận duy nhất có trong file data
-    const uniqueDistricts = [...new Set(validRooms.map(r => r.district))];
+    // 2. [TỰ ĐỘNG] Tạo trang Quận từ data (Theo cấu trúc /city/district)
+    const uniqueDistKeys = new Set();
     
-    districtPages = uniqueDistricts.map(dist => ({
-        url: createSlug(dist), // Tự động: "Bình Thạnh" -> "binh-thanh"
-        changefreq: 'daily',
-        priority: 0.8
-    }));
+    validRooms.forEach(r => {
+        const cityCode = r.city ? r.city : 'hochiminh';
+        const citySlug = getCitySlug(cityCode);
+        const distSlug = createSlug(r.district);
+        const fullPath = `${citySlug}/${distSlug}`;
 
-    // 3. [TỰ ĐỘNG] Tạo trang Chi tiết phòng
+        // Chỉ thêm nếu chưa có trong danh sách
+        if (!uniqueDistKeys.has(fullPath)) {
+            uniqueDistKeys.add(fullPath);
+            districtPages.push({
+                url: fullPath,
+                changefreq: 'daily',
+                priority: 0.8
+            });
+        }
+    });
+
+    // 3. [TỰ ĐỘNG] Tạo trang Chi tiết phòng (Theo cấu trúc /city/district/id)
     roomPages = validRooms.map(room => {
-      // Tự động tạo slug quận dựa trên tên quận của phòng đó
+      const cityCode = room.city ? room.city : 'hochiminh';
+      const citySlug = getCitySlug(cityCode);
       const districtSlug = createSlug(room.district);
+      
       return {
-        url: `${districtSlug}/${room.id}`,
+        url: `${citySlug}/${districtSlug}/${room.id}`,
         changefreq: 'weekly',
         priority: 0.6,
         lastmod: room.updated_at || new Date().toISOString()
@@ -74,8 +94,9 @@ export async function GET() {
 </urlset>`;
 
   return new Response(sitemap, {
+    status: 200,
     headers: {
-      'Content-Type': 'application/xml',
-    },
+      "Content-Type": "application/xml"
+    }
   });
 }

@@ -1,0 +1,474 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SidebarFilter from '../../components/SidebarFilter.astro';
+import CardRoom from '../../components/CardRoom.astro';
+import CommitmentFooter from '../../components/CommitmentFooter.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// --- 1. GET STATIC PATHS (Định nghĩa các thành phố) ---
+export async function getStaticPaths() {
+    return [
+        { params: { city: 'ho-chi-minh' }, props: { cityName: 'Hồ Chí Minh', cityCode: 'hochiminh' } },
+        { params: { city: 'ha-noi' }, props: { cityName: 'Hà Nội', cityCode: 'hanoi' } }
+    ];
+}
+
+const { city } = Astro.params;
+const { cityName, cityCode } = Astro.props;
+
+// --- 2. LOAD DATA & FILTER ---
+const dataPath = path.join(process.cwd(), 'public', 'data.json');
+const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+
+// Lọc phòng theo thành phố
+const cityRooms = jsonData.rooms.filter(r => {
+    // Nếu data chưa có trường city, mặc định là hochiminh
+    const rCity = r.city ? r.city : 'hochiminh';
+    return rCity === cityCode && r.status === 'active';
+});
+
+// Logic sắp xếp: Ưu tiên Promotion
+function sortRooms(rooms) {
+    return rooms.sort((a, b) => {
+        if (a.promotion && !b.promotion) return -1;
+        if (!a.promotion && b.promotion) return 1;
+        return 0;
+    });
+}
+
+// Gom nhóm theo quận (Chỉ lấy quận của thành phố này)
+const districtNames = [...new Set(cityRooms.map(r => r.district))];
+let districtsData = districtNames.map(name => {
+    return { name: name, rooms: sortRooms(cityRooms.filter(r => r.district === name)) };
+});
+districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
+
+// Helper Slug
+function createSlug(text) {
+    if (!text) return '';
+    return text.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+}
+
+// --- SEO CONFIG ---
+const pageTitle = `Phòng Trọ ${cityName} Giá Rẻ, Full Nội Thất | Thọ Cho Thuê Trọ`;
+const pageDesc = `Hệ thống phòng trọ, căn hộ dịch vụ tại ${cityName}. Giờ giấc tự do, an ninh 24/7, full nội thất. Xem phòng ngay!`;
+const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
+
+---
+
+<Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL}>
+    <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg">
+         <picture>
+             <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
+             <img src="https://img.thochothuetro.com/banner.webp" class="banner-bg-img" alt={`Phòng trọ ${cityName}`} width="1920" height="600">
+         </picture>
+         <div class="banner-overlay"></div>
+         <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
+            <div class="row w-100">
+                <div class="col-lg-8 mx-auto text-center text-lg-start">
+                    <h1 class="hero-title fw-bold text-white mb-3">
+                        Phòng Trọ <span class="text-gradient-gold">{cityName}</span> <br> Tiện Nghi & Giá Rẻ
+                    </h1>
+                    <p class="hero-desc text-white-50 mb-4">
+                        Hơn {cityRooms.length}+ phòng trọ an ninh tại {cityName}. Giá từ 3 - 15 triệu/tháng.
+                    </p>
+                </div>
+            </div>
+         </div>
+    </section>
+
+    <div class="container my-4">
+        <div class="row align-items-stretch">
+            <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column">
+                <SidebarFilter currentCity={cityCode} />
+            </aside>
+
+            <main class="col-lg-9">
+                <div id="intro-banner" class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <h2 class="h5 fw-bold text-dark m-0 text-uppercase border-start border-4 border-warning ps-3">
+                            Khu vực {cityName}
+                        </h2>
+                    </div>
+                </div>
+
+                {districtsData.length > 0 ? districtsData.map((dData) => (
+                   <section class="district-section mb-5" data-district={dData.name}>
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
+                            <h2 class="h5 fw-bold text-dark m-0 text-uppercase">
+                                <span class="text-warning me-2"><i class="fas fa-map-marker-alt"></i></span> 
+                                {dData.name}
+                            </h2>
+                            <a href={`/${city}/${createSlug(dData.name)}`} class="small text-muted text-decoration-none hover-warning">
+                                Xem tất cả <i class="fas fa-angle-right ms-1"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="row g-2 g-md-3 room-list-container">
+                            {dData.rooms.slice(0, 6).map((room, idx) => (
+                                <div class="col-6 col-md-4 room-item"
+                                     data-district={room.district}
+                                     data-price={room.price}
+                                     data-type={room.type}
+                                     data-status={room.status}>
+                                    <CardRoom room={room} priority={idx < 6} citySlug={city} />
+                                </div>
+                            ))}
+                        </div>
+                   </section>
+                )) : (
+                    <div class="text-center py-5">
+                        <p class="text-muted">Đang cập nhật dữ liệu phòng tại {cityName}...</p>
+                    </div>
+                )}
+            </main>
+        </div>
+    </div>
+    <CommitmentFooter />
+</Layout>
+
+<style>
+    /* HERO BANNER STYLES */
+    .banner-hero-wrapper {
+        position: relative;
+        height: 380px;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
+        overflow: hidden;
+        background-color: #222;
+    }
+
+    @media (min-width: 768px) {
+        .banner-hero-wrapper {
+            height: 450px;
+        }
+    }
+
+    .banner-bg-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+        z-index: 1;
+    }
+
+    .banner-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* HERO TEXT STYLES */
+    .hero-title {
+        font-size: clamp(1.75rem, 5vw, 3.2rem);
+        line-height: 1.2;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .text-gradient-gold {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-desc {
+        font-size: clamp(0.95rem, 2vw, 1.15rem);
+        line-height: 1.6;
+    }
+
+    /* BADGE LUXURY */
+    .badge-luxury {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 1.2rem;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .badge-luxury:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    /* ANIMATIONS */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    .animate-slide-up.delay-1 {
+        animation-delay: 0.2s;
+    }
+
+    .animate-slide-up.delay-2 {
+        animation-delay: 0.4s;
+    }
+
+    /* RESPONSIVE ADJUSTMENTS */
+    @media (max-width: 991px) {
+        .banner-hero-wrapper {
+            height: 350px;
+        }
+        
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .badge-luxury {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.9rem;
+        }
+    }
+    /* Áp dụng cho container chứa danh sách phòng */
+.room-list-container {
+    content-visibility: auto;
+    contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của khu vực này để thanh cuộn không bị nhảy */
+}
+</style>
+
+<script>
+// CLIENT-SIDE FILTER & SORTING LOGIC
+document.addEventListener('astro:page-load', () => {
+    const queryString = window.location.search.substring(1);
+    const params = new URLSearchParams(queryString);
+    const introBanner = document.getElementById('intro-banner');
+    const noResult = document.getElementById('no-result');
+    const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
+
+    // 1. ĐỔI TÊN HÀM TỪ toSlug -> createSlug ĐỂ ĐỒNG BỘ VÀ TRÁNH LỖI
+    const createSlug = (text) => {
+        if(!text) return '';
+        return text.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[đĐ]/g, 'd')
+            .replace(/[^a-z0-9\s]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
+    };
+
+    // Helper: Check if item has valid image
+    function hasImage(el) {
+        const img = el.querySelector('img');
+        if (!img) return false;
+        const src = (img.getAttribute('src') || '').trim();
+        if (!src || src.includes('logo')) return false;
+        return true;
+    }
+
+    // Helper: Sort items (prioritize images) and cap rented
+    function sortAndCap(items) {
+        const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
+        const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
+        
+        const byImage = (a, b) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
+        active.sort(byImage);
+        rented.sort(byImage);
+        
+        const rentedCapped = rented.slice(0, 6);
+        return [...active, ...rentedCapped];
+    }
+
+    // Group items by district
+    const allItems = Array.from(document.querySelectorAll('.room-item'));
+    const itemsByDistrict = {};
+    allItems.forEach(item => {
+        const district = item.getAttribute('data-district') || 'unknown';
+        if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
+        itemsByDistrict[district].push(item);
+    });
+
+    function hideAllInContainer(container) {
+        if (!container) return;
+        Array.from(container.querySelectorAll('.room-item')).forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+
+    // NO FILTER - Default display
+    if (!queryString) {
+        if (introBanner) introBanner.classList.remove('d-none');
+        let anyVisible = false;
+
+        viewMoreWrappers.forEach(wrapper => {
+            const district = wrapper.getAttribute('data-district');
+            const list = itemsByDistrict[district] || [];
+            
+            const sorted = sortAndCap(list);
+            const matchedCount = sorted.length;
+            const remaining = Math.max(0, matchedCount - 6);
+
+            const container = wrapper.parentElement.querySelector('.room-list-container');
+            if (container) {
+                sorted.forEach(el => container.appendChild(el));
+                hideAllInContainer(container);
+                sorted.slice(0, 6).forEach(el => { 
+                    el.style.display = 'block'; 
+                    anyVisible = true; 
+                });
+            }
+
+            if (remaining > 0) {
+                const link = wrapper.querySelector('.view-more-link');
+                const countSpan = wrapper.querySelector('.remaining-count');
+                if (countSpan) countSpan.textContent = remaining;
+                // SỬ DỤNG createSlug Ở ĐÂY
+                if (link) link.href = `/${createSlug(district)}`;
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+
+            const section = wrapper.parentElement;
+            if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
+        });
+        if (noResult) {
+            noResult.classList.toggle('d-none', anyVisible);
+        }
+        return;
+    }
+
+    // WITH FILTER
+    if (introBanner) introBanner.classList.add('d-none');
+    const fDistrict = params.get('district');
+    const fType = (params.get('type') || 'all').toLowerCase();
+    const fPrice = params.get('price');
+    const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
+    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
+    const specialGroup = ['ban công', 'cửa sổ'];
+    const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+    const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+
+    const matchedMap = {};
+    let totalMatched = 0;
+    allItems.forEach(item => {
+        let matches = true;
+
+        // Filter by district
+        if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) {
+            matches = false;
+        }
+        
+        // Filter by type
+        const itemType = (item.getAttribute('data-type') || '').toLowerCase();
+        if (matches && fType !== 'all' && itemType !== fType) {
+            matches = false;
+        }
+
+        // Filter by price
+        if (matches && fPrice && fPrice !== 'all') {
+            const price = parseInt(item.getAttribute('data-price')) / 1000000;
+            if (fPrice === 'duoi-5' && price >= 5) matches = false;
+            if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
+            if (fPrice === 'over8' && price < 8) matches = false;
+        }
+
+        // Filter by amenities
+        if (matches && fAmenities.length > 0) {
+            const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
+            const petAllowed = item.getAttribute('data-pet') === 'yes';
+
+            for (let ami of selectedNormal) {
+                if (!ami) continue;
+                if (ami === 'nuôi pet' || ami === 'nuoi pet') {
+                    if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) {
+                        matches = false;
+                        break;
+                    }
+                } else {
+                    if (!keypoints.includes(ami)) {
+                        matches = false;
+                        break;
+                    }
+                }
+            }
+
+            if (matches && selectedSpecial.length > 0) {
+                let hasAtLeastOne = false;
+                if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                if (!hasAtLeastOne) matches = false;
+            }
+        }
+
+        const district = item.getAttribute('data-district') || 'unknown';
+        if (!matchedMap[district]) matchedMap[district] = [];
+        
+        if (matches) {
+            matchedMap[district].push(item);
+            totalMatched++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Render filtered results
+    viewMoreWrappers.forEach(wrapper => {
+        const district = wrapper.getAttribute('data-district');
+        const matchedList = matchedMap[district] || [];
+        const sorted = sortAndCap(matchedList);
+        const matchedCount = sorted.length;
+        const remaining = Math.max(0, matchedCount - 6);
+
+        const container = wrapper.parentElement.querySelector('.room-list-container');
+        if (container) {
+            hideAllInContainer(container);
+            sorted.forEach(el => container.appendChild(el));
+            sorted.slice(0, 6).forEach(el => el.style.display = 'block');
+        }
+
+        if (remaining > 0) {
+            const link = wrapper.querySelector('.view-more-link');
+            const countSpan = wrapper.querySelector('.remaining-count');
+            if (countSpan) countSpan.textContent = remaining;
+            // SỬ DỤNG createSlug Ở ĐÂY
+            if (link) link.href = `/${createSlug(district)}?${queryString}`;
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+        }
+
+        const section = wrapper.parentElement;
+        if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
+    });
+
+    if (noResult) {
+        noResult.classList.toggle('d-none', totalMatched > 0);
+    }
+});
+</script>
