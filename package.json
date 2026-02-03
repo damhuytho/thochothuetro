@@ -10,10 +10,14 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
+    "@aws-sdk/client-s3": "^3.981.0",
     "@popperjs/core": "^2.11.8",
     "astro": "^5.16.15",
+    "axios": "^1.13.4",
     "bootstrap": "^5.3.8",
-    "critical": "^7.2.1"
+    "critical": "^7.2.1",
+    "dotenv": "^17.2.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "sass": "^1.97.3"
