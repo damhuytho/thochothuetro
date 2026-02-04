@@ -13,7 +13,7 @@ dotenv.config();
 // ============================================================
 // true  = CHẾ ĐỘ TEST (Chỉ tạo file JSON, KHÔNG đẩy lên Github)
 // false = CHẾ ĐỘ THẬT (Tạo file JSON + Đẩy code lên Github)
-const IS_TEST_MODE = false; 
+const IS_TEST_MODE = false; // Đã chuyển về false để bạn chạy luôn
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
@@ -161,7 +161,6 @@ async function main() {
     const slugTracker = {}; 
 
     // Hàm xử lý chung cho cả 2 nguồn
-    // Hàm xử lý chung cho cả 2 nguồn
     const processBatch = (rows, forcedStatus) => {
         rows.forEach((row) => {
             const colE_Composite = row[COL.ROOM_CODE] || ""; 
@@ -286,15 +285,30 @@ async function main() {
         try {
             const { execSync } = await import('child_process');
             console.log("📦 Đang kiểm tra Git...");
+            
+            // Lấy danh sách file đã thay đổi (chỉ quan tâm file JSON)
             const status = execSync('git status --porcelain').toString();
+            
             if (status) {
                 console.log("🚀 Phát hiện thay đổi, đang đẩy code lên Github...");
-                execSync('git add .');
-                execSync('git commit -m "Auto Update Data: Multi-Source Status"');
-                execSync('git push');
-                console.log("🎉 PUSH THÀNH CÔNG!");
+                
+                // --- ĐOẠN ĐÃ SỬA: CHỈ ADD ĐÚNG 2 FILE JSON ---
+                // Thay vì 'git add .', ta chỉ add file cần thiết để tránh lỗi bảo mật
+                execSync(`git add "${OUTPUT_HANOI}" "${OUTPUT_HCM}"`);
+                
+                // Kiểm tra xem có gì được add vào Staging Area không
+                // Nếu chỉ có file rác khác thay đổi mà file JSON không đổi thì không commit
+                const stagedDiff = execSync('git diff --name-only --cached').toString();
+                
+                if (stagedDiff.trim().length > 0) {
+                    execSync('git commit -m "Auto Update Data: Multi-Source Status"');
+                    execSync('git push');
+                    console.log("🎉 PUSH THÀNH CÔNG!");
+                } else {
+                     console.log("☕ Dữ liệu JSON không đổi. Skip Push.");
+                }
             } else {
-                console.log("☕ Dữ liệu không đổi. Skip Push.");
+                console.log("☕ Không có thay đổi nào. Skip Push.");
             }
         } catch (e) {
             console.error("⚠️ Lỗi Git:", e.message);
