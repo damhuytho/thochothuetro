@@ -37,6 +37,10 @@ let menuDistricts = [];
 let citySlug = '';
 let cityName = '';
 
+// [MỚI] Thêm 2 biến này để lưu thông tin thành phố còn lại
+let otherCityName = '';
+let otherCitySlug = '';
+
 // Helper Slug (dùng nội bộ trong Layout)
 function createSlug(str) {
     if (!str) return '';
@@ -50,7 +54,10 @@ function createSlug(str) {
 
 if (currentCity) {
     citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
-    cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
+    cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'Hồ Chí Minh';
+    // [MỚI] Tính toán thành phố còn lại
+    otherCityName = currentCity === 'hanoi' ? 'Hồ Chí Minh' : 'Hà Nội';
+    otherCitySlug = currentCity === 'hanoi' ? 'ho-chi-minh' : 'ha-noi';
     try {
         // [SỬA ĐỔI]: Chọn file data đúng theo thành phố hiện tại
         const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
@@ -369,50 +376,58 @@ if (currentCity) {
             </button>
             <div class="collapse navbar-collapse justify-content-end d-none d-lg-flex" id="desktopMenu">
                 <ul class="navbar-nav align-items-center gap-3">
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
-                    </li>
-                    
-                    {/* [MỚI] MENU ĐỘNG: Nếu có currentCity thì hiện danh sách quận của city đó */}
-                    {currentCity && menuDistricts.length > 0 ? (
-                        /* Cách 1: Dropdown (Gọn gàng) */
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle fw-bold px-3 py-2 rounded-pill" href="#" role="button" data-bs-toggle="dropdown">
-                                Khu vực {cityName}
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
+    </li>
+    
+    {/* [ĐÃ SỬA] LOGIC HIỂN THỊ 2 THÀNH PHỐ TRÊN DESKTOP */}
+    {currentCity && menuDistricts.length > 0 ? (
+        <>
+            {/* 1. Dropdown của Thành phố hiện tại (Đã xóa nút Đổi thành phố bên trong) */}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle fw-bold px-3 py-2 rounded-pill active text-warning" href="#" role="button" data-bs-toggle="dropdown">
+                    Khu vực {cityName}
+                </a>
+                <ul class="dropdown-menu shadow border-0 rounded-3">
+                    {menuDistricts.map(dist => (
+                        <li>
+                            <a class="dropdown-item" href={`/${citySlug}/${createSlug(dist)}`}>
+                                Quận {dist}
                             </a>
-                            <ul class="dropdown-menu shadow border-0 rounded-3">
-                                {menuDistricts.map(dist => (
-                                    <li>
-                                        <a class="dropdown-item" href={`/${citySlug}/${createSlug(dist)}`}>
-                                            Quận {dist}
-                                        </a>
-                                    </li>
-                                ))}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger fw-bold" href="/">Đổi Thành Phố</a></li>
-                            </ul>
                         </li>
-                    ) : (
-                         /* Nếu ở trang chủ (không có city) hoặc lỗi data, giữ link mặc định an toàn */
-                         <>
-                            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">TP.HCM</a></li>
-                            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
-                         </>
-                    )}
-
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">Liên hệ</a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold px-4 py-2 shadow-sm btn-header-cta d-flex align-items-center gap-2">
-                            <i class="fas fa-phone-alt animate-ring"></i> 
-                            <span>0925 996 992</span>
-                        </a>
-                    </li>
+                    ))}
+                    {/* Đã xóa nút "Đổi Thành Phố" ở đây theo yêu cầu */}
                 </ul>
+            </li>
+
+            {/* 2. Link khoe ra Thành phố còn lại */}
+            <li class="nav-item">
+                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
+                    {otherCityName}
+                </a>
+            </li>
+        </>
+    ) : (
+            /* Nếu ở trang chủ (chưa chọn city), hiện cả 2 bình thường */
+            <>
+            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">Hồ Chí Minh</a></li>
+            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
+            </>
+    )}
+
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">Liên hệ</a>
+    </li>
+    <li class="nav-item ms-2">
+        <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold px-4 py-2 shadow-sm btn-header-cta d-flex align-items-center gap-2">
+            <i class="fas fa-phone-alt animate-ring"></i> 
+            <span>0925 996 992</span>
+        </a>
+    </li>
+</ul>
             </div>
         </div>
     </nav>
@@ -472,7 +487,7 @@ if (currentCity) {
                     <ul class="list-unstyled">
                         <li class="mb-3 d-flex">
                             <i class="fas fa-map-marker-alt text-warning mt-1 me-3"></i>
-                            <span class="text-white">Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.HCM</span>
+                            <span class="text-white">Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.Hồ Chí Minh</span>
                         </li>
                         <li class="mb-3 d-flex">
                             <i class="fas fa-phone-alt text-warning mt-1 me-3"></i>
@@ -581,26 +596,27 @@ if (currentCity) {
                 {currentCity && menuDistricts.length > 0 ? (
                     <>
                         <li class="nav-item px-3 py-2 text-muted small fw-bold text-uppercase border-bottom mb-2">
-                            Khu vực {cityName}
-                        </li>
+            Khu vực {cityName}
+        </li>
                         {menuDistricts.map(dist => (
-                            <li class="nav-item">
-                                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${citySlug}/${createSlug(dist)}`}>
-                                    <i class="fas fa-map-marker-alt me-2 d-lg-none text-warning"></i>Quận {dist}
-                                </a>
-                            </li>
-                        ))}
-                        <li class="nav-item mt-2">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill text-danger" href="/">
-                                <i class="fas fa-sync-alt me-2 d-lg-none"></i>Đổi Thành Phố
-                            </a>
-                        </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${citySlug}/${createSlug(dist)}`}>
+                    <i class="fas fa-map-marker-alt me-2 d-lg-none text-warning"></i>Quận {dist}
+                </a>
+            </li>
+        ))}
+                        <li class="nav-item mt-2 pt-2 border-top">
+            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
+                <i class="fas fa-city me-2 d-lg-none text-primary"></i>
+                Khu vực {otherCityName}
+            </a>
+        </li>
                     </>
                 ) : (
                     <>
                         <li class="nav-item">
                             <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">
-                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>TP.HCM
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Hồ Chí Minh
                             </a>
                         </li>
                         <li class="nav-item">
