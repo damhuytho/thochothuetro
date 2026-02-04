@@ -242,7 +242,7 @@ const relatedRooms = allRooms.filter(r =>
 ).sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0)).slice(0, 6);
 ---
 
-<Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb}>
+<Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb} canonicalURL={canonicalURL}>
     <link slot="head" rel="preload" href={mainImageMobile} as="image" media="(max-width: 767px)" fetchpriority="high" />
     <link slot="head" rel="preload" href={mainImageWeb} as="image" media="(min-width: 768px)" fetchpriority="high" />
 
@@ -536,7 +536,7 @@ const relatedRooms = allRooms.filter(r =>
 </style>
 
 <script is:inline>
-    // --- 1. Gallery Switcher Logic (Updated) ---
+    // --- 1. Gallery Switcher Logic ---
     function changeImage(el) {
         const webSrc = el.getAttribute('data-web');
         const mobileSrc = el.getAttribute('data-mobile');
@@ -544,66 +544,74 @@ const relatedRooms = allRooms.filter(r =>
         const mainImg = document.getElementById('main-image');
         const source = mainImg.previousElementSibling; // Thẻ source trong picture
         
+        // Cập nhật cả srcset cho mobile và src cho desktop
         if(source && mobileSrc) source.srcset = mobileSrc;
         if(webSrc) mainImg.src = webSrc;
         
+        // Toggle class active
         document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
     }
 
-    // --- 2. Map Loader Logic ---
+    // --- 2. Map Loader Logic (Đã tối ưu cho Layout mới) ---
     window.loadMap = function(placeholder, lat, lng, text) {
+        // Hiển thị loading
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
-        const executeMapInit = () => {
+        
+        // Hàm kiểm tra xem thư viện Leaflet (L) từ Layout đã tải xong chưa
+        const checkLeafletLoaded = () => {
+            if (typeof L !== 'undefined') {
+                initMap(); // Đã có L, chạy map ngay
+            } else {
+                // Chưa có L, đợi 100ms rồi kiểm tra lại (Polling)
+                // Không tự insert script nữa để tránh conflict với Layout
+                setTimeout(checkLeafletLoaded, 100);
+            }
+        };
+
+        const initMap = () => {
             const realMap = document.getElementById('real-map');
+            
+            // Ẩn placeholder, hiện map thật
             placeholder.classList.add('d-none');
             realMap.classList.remove('d-none');
             realMap.style.display = 'block';
             
-            if (realMap._leaflet_id) { return; } 
+            // Nếu map đã init rồi thì thôi
+            if (realMap._leaflet_id) return;
 
-            setTimeout(() => {
-                try {
-                    const map = L.map('real-map').setView([lat, lng], 16);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                        attribution: '&copy; OSM',
-                        maxZoom: 19
-                    }).addTo(map);
-                    
-                    const icon = L.divIcon({
-                        className: 'custom-pin',
-                        html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
-                        iconSize: [34, 34],
-                        iconAnchor: [17, 34],
-                        popupAnchor: [0, -35]
-                    });
-                    
-                    L.marker([lat, lng], {icon: icon}).addTo(map)
-                     .bindPopup(`<div class="text-center p-2"><b>${text}</b></div>`)
-                     .openPopup();
-                    map.invalidateSize();
-                } catch (e) {
-                    console.error("Lỗi khởi tạo map:", e);
-                    placeholder.innerHTML = '<div class="text-danger p-3">Không thể tải bản đồ. Vui lòng thử lại sau.</div>';
-                    placeholder.classList.remove('d-none');
-                }
-            }, 100);
+            try {
+                const map = L.map('real-map').setView([lat, lng], 16);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    attribution: '&copy; OSM',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                const icon = L.divIcon({
+                    className: 'custom-pin',
+                    html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 34],
+                    popupAnchor: [0, -35]
+                });
+                
+                L.marker([lat, lng], {icon: icon}).addTo(map)
+                    .bindPopup(`<div class="text-center p-2"><b>${text}</b></div>`)
+                    .openPopup();
+                
+                // Fix lỗi map bị xám khi hiện từ display:none
+                setTimeout(() => { map.invalidateSize(); }, 200);
+                
+            } catch (e) {
+                console.error("Lỗi Map:", e);
+                placeholder.classList.remove('d-none');
+                placeholder.innerHTML = '<div class="text-danger p-3 small">Lỗi tải bản đồ.</div>';
+            }
         };
 
-        if (typeof L === 'undefined') {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
-            script.onload = executeMapInit;
-            script.onerror = () => { placeholder.innerHTML = 'Lỗi kết nối máy chủ bản đồ.'; };
-            document.head.appendChild(script);
-            
-            const css = document.createElement('link');
-            css.rel = 'stylesheet'; 
-            css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
-            document.head.appendChild(css);
-        } else {
-            executeMapInit();
-        }
+        // Bắt đầu quy trình kiểm tra
+        checkLeafletLoaded();
     };
 
     // --- 3. Video Lazy Loader Logic ---
@@ -611,7 +619,8 @@ const relatedRooms = allRooms.filter(r =>
         const facade = e.target.closest('.video-facade');
         if (facade) {
             const id = facade.getAttribute('data-id');
-            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1&playlist=${id}" class="w-100 h-100 border-0" allow="autoplay" allowfullscreen></iframe>`;
+            // Thêm autoplay=1 để bấm là chạy luôn
+            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1&playlist=${id}" class="w-100 h-100 border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             facade.classList.remove('video-facade'); 
         }
     });
