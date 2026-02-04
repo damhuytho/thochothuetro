@@ -99,8 +99,7 @@ if (currentCity) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
     </noscript>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
-    <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
@@ -135,6 +134,7 @@ if (currentCity) {
         /* --- CRITICAL CSS --- */
         :root {
             --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
+            font-display: swap;
             --primary-color: #d9b205;
             --warning-color: #d9b205;
         }
@@ -512,7 +512,7 @@ if (currentCity) {
             <span>Zalo</span>
         </a>
     </div>
-
+    <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous" defer></script>
     <script>
         import "../scripts/bootstrap-custom.js";
     </script>

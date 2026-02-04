@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const SITE_URL = "https://thochothuetro.com";
 
-// Hàm tạo slug chuẩn (Giống các file khác)
+// Hàm tạo slug chuẩn
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
@@ -14,42 +14,60 @@ function createSlug(str) {
         .replace(/\s+/g, '-');
 }
 
-// Hàm lấy slug thành phố
+// Hàm chuyển đổi city code sang slug trên URL
 function getCitySlug(cityCode) {
     if (cityCode === 'hanoi') return 'ha-noi';
-    return 'ho-chi-minh'; // Mặc định là HCM
+    return 'ho-chi-minh';
 }
 
 export async function GET() {
-  // 1. Các trang Cố định (Home, Map, Contact)
+  // 1. Các trang Cố định (Landing, Trang chủ Hà Nội, Trang chủ HCM...)
   const basePages = [
-    { url: '', changefreq: 'daily', priority: 1.0 },            // Trang chủ (Landing)
-    { url: 'ha-noi', changefreq: 'daily', priority: 0.9 },      // Trang chủ Hà Nội
-    { url: 'ho-chi-minh', changefreq: 'daily', priority: 0.9 }, // Trang chủ HCM
-    { url: 'map-search', changefreq: 'weekly', priority: 0.8 }, 
-    { url: 'contact', changefreq: 'monthly', priority: 0.5 },   
+    { url: '', changefreq: 'daily', priority: 1.0 },            // Trang chủ chung
+    { url: 'ha-noi', changefreq: 'daily', priority: 0.9 },      // Trang Hà Nội
+    { url: 'ho-chi-minh', changefreq: 'daily', priority: 0.9 }, // Trang HCM
+    { url: 'map-search', changefreq: 'weekly', priority: 0.8 }, // Trang bản đồ
+    { url: 'contact', changefreq: 'monthly', priority: 0.5 },   // Trang liên hệ
   ];
 
   let districtPages = [];
   let roomPages = [];
 
   try {
-    const dataPath = path.join(process.cwd(), 'public', 'data.json');
-    const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    // --- ĐỌC DỮ LIỆU TỪ CẢ 2 FILE JSON ---
+    const hanoiPath = path.join(process.cwd(), 'public', 'data_hanoi.json');
+    const hcmPath = path.join(process.cwd(), 'public', 'data_hochiminh.json');
+
+    let roomsHanoi = [];
+    let roomsHCM = [];
+
+    // Kiểm tra và đọc file Hà Nội
+    if (fs.existsSync(hanoiPath)) {
+        const dataHN = JSON.parse(fs.readFileSync(hanoiPath, 'utf-8'));
+        roomsHanoi = dataHN.rooms || [];
+    }
+
+    // Kiểm tra và đọc file HCM
+    if (fs.existsSync(hcmPath)) {
+        const dataHCM = JSON.parse(fs.readFileSync(hcmPath, 'utf-8'));
+        roomsHCM = dataHCM.rooms || [];
+    }
+
+    // Gộp tất cả phòng lại để xử lý chung
+    const allRooms = [...roomsHanoi, ...roomsHCM];
     
     // Lấy danh sách phòng hợp lệ (active hoặc rented)
-    const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+    const validRooms = allRooms.filter(r => r.status === 'active' || r.status === 'rented');
 
-    // 2. [TỰ ĐỘNG] Tạo trang Quận từ data (Theo cấu trúc /city/district)
+    // 2. [TỰ ĐỘNG] Tạo trang Quận (Cấu trúc: /city-slug/district-slug)
     const uniqueDistKeys = new Set();
     
     validRooms.forEach(r => {
-        const cityCode = r.city ? r.city : 'hochiminh';
-        const citySlug = getCitySlug(cityCode);
+        const citySlug = getCitySlug(r.city); // r.city giờ là 'hanoi' hoặc 'hochiminh'
         const distSlug = createSlug(r.district);
         const fullPath = `${citySlug}/${distSlug}`;
 
-        // Chỉ thêm nếu chưa có trong danh sách
+        // Chỉ thêm nếu chưa có trong danh sách để tránh trùng lặp
         if (!uniqueDistKeys.has(fullPath)) {
             uniqueDistKeys.add(fullPath);
             districtPages.push({
@@ -60,10 +78,9 @@ export async function GET() {
         }
     });
 
-    // 3. [TỰ ĐỘNG] Tạo trang Chi tiết phòng (Theo cấu trúc /city/district/id)
+    // 3. [TỰ ĐỘNG] Tạo trang Chi tiết phòng (Cấu trúc: /city-slug/district-slug/id)
     roomPages = validRooms.map(room => {
-      const cityCode = room.city ? room.city : 'hochiminh';
-      const citySlug = getCitySlug(cityCode);
+      const citySlug = getCitySlug(room.city);
       const districtSlug = createSlug(room.district);
       
       return {
@@ -75,12 +92,13 @@ export async function GET() {
     });
 
   } catch (e) {
-    console.error("Lỗi tạo sitemap động:", e);
+    console.error("⚠️ Lỗi tạo sitemap:", e);
   }
 
-  // 4. Gộp tất cả lại
+  // 4. Gộp tất cả lại thành danh sách cuối cùng
   const allPages = [...basePages, ...districtPages, ...roomPages];
 
+  // 5. Tạo chuỗi XML
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${allPages.map((page) => `
