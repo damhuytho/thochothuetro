@@ -3,49 +3,39 @@ import Layout from '../layouts/Layout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Load Data Server-Side
-const dataPath = path.join(process.cwd(), 'public', 'data.json');
-let allRooms = [];
+// --- 1. CHỈ LOAD DATA HCM MẶC ĐỊNH (SERVER-SIDE) ---
+let initialRooms = [];
 try {
-    const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-    allRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+    const hcmPath = path.join(process.cwd(), 'public', 'data_hochiminh.json');
+    if (fs.existsSync(hcmPath)) {
+        const hcmData = JSON.parse(fs.readFileSync(hcmPath, 'utf-8'));
+        if (hcmData.rooms) initialRooms = hcmData.rooms;
+    }
+    initialRooms = initialRooms.filter(r => r.status === 'active' || r.status === 'rented');
 } catch (error) {
-    console.error("Lỗi đọc data.json:", error);
+    console.error("Lỗi đọc data HCM:", error);
 }
 
 // --- [SEO CONFIG] ---
-const pageTitle = "Bản đồ phòng trọ TP.HCM - Tìm theo vị trí & Giá | Thọ Cho Thuê Trọ";
-const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ tại Tân Bình, Phú Nhuận.";
+const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ Cho Thuê Trọ";
+const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
 
-// Schema JSON-LD
 const searchSchema = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": pageTitle,
   "description": pageDesc,
   "url": canonicalURL,
-  "provider": {
-    "@type": "Person",
-    "name": "Thọ Cho Thuê Trọ",
-    "telephone": "0925 996 992"
-  }
+  "provider": { "@type": "Person", "name": "Thọ Cho Thuê Trọ", "telephone": "0925 996 992" }
 };
 ---
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="preconnect" href="https://tile.openstreetmap.org">
-<noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <Layout title={pageTitle} description={pageDesc}>
-    <link 
-        slot="head" 
-        rel="preload" 
-        as="image" 
-        href="https://img.thochothuetro.com/map_placeholder_hcm.webp" 
-        fetchpriority="high"
-    />
-    
+    <link slot="head" rel="preload" as="image" href="https://img.thochothuetro.com/map_placeholder_hcm.webp" fetchpriority="high" />
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(searchSchema)} />
 
     <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
@@ -53,24 +43,22 @@ const searchSchema = {
     <div class="map-layout-wrapper">
         
         <div id="full-map-view" class="map-viewport bg-white border-start position-relative">
-            <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100 bg-light" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 10;">
+            <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100 bg-light" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000;">
                 <div class="text-center">
                     <div class="spinner-border text-warning mb-2" role="status"></div>
-                    <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
+                    <div class="small text-muted fw-bold" id="loading-text">Đang tải bản đồ...</div>
                 </div>
             </div>
         </div>
 
         <div class="map-sidebar bg-light d-flex flex-column">
             
-            <div class="text-dark fw-bold text-uppercase py-3 px-3 d-flex align-items-center justify-content-between" 
-                 style="background-color: #f1c40f; border-bottom: 1px solid #e0b40a; z-index: 11;">
-                <span style="font-size: 1rem; letter-spacing: 0.5px;">
-                    <i class="fas fa-filter me-2"></i> BỘ LỌC
-                </span>
-                <button class="btn btn-sm btn-white text-dark fw-bold border-0 shadow-sm py-1 px-2 d-flex align-items-center" 
-                        onclick="resetMapFilters()" style="font-size: 0.8rem; border-radius: 6px;">
-                    <i class="fas fa-redo-alt me-1"></i> XÓA LỌC
+            <div class="city-tabs d-flex shadow-sm" style="z-index: 11; position: relative;">
+                <button class="btn-city-tab flex-fill active" id="tab-hochiminh" onclick="switchCity('hochiminh')">
+                    TP.Hồ Chí Minh
+                </button>
+                <button class="btn-city-tab flex-fill" id="tab-hanoi" onclick="switchCity('hanoi')">
+                    Hà Nội
                 </button>
             </div>
             
@@ -84,8 +72,7 @@ const searchSchema = {
                                 Tất cả
                             </button>
                             <ul class="dropdown-menu shadow border-0" id="dd-menu-district">
-                                <li><a class="dropdown-item active" href="#" onclick="setMapFilter('map-district', 'all', 'Tất cả', this)">Tất cả</a></li>
-                            </ul>
+                                </ul>
                             <input type="hidden" id="map-district" value="all">
                         </div>
                     </div>
@@ -147,6 +134,13 @@ const searchSchema = {
                             <div class="col-6"><label class="custom-check-map"><input type="checkbox" class="amenity-cb" value="pet"><span class="checkmark-map"></span> <span class="small">Nuôi Pet</span></label></div>
                         </div>
                     </div>
+                    
+                    <div class="col-12 mt-3 pt-2 border-top">
+                        <button class="btn btn-sm btn-light text-muted w-100 fw-bold border py-2 d-flex align-items-center justify-content-center hover-danger" 
+                                onclick="resetMapFilters()" style="border-radius: 6px;">
+                            <i class="fas fa-redo-alt me-2"></i> Đặt lại bộ lọc
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -159,7 +153,7 @@ const searchSchema = {
                 <div class="row g-2" id="map-grid"></div>
                 
                 <div id="map-no-result" class="text-center py-5 d-none">
-                    <p class="text-muted small">Không tìm thấy phòng phù hợp.</p>
+                    <p class="text-muted small">Không tìm thấy phòng phù hợp tại khu vực này.</p>
                 </div>
 
                 <div class="text-center py-3" id="map-load-more-container" style="display: none;">
@@ -174,90 +168,42 @@ const searchSchema = {
 
 <style>
     :global(footer) { display: none !important; }
+    
+    .btn-city-tab {
+        border: none; padding: 12px 10px; background-color: #f8f9fa; color: #6c757d; font-weight: 600;
+        border-bottom: 2px solid #dee2e6; transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem;
+    }
+    .btn-city-tab:hover { background-color: #e9ecef; color: #495057; }
+    .btn-city-tab.active { background-color: #fff; color: #000; border-bottom: 2px solid #f1c40f; }
+
+    .hover-danger:hover { background-color: #fff5f5 !important; color: #dc3545 !important; border-color: #dc3545 !important; }
+
     .map-viewport {
-        background-color: #e5e3df; /* Màu nền xám chuẩn Google Maps tránh nhấp nháy trắng */
-        /* Thay đường dẫn ảnh của bạn vào đây */
-        background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp'); 
-        background-size: cover;
-        background-position: center;
-        position: relative;
-        z-index: 1; /* Đảm bảo bản đồ nằm trên các lớp nền khác */
+        background-color: #e5e3df;
+        background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp');
+        background-size: cover; background-position: center; position: relative; z-index: 1; 
     }
     @media (min-width: 992px) {
         :global(body), :global(html) { height: 100vh; overflow: hidden !important; }
-        .map-layout-wrapper { 
-            display: flex; 
-            width: 100%; 
-            height: calc(100vh - 70px) !important; /* Trừ đi chiều cao Header */
-            position: relative; 
-        }
-        .map-sidebar { 
-            width: 400px; 
-            flex-shrink: 0; 
-            height: 100% !important; 
-            border-right: 1px solid #dee2e6; 
-            overflow-y: auto !important; 
-            display: block !important; 
-        }
-        .map-viewport { 
-            flex-grow: 1; 
-            height: 100% !important; 
-            width: 100%; 
-        }
+        .map-layout-wrapper { display: flex; width: 100%; height: calc(100vh - 70px) !important; position: relative; }
+        .map-sidebar { width: 400px; flex-shrink: 0; height: 100% !important; border-right: 1px solid #dee2e6; overflow-y: auto !important; display: block !important; }
+        .map-viewport { flex-grow: 1; height: 100% !important; width: 100%; }
         .list-scroll-container { overflow: visible !important; padding-bottom: 50px; }
     }
     
     @media (max-width: 991px) {
         :global(body), :global(html) { height: auto; overflow: visible !important; }
-        .map-layout-wrapper { 
-            display: flex; 
-            flex-direction: column; 
-            height: auto !important; 
-        }
-        .map-sidebar { 
-            width: 100%; 
-            height: auto !important; 
-            overflow-y: visible !important; 
-            order: 2; /* Sidebar nằm dưới */
-        }
-        .map-viewport { 
-            height: 50vh !important; 
-            min-height: 350px; /* Đảm bảo không quá bé trên đt nhỏ */
-            width: 100%; 
-            order: 1; /* Map nằm trên */
-        }
+        .map-layout-wrapper { display: flex; flex-direction: column; height: auto !important; }
+        .map-sidebar { width: 100%; height: auto !important; overflow-y: visible !important; order: 2; }
+        .map-viewport { height: 50vh !important; min-height: 350px; width: 100%; order: 1; }
     }
 
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
     .btn-white { background-color: #fff !important; border: 1px solid #ddd !important; color: #333 !important; transition: all 0.2s; border-radius: 8px; }
     .btn-white:hover, .btn-white:focus { border-color: #f1c40f !important; background-color: #fffcf5 !important; }
-    /* [CẬP NHẬT] Menu cao hơn, có thanh cuộn */
-    .dropdown-menu { 
-        font-size: 1rem; 
-        border-radius: 8px; 
-        margin-top: 5px !important;
-        
-        /* Thêm 2 dòng này để khung to ra */
-        max-height: 450px; 
-        overflow-y: auto;
-    }
-    /* [THÊM MỚI] Làm cho các dòng chữ thoáng và dễ bấm hơn */
-    .dropdown-item {
-        padding: 12px 20px !important; /* Tăng khoảng cách bấm */
-        font-size: 1rem !important;    /* Chữ to hơn */
-        font-weight: 500;              /* Chữ đậm hơn */
-        border-bottom: 1px solid #f0f0f0; /* Gạch mờ ngăn cách */
-    }
-    
-    .dropdown-item:last-child {
-        border-bottom: none;
-    }
-
-    .dropdown-item:active, .dropdown-item.active { 
-        background-color: #f1c40f; 
-        color: #000; 
-        font-weight: 600; 
-    }
+    .dropdown-menu { font-size: 1rem; border-radius: 8px; margin-top: 5px !important; max-height: 450px; overflow-y: auto; }
+    .dropdown-item { padding: 12px 20px !important; font-size: 1rem !important; font-weight: 500; border-bottom: 1px solid #f0f0f0; }
+    .dropdown-item:last-child { border-bottom: none; }
     .dropdown-item:active, .dropdown-item.active { background-color: #f1c40f; color: #000; font-weight: 600; }
     .custom-check-map { display: flex; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
     .custom-check-map input { display: none; }
@@ -267,92 +213,308 @@ const searchSchema = {
     .sticky-result-bar { position: sticky; top: 0; z-index: 15; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .btn-popup-yellow { background-color: #f1c40f !important; color: #1a1a1a !important; font-weight: 700 !important; border: none; padding: 6px 0; width: 100%; border-radius: 50px; font-size: 0.85rem; text-align: center; display: block; text-decoration: none !important; margin-top: 8px; }
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
-    .map-viewport { 
-    flex-grow: 1; 
-    height: 100% !important; 
-    width: 100%;
-    /* KỸ THUẬT FACADE: Ảnh nền nhẹ (<30KB) thay thế trong lúc chờ map thật */
-    background-color: #e5e3df; /* Màu nền chuẩn của Google Maps/OSM */
-    background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp'); /* Bạn cần tạo ảnh này */
-    background-size: cover;
-    background-position: center;
-    }
-
-
 </style>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script is:inline define:vars={{ initialRooms }}>
+    // DATA GLOBAL
+    let allRoomsData = initialRooms || [];
+    let dataCache = { 'hochiminh': initialRooms, 'hanoi': null };
+    let currentCityFilter = 'hochiminh';
 
-<script is:inline define:vars={{ initialRooms: allRooms }}>
-    const allRoomsData = initialRooms;
     let map = null;
     let markersLayer = null;
     let currentFiltered = [];
     let visibleCount = 6;
     const LOAD_STEP = 6;
 
-    // --- HÀM HỖ TRỢ ---
+    // --- HELPER ---
     function toSlug(str) {
         if (!str) return '';
         return str.toString().toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[đĐ]/g, 'd')
-            .replace(/[^a-z0-9\s]/g, '')
-            .trim()
-            .replace(/\s+/g, '-');
+            .replace(/[đĐ]/g, 'd').replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
     }
 
-    // --- [TỐI ƯU] HÀM KHỞI TẠO MAP CHỐNG REFLOW ---
+    // --- HÀM TẮT LOADING (AN TOÀN TUYỆT ĐỐI) ---
+    function forceHideSpinner() {
+        const spinner = document.getElementById('map-loading-spinner');
+        if (spinner) {
+            spinner.style.opacity = '0'; // Làm mờ dần cho đẹp
+            setTimeout(() => {
+                spinner.style.display = 'none'; // Tắt hẳn sau khi mờ
+            }, 300);
+        }
+    }
+
+    // --- MAP INITIALIZATION ---
     function initMapSafely() {
+        const mapContainer = document.getElementById('full-map-view');
+        
+        // 1. Kiểm tra thư viện Leaflet (L)
         if (typeof L === 'undefined') {
-            setTimeout(initMapSafely, 100);
+            setTimeout(initMapSafely, 100); // Đợi 100ms rồi thử lại
             return;
         }
 
-        const mapContainer = document.getElementById('full-map-view');
-        if (!mapContainer || map) return;
+        if (!mapContainer) return;
 
-        // [QUAN TRỌNG] requestAnimationFrame: Đợi trình duyệt vẽ xong giao diện rồi mới init Map
-        requestAnimationFrame(() => {
+        try {
+            // 2. Reset bản đồ cũ nếu có
+            if (map) {
+                map.remove();
+                map = null;
+            }
+
+            // 3. Tạo bản đồ
+            map = L.map('full-map-view', {
+                zoomAnimation: true, 
+                fadeAnimation: true, 
+                markerZoomAnimation: true 
+            });
+
+            // Set view mặc định
+            if (currentCityFilter === 'hanoi') {
+                map.setView([21.028511, 105.804817], 14);
+            } else {
+                map.setView([10.801646, 106.663158], 14);
+            }
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            // 4. Vẽ marker
+            requestAnimationFrame(() => {
+                if (map) {
+                    map.invalidateSize(); // Quan trọng: Tính toán lại kích thước khung
+                    renderMapMarkers();
+                }
+            });
+
+        } catch (err) {
+            console.error("Lỗi Map:", err);
+        } finally {
+            // [QUAN TRỌNG] Tắt loading ngay lập tức sau khi chạy xong code map
+            forceHideSpinner();
+        }
+    }
+
+    // --- SWITCH CITY & AUTO SELECT DISTRICT ---
+    window.switchCity = async function(cityCode) {
+        if (currentCityFilter === cityCode) return;
+        
+        // Bật Loading lên lại
+        const spinner = document.getElementById('map-loading-spinner');
+        if (spinner) {
+            spinner.style.opacity = '1';
+            spinner.style.display = 'flex';
+        }
+
+        // Fetch Data
+        if (!dataCache[cityCode]) {
             try {
-                // 1. Khởi tạo Map
-                map = L.map('full-map-view', {
-                    // Tắt zoom animation lúc đầu để đỡ giật
-                    zoomAnimation: false, 
-                    fadeAnimation: true, 
-                    markerZoomAnimation: true 
-                }).setView([10.801646, 106.663158], 15);
+                const fileName = cityCode === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
+                const res = await fetch(`/${fileName}`);
+                const json = await res.json();
+                dataCache[cityCode] = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
+            } catch (e) {
+                console.error("Lỗi tải data:", e);
+                dataCache[cityCode] = [];
+            }
+        }
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                    attribution: '&copy; OpenStreetMap' 
-                }).addTo(map);
+        currentCityFilter = cityCode;
+        allRoomsData = dataCache[cityCode];
 
-                // 2. Ẩn Spinner (DOM Write)
-                const spinner = document.getElementById('map-loading-spinner');
-                if (spinner) spinner.style.display = 'none';
+        // Update UI Tabs
+        document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tab-${cityCode}`).classList.add('active');
+        
+        // Logic Mặc định: HCM -> Phú Nhuận, HN -> Tất cả
+        let defaultDistrict = 'all';
+        if (cityCode === 'hochiminh') defaultDistrict = 'Phú Nhuận';
 
-                // 3. [CỰC QUAN TRỌNG] invalidateSize sau khi ẩn spinner
-                // Đợi frame tiếp theo để chắc chắn Spinner đã ẩn, Map container đã có kích thước thật
-                requestAnimationFrame(() => {
-                    map.invalidateSize(); // Báo Leaflet đo lại kích thước chuẩn
-                    renderMapMarkers();   // Vẽ marker
-                });
+        updateDistrictDropdown(defaultDistrict);
+        
+        const inputDist = document.getElementById('map-district');
+        const btnDist = document.getElementById('btn-map-district');
+        if (inputDist) inputDist.value = defaultDistrict;
+        if (btnDist) btnDist.textContent = (defaultDistrict === 'all') ? 'Tất cả' : defaultDistrict;
 
-            } catch (err) {
-                console.error("Lỗi Map:", err);
+        // Move Map & Render
+        if (map && typeof L !== 'undefined') {
+            const coords = (cityCode === 'hanoi') ? [21.028511, 105.804817] : [10.801646, 106.663158];
+            map.setView(coords, 13);
+        }
+        filterAndRender();
+        
+        // Tắt Loading sau khi chuyển xong
+        forceHideSpinner();
+    };
+
+    function updateDistrictDropdown(defaultDist = 'all') {
+        const ddMenuDistrict = document.getElementById('dd-menu-district');
+        if (!ddMenuDistrict) return;
+
+        const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
+        let html = `<li><a class="dropdown-item ${defaultDist === 'all' ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', 'all', 'Tất cả', this)">Tất cả</a></li>`;
+        
+        districts.forEach(d => {
+            html += `<li><a class="dropdown-item ${d === defaultDist ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a></li>`;
+        });
+        ddMenuDistrict.innerHTML = html;
+    }
+
+    function filterAndRender() {
+        const district = document.getElementById('map-district')?.value || 'all';
+        const type = document.getElementById('map-type')?.value || 'all';
+        const price = document.getElementById('map-price')?.value || 'all';
+        const sortMode = document.getElementById('map-sort')?.value || 'default';
+        const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
+        
+        const specialGroup = ['ban công', 'cửa sổ'];
+        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
+        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+
+        let filtered = allRoomsData.filter(room => {
+            const rCity = room.city ? room.city : 'hochiminh';
+            if (rCity !== currentCityFilter) return false;
+            if (district !== 'all' && room.district !== district) return false;
+            if (type !== 'all' && room.type !== type) return false;
+            
+            if (price !== 'all') {
+                const p = room.price;
+                if (price === 'duoi-5' && p >= 5000000) return false;
+                if (price === '5to8' && (p < 5000000 || p >= 8000000)) return false;
+                if (price === 'over8' && p < 8000000) return false;
+            }
+
+            if (fAmenities.length > 0) {
+                const keypoints = (room.keypoint || "").toLowerCase();
+                const petAllowed = room.pet === true;
+                let matches = true;
+
+                for (let ami of selectedNormal) {
+                    if (ami === 'pet' || ami === 'nuôi pet') {
+                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
+                    } else if (!keypoints.includes(ami)) { matches = false; break; }
+                }
+
+                if (matches && selectedSpecial.length > 0) {
+                    let hasAtLeastOne = false;
+                    if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
+                    if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
+                    if (!hasAtLeastOne) matches = false;
+                }
+                if (!matches) return false;
+            }
+            return true;
+        });
+
+        filtered.sort((a, b) => {
+            if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+            if (sortMode === 'price-asc') return a.price - b.price;
+            if (sortMode === 'price-desc') return b.price - a.price;
+            return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
+        });
+
+        currentFiltered = filtered;
+        const countDisplay = document.getElementById('result-count-display');
+        if(countDisplay) countDisplay.textContent = currentFiltered.length;
+        
+        visibleCount = 6;
+        renderListDOM();
+        if(map && typeof L !== 'undefined') requestAnimationFrame(() => renderMapMarkers());
+    }
+
+    function renderListDOM() {
+        const grid = document.getElementById('map-grid');
+        if (!grid) return;
+        const loadMoreBtn = document.getElementById('map-load-more-container');
+        const noResult = document.getElementById('map-no-result');
+        const visibleItems = currentFiltered.slice(0, visibleCount);
+
+        grid.innerHTML = visibleItems.map((room, index) => renderCardHTML(room, index)).join('');
+        
+        if (loadMoreBtn) loadMoreBtn.style.display = (currentFiltered.length > visibleCount) ? 'block' : 'none';
+        if (noResult) noResult.classList.toggle('d-none', currentFiltered.length > 0);
+    }
+
+    function renderCardHTML(room, index) {
+        const images = room.image_detail || [];
+        let displayImg = '/logo.png';
+        if (images.length > 0) {
+            const thumb = images.find(img => img.includes('_thumb'));
+            displayImg = thumb ? thumb : images[0];
+        }
+        if (!displayImg.startsWith('http') && !displayImg.startsWith('/')) {
+             displayImg = `https://img.thochothuetro.com/${displayImg}_medium.webp`;
+        }
+        const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+        const cardTitle = `Cho thuê ${room.type} ${cleanAddr}`;
+        const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
+        const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+        const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
+        const isRented = room.status === 'rented';
+        const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
+
+        return `
+        <div class="col-6"> 
+            <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" 
+                 onclick="window.location.href='${link}'" style="cursor: pointer;">
+                <div class="ratio ratio-4x3 bg-light position-relative">
+                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy">
+                    ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
+                    ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
+                </div>
+                <div class="card-body p-2 p-md-3 d-flex flex-column">
+                    <h6 class="fw-bold text-dark mb-1 mb-md-2 room-title text-truncate-3" style="font-size: 0.95rem;">${cardTitle}</h6>
+                    <div class="mb-1 mb-md-2"><span class="badge bg-light text-dark border fw-normal room-code">${room.room_code}</span></div>
+                    <div class="mb-1 mb-md-2"><span class="fw-bold room-price ${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'}" style="font-size: 1.1rem;">${priceText}/tháng</span></div>
+                    <div class="mb-2 mb-md-3 text-muted room-keypoint text-truncate-2 small"><i class="fas fa-star text-warning me-1"></i> ${keypoint}</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function renderMapMarkers() {
+        if (!map || typeof L === 'undefined') return;
+        if (markersLayer) map.removeLayer(markersLayer);
+        markersLayer = L.layerGroup().addTo(map);
+
+        const brandIcon = L.divIcon({ 
+            className: 'custom-map-marker-yellow', 
+            html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
+            iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -40]
+        });
+
+        currentFiltered.forEach(room => {
+            if (room.lat && room.lng) {
+                const images = room.image_detail || [];
+                let popupImg = images.length > 0 ? (images.find(i=>i.includes('_thumb')) || images[0]) : '/logo.png';
+                if (!popupImg.startsWith('http') && !popupImg.startsWith('/')) popupImg = `https://img.thochothuetro.com/${popupImg}_thumb.webp`;
+
+                const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+                const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
+                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
+                
+                const marker = L.marker([room.lat, room.lng], {icon: brandIcon}).addTo(markersLayer);
+                const popupContent = `<div style="width:200px;">
+                    <img src="${popupImg}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">
+                    <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${room.room_code}</div>
+                    <div class="text-danger fw-bold mb-2">${priceText}/th</div>
+                    <a href="${link}" class="btn-popup-yellow w-100 rounded-pill">Xem phòng</a>
+                </div>`;
+                marker.bindPopup(popupContent);
             }
         });
     }
 
-    // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
     window.setMapFilter = function(inputId, val, label, el) {
-        event.preventDefault();
+        if(event) event.preventDefault();
         document.getElementById(inputId).value = val;
-        
-        const btnId = 'btn-' + inputId;
-        const btnEl = document.getElementById(btnId);
-        if(btnEl) btnEl.textContent = label;
-
+        document.getElementById('btn-' + inputId).textContent = label;
         const menu = el.closest('.dropdown-menu');
         if(menu) {
             menu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
@@ -366,228 +528,43 @@ const searchSchema = {
         document.getElementById('map-type').value = 'all';
         document.getElementById('map-price').value = 'all';
         document.getElementById('map-sort').value = 'default';
-        
         document.getElementById('btn-map-district').textContent = 'Tất cả';
         document.getElementById('btn-map-type').textContent = 'Tất cả';
         document.getElementById('btn-map-price').textContent = 'Tất cả';
         document.getElementById('btn-map-sort').textContent = 'Mặc định';
-
         document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            const first = menu.querySelector('li:first-child .dropdown-item');
-            if(first) first.classList.add('active');
-        });
-
+        updateDistrictDropdown(); 
         document.querySelectorAll('.amenity-cb').forEach(cb => cb.checked = false);
         filterAndRender();
     };
-    // 1. Sửa hàm renderCardHTML nhận thêm tham số index
-    function renderCardHTML(room, index) {
-        const images = room.image_detail || [];
-        let displayImg = '/logo.png';
-        if (images.length > 0) {
-            const thumb = images.find(img => img.includes('_thumb'));
-            displayImg = thumb ? thumb : images[0];
-        }
-        const safeAddr = room.address || "";
-        const cleanAddr = safeAddr.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
-        const cardTitle = `Cho thuê ${room.type} ${cleanAddr}`;
-        const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
-        const link = `/${toSlug(room.district)}/${room.id}`;
-        const isRented = room.status === 'rented';
-        const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
-    // 2. Logic LCP: Nếu là 2 ảnh đầu tiên thì KHÔNG lazy load
-        const isLCP = index < 2;
-        const loadingAttr = isLCP ? 'eager' : 'lazy';
-        const fetchPriority = isLCP ? 'fetchpriority="high"' : '';
-        return `
-        <div class="col-6"> 
-            <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" 
-                 onclick="window.location.href='${link}'" style="cursor: pointer;">
-                <div class="ratio ratio-4x3 bg-light position-relative">
-                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="${loadingAttr}" ${fetchPriority}>
-                    ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
-                    ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
-                </div>
-                <div class="card-body p-2 p-md-3 d-flex flex-column">
-                    <h6 class="fw-bold text-dark mb-1 mb-md-2 room-title text-truncate-3" style="font-size: 0.95rem;">${cardTitle}</h6>
-                    <div class="mb-1 mb-md-2"><span class="badge bg-light text-dark border fw-normal room-code">${room.room_code}</span></div>
-                    <div class="mb-1 mb-md-2"><span class="fw-bold room-price ${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'}" style="font-size: 1.1rem;">${priceText}/tháng</span></div>
-                    <div class="mb-2 mb-md-3 text-muted room-keypoint text-truncate-2 small"><i class="fas fa-star text-warning me-1"></i> ${keypoint}</div>
-                    <div class="mt-auto"><hr class="my-1 my-md-2 opacity-25"><div class="d-flex align-items-center text-muted small room-district"><i class="fas fa-map-marker-alt me-1 text-warning"></i> Quận ${room.district}</div></div>
-                </div>
-            </div>
-        </div>`;
-    }
-
-    function filterAndRender() {
-        const districtEl = document.getElementById('map-district');
-        const district = districtEl ? districtEl.value : 'all';
-        const typeEl = document.getElementById('map-type');
-        const type = typeEl ? typeEl.value : 'all';
-        const priceEl = document.getElementById('map-price');
-        const price = priceEl ? priceEl.value : 'all';
-        const sortEl = document.getElementById('map-sort');
-        const sortMode = sortEl ? sortEl.value : 'default';
-        const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
-
-        let filtered = allRoomsData.filter(room => {
-            let matches = true;
-            if (district !== 'all' && room.district !== district) matches = false;
-            if (matches && type !== 'all' && room.type !== type) matches = false;
-            if (matches && price !== 'all') {
-                const p = room.price;
-                if (price === 'duoi-5' && p >= 5000000) matches = false;
-                if (price === '5to8' && (p < 5000000 || p >= 8000000)) matches = false;
-                if (price === 'over8' && p < 8000000) matches = false;
-            }
-            if (matches && fAmenities.length > 0) {
-                const keypoints = (room.keypoint || "").toLowerCase();
-                const petAllowed = room.pet === true;
-                const specialGroup = ['ban công', 'cửa sổ'];
-                const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-                const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
-                for (let ami of selectedNormal) {
-                    if (ami === 'pet' || ami === 'nuôi pet') {
-                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
-                    } else if (!keypoints.includes(ami)) { matches = false; break; }
-                }
-                if (matches && selectedSpecial.length > 0) {
-                    let hasAtLeastOne = false;
-                    if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                    if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                    if (!hasAtLeastOne) matches = false;
-                }
-            }
-            return matches;
-        });
-
-        filtered.sort((a, b) => {
-            if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
-            if (sortMode === 'price-asc') return a.price - b.price;
-            else if (sortMode === 'price-desc') return b.price - a.price;
-            return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
-        });
-
-        currentFiltered = filtered;
-        const countDisplay = document.getElementById('result-count-display');
-        if(countDisplay) countDisplay.textContent = currentFiltered.length;
-        visibleCount = 6;
-        renderListDOM();
-        
-        // Vẽ lại marker nếu map đã sẵn sàng
-        if(map) {
-            // Dùng requestAnimationFrame cho marker để tránh reflow khi đang scroll
-            requestAnimationFrame(() => renderMapMarkers());
-        }
-    }
-
-    function renderListDOM() {
-        const grid = document.getElementById('map-grid');
-        if (!grid) return;
-
-        const loadMoreBtn = document.getElementById('map-load-more-container');
-        const noResult = document.getElementById('map-no-result');
-        const visibleItems = currentFiltered.slice(0, visibleCount);
-        
-        grid.innerHTML = visibleItems.map((room, index) => renderCardHTML(room, index)).join('');
-        
-        if (loadMoreBtn) {
-            if (currentFiltered.length > visibleCount) {
-                loadMoreBtn.style.display = 'block';
-                loadMoreBtn.querySelector('button').innerHTML = `Xem thêm ${Math.min(LOAD_STEP, currentFiltered.length - visibleCount)} phòng <i class="fas fa-chevron-down ms-1"></i>`;
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-        }
-        
-        if (noResult) {
-            if (currentFiltered.length === 0) noResult.classList.remove('d-none');
-            else noResult.classList.add('d-none');
-        }
-    }
-
-    function renderMapMarkers() {
-        if (!map) return;
-        if (typeof L === 'undefined') return;
-
-        if (markersLayer) map.removeLayer(markersLayer);
-        markersLayer = L.layerGroup().addTo(map);
-
-        const brandIcon = L.divIcon({ 
-            className: 'custom-map-marker-yellow', 
-            html: '<div style="background:#f1c40f; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:16px;"></i></div>', 
-            iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -40]
-        });
-
-        const bounds = [];
-        currentFiltered.forEach(room => {
-            if (room.lat && room.lng) {
-                const images = room.image_detail || [];
-                const popupImg = (images.length > 0) ? (images.find(i=>i.includes('_thumb')) || images[0]) : '/logo.png';
-                const link = `/${toSlug(room.district)}/${room.id}`;
-                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Triệu' : new Intl.NumberFormat('vi-VN').format(room.price);
-                
-                const marker = L.marker([room.lat, room.lng], {icon: brandIcon}).addTo(markersLayer);
-                const popupContent = `<div style="width:200px;">
-                    <img src="${popupImg}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;">
-                    <div class="fw-bold text-dark mb-1" style="font-size:0.9rem;">${room.room_code}</div>
-                    <div class="text-danger fw-bold mb-2">${priceText}/th</div>
-                    <a href="${link}" class="btn-popup-yellow w-100 rounded-pill">Xem phòng</a>
-                </div>`;
-                marker.bindPopup(popupContent);
-                bounds.push([room.lat, room.lng]);
-            }
-        });
-        
-        // [TỐI ƯU] fitBounds cũng gây reflow, nên cho vào requestAnimationFrame
-        if (bounds.length > 0) {
-            requestAnimationFrame(() => {
-                map.fitBounds(bounds, { padding: [50, 50] });
-            });
-        }
-    }
-
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-    document.addEventListener('astro:page-load', () => {
-        if (map) {
-            if(map.remove) map.remove();
-            map = null;
+    // --- SETUP AN TOÀN ---
+    const runPageSetup = () => {
+        // Mặc định Phú Nhuận cho HCM
+        let defaultDistrict = 'all';
+        if (currentCityFilter === 'hochiminh') {
+            defaultDistrict = 'Phú Nhuận';
+            const inputDist = document.getElementById('map-district');
+            const btnDist = document.getElementById('btn-map-district');
+            if (inputDist) inputDist.value = defaultDistrict;
+            if (btnDist) btnDist.textContent = defaultDistrict;
         }
 
-        const ddMenuDistrict = document.getElementById('dd-menu-district');
-        // MẶC ĐỊNH: Phú Nhuận
-        const defaultDistrict = "Phú Nhuận"; 
-
-        if (ddMenuDistrict) {
-            ddMenuDistrict.innerHTML = '<li><a class="dropdown-item" href="#" onclick="setMapFilter(\'map-district\', \'all\', \'Tất cả\', this)">Tất cả</a></li>';
-            const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
-            
-            districts.forEach(d => {
-                const li = document.createElement('li');
-                const isActive = d === defaultDistrict ? 'active' : '';
-                li.innerHTML = `<a class="dropdown-item ${isActive}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a>`;
-                ddMenuDistrict.appendChild(li);
-            });
-
-            if (districts.includes(defaultDistrict)) {
-                const inputDist = document.getElementById('map-district');
-                if(inputDist) inputDist.value = defaultDistrict;
-                const btnDist = document.getElementById('btn-map-district');
-                if(btnDist) btnDist.textContent = defaultDistrict;
-            }
-        }
+        updateDistrictDropdown(defaultDistrict);
         
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
 
         try { filterAndRender(); } catch(e) {}
-
-        const spinner = document.getElementById('map-loading-spinner');
-        if (spinner) spinner.style.display = 'flex';
         
-        // Gọi hàm init Map đã tối ưu
         initMapSafely();
-    });
+
+        // [QUAN TRỌNG] HẸN GIỜ TỰ HỦ SPINNER NẾU MỌI THỨ BỊ ĐƠ
+        // Sau 1 giây, dù map có lên hay không thì cũng tắt loading đi
+        setTimeout(forceHideSpinner, 1000); 
+    };
+
+    document.addEventListener('astro:page-load', runPageSetup);
+    document.addEventListener('DOMContentLoaded', runPageSetup);
 </script>

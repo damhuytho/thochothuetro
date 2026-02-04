@@ -18,9 +18,29 @@ function createSlug(str) {
 }
 
 export async function getStaticPaths() {
-  const dataPath = path.join(process.cwd(), 'public', 'data.json');
-  const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-  const validRooms = jsonData.rooms.filter(r => r.status === 'active' || r.status === 'rented');
+  // 1. [SỬA ĐỔI] Đọc dữ liệu từ cả 2 file thành phố
+  const hanoiPath = path.join(process.cwd(), 'public', 'data_hanoi.json');
+  const hcmPath = path.join(process.cwd(), 'public', 'data_hochiminh.json');
+
+  let rooms = [];
+
+  // Đọc file an toàn (Try-catch phòng khi file chưa build hoặc thiếu 1 trong 2)
+  try {
+      if (fs.existsSync(hanoiPath)) {
+          const dataHN = JSON.parse(fs.readFileSync(hanoiPath, 'utf-8'));
+          rooms.push(...(dataHN.rooms || []));
+      }
+      if (fs.existsSync(hcmPath)) {
+          const dataHCM = JSON.parse(fs.readFileSync(hcmPath, 'utf-8'));
+          rooms.push(...(dataHCM.rooms || []));
+      }
+  } catch (e) {
+      console.error("Lỗi đọc data json trong [district].astro:", e);
+  }
+
+  // 2. Lọc phòng hợp lệ (Active + Rented)
+  // Data mới đã có trường 'city', ta tận dụng nó
+  const validRooms = rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
   // Helper tạo slug nội bộ
   function localCreateSlug(str) {
@@ -30,20 +50,23 @@ export async function getStaticPaths() {
           .replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
   }
 
-  // Tạo danh sách các đường dẫn duy nhất (City + District)
+  // 3. Tạo danh sách các đường dẫn duy nhất (City + District)
   const paths = [];
   const uniqueKeys = new Set();
 
   validRooms.forEach(room => {
-      // Xác định City code (mặc định hochiminh nếu thiếu)
+      // Xác định City Slug từ code (hanoi / hochiminh)
       const cityCode = room.city ? room.city : 'hochiminh';
       const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+      
       const distSlug = localCreateSlug(room.district);
       const key = `${citySlug}-${distSlug}`;
 
       if (!uniqueKeys.has(key)) {
           uniqueKeys.add(key);
+          
           // Lọc sẵn phòng của quận này để truyền vào props
+          // Lưu ý: Phải so sánh cả city và district để tránh trùng tên quận ở 2 TP (nếu có)
           const roomsInDist = validRooms.filter(r => {
               const rCity = r.city ? r.city : 'hochiminh';
               return rCity === cityCode && r.district === room.district;

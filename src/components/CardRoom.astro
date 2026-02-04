@@ -22,11 +22,17 @@ function createSlug(str) {
         .replace(/\s+/g, '-');
 }
 
-const images = room.image_detail || []; 
+// --- LOGIC ẢNH MỚI (Ghép ID thành Link) ---
+const IMG_BASE_URL = "https://img.thochothuetro.com";
 let displayImage = '/logo.png';
-if (images.length > 0) {
-    const thumbImg = images.find(img => img.includes('_thumb'));
-    displayImage = thumbImg ? thumbImg : images[0];
+
+// 1. Ưu tiên dùng trường image_thumb (ID ảnh thumb chuẩn)
+if (room.image_thumb) {
+    displayImage = `${IMG_BASE_URL}/${room.image_thumb}_thumb.webp`;
+} 
+// 2. Fallback: Nếu không có thumb, lấy ảnh đầu tiên trong detail (dùng bản medium cho nhẹ)
+else if (room.image_detail && room.image_detail.length > 0) {
+    displayImage = `${IMG_BASE_URL}/${room.image_detail[0]}_medium.webp`;
 }
 
 const cardTitle = `Cho thuê căn ${room.type} ${hideNumber(room.address)}`;

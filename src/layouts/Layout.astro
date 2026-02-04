@@ -28,6 +28,10 @@ const currentPath = Astro.url.pathname;
 const siteURL = Astro.site || 'https://thochothuetro.com';
 const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 
+// --- [LOGIC QUAN TRỌNG] Kiểm tra xem có phải trang bản đồ không ---
+// Nếu là trang bản đồ, ta sẽ tắt các style CSS gây xung đột
+const isMapPage = currentPath.includes('/map-search');
+
 // --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA ---
 let menuDistricts = [];
 let citySlug = '';
@@ -37,36 +41,42 @@ let cityName = '';
 function createSlug(str) {
     if (!str) return '';
     return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
 }
 
 if (currentCity) {
     citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
     cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
-    
     try {
-        const dataPath = path.join(process.cwd(), 'public', 'data.json');
-        const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        // [SỬA ĐỔI]: Chọn file data đúng theo thành phố hiện tại
+        const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
+        const dataPath = path.join(process.cwd(), 'public', fileName);
         
-        // Lọc quận theo thành phố hiện tại
-        const filtered = jsonData.rooms.filter(r => {
-            const rCity = r.city ? r.city : 'hochiminh'; // Fallback nếu data cũ
-            return rCity === currentCity;
-        });
-        // Lấy danh sách quận duy nhất
-        menuDistricts = [...new Set(filtered.map(r => r.district).filter(d => d))].sort();
+        // Kiểm tra file có tồn tại không trước khi đọc
+        if (fs.existsSync(dataPath)) {
+            const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+            // Lấy danh sách phòng (File này đã phân loại city rồi nên không cần filter city nữa)
+            const rooms = jsonData.rooms || [];
+
+            // Lấy danh sách quận duy nhất và sắp xếp A-Z
+            menuDistricts = [...new Set(rooms.map(r => r.district).filter(d => d))].sort();
+        }
     } catch (e) {
-        console.error("Error loading menu data", e);
+        console.error("Error loading menu data:", e);
+        menuDistricts = [];
     }
 }
 ---
 
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class={isMapPage ? "is-map-page" : ""}>
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <ViewTransitions />
     
     <link rel="icon" type="image/png" href="/logo.png" />
@@ -89,8 +99,8 @@ if (currentCity) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
     </noscript>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
-    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+    <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
@@ -121,7 +131,7 @@ if (currentCity) {
     
     <slot name="head" />
 
-    <style is:global>
+    <style is:global define:vars={{ isMapPage }}>
         /* --- CRITICAL CSS --- */
         :root {
             --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
@@ -129,11 +139,7 @@ if (currentCity) {
             --warning-color: #d9b205;
         }
 
-        /* 1. Thiết lập HTML/Body chuẩn */
-        html, body {
-            height: auto !important;
-        }
-
+        /* 1. CẤU HÌNH CƠ BẢN */
         body { 
             font-family: var(--bs-font-sans-serif);
             background-color: #f8f9fa; 
@@ -142,14 +148,13 @@ if (currentCity) {
             flex-direction: column;
             min-height: 100vh;
             margin: 0;
-            /* Padding bottom cho thanh menu dưới */
-            padding-bottom: 80px !important;
+            padding-bottom: 80px !important; /* Chừa chỗ cho menu dưới mobile */
         }
 
-        /* 2. Main chiếm phần còn lại */
         main { 
             flex: 1 0 auto;
             width: 100%;
+            overflow: visible !important; /* Đảm bảo nội dung không bị che */
         }
 
         /* Navbar Brand */
@@ -165,390 +170,184 @@ if (currentCity) {
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #999; }
 
-    /* =========================================================
-       4. FIX MENU MOBILE - PHIÊN BẢN HOÀN THIỆN (FINAL)
-       ========================================================= */
-    @media (max-width: 991px) {
-        .app-offcanvas {
-            /* 1. VỊ TRÍ & KÍCH THƯỚC */
-            position: fixed !important;
-            top: 0 !important;
-            bottom: 0 !important;
-            right: 0 !important;
-            left: auto !important;
-            width: 85vw !important;
-            max-width: 320px !important;
-            height: 100vh !important;
-            background-color: #ffffff !important;
-            z-index: 1050 !important;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.15) !important;
-            border-left: 1px solid rgba(0,0,0,0.05) !important;
-
-            /* 2. TRẠNG THÁI ĐÓNG */
-            transform: translate3d(100%, 0, 0) !important;
-            visibility: hidden !important;
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0.4s !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-
-        /* 3. TRẠNG THÁI MỞ & ĐANG MỞ */
-        .app-offcanvas.show,
-        .app-offcanvas.showing { 
-            transform: translate3d(0, 0, 0) !important;
-            visibility: visible !important;
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0s !important;
-        }
-
-        /* 4. TRẠNG THÁI ĐANG ĐÓNG */
-        .app-offcanvas.hiding {
-            transform: translate3d(100%, 0, 0) !important;
-            visibility: visible !important; 
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-        }
-
-        /* Nội dung bên trong */
-        .offcanvas-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 18px 20px;
-            border-bottom: 1px solid #f2f2f2;
-            min-height: 70px;
-        }
-
-        .offcanvas-body {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto !important;
-            overscroll-behavior: contain;
-        }
+        /* =========================================================
+           [QUAN TRỌNG] FIX LỖI SCROLL MAP TRÊN MOBILE VÀ DESKTOP
+           ========================================================= */
         
-        .btn-close {
-            opacity: 1 !important;
-            padding: 10px !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-        }
-        
-        .offcanvas-header img {
-            width: 40px !important;
-            height: 40px !important;
-            object-fit: contain;
-            flex-shrink: 0;
-            border-radius: 6px;
-        }
-    
-
-        /* Link menu trong mobile */
-        .navbar-nav .nav-item {
-            width: 100%;
-            margin-bottom: 0.5rem;
+        /* MẶC ĐỊNH (Trang thường): Cho phép cuộn tự nhiên */
+        html:not(.is-map-page), body:not(.is-map-page) {
+            height: auto !important;
+            overflow-x: clip !important;
+            overflow-y: visible !important;
         }
 
-        .navbar-nav .nav-link {
-            padding: 12px 16px !important;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-            color: #333 !important;
-            font-weight: 600;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
+        /* RIÊNG TRANG MAP - TRÊN DESKTOP (>= 992px) */
+        /* Khóa cuộn body để sidebar cuộn độc lập */
+        @media (min-width: 992px) {
+            html.is-map-page, body.is-map-page {
+                height: 100vh !important;
+                overflow: hidden !important;
+            }
         }
 
-        .navbar-nav .nav-link:active {
-            background-color: #fffbe6;
-            color: #d9b205 !important;
-            transform: scale(0.97);
+        /* RIÊNG TRANG MAP - TRÊN MOBILE (< 992px) */
+        /* [FIX LỖI CỦA BẠN]: Phải cho phép cuộn để xem danh sách bên dưới map */
+        @media (max-width: 991px) {
+            html.is-map-page, body.is-map-page {
+                height: auto !important;
+                overflow-x: clip !important;
+                overflow-y: auto !important; /* Mở khóa cuộn dọc */
+                touch-action: pan-y; /* Tối ưu cảm ứng */
+            }
         }
 
-        .social-icon-mobile {
-            width: 44px;
-            height: 44px;
-            background: #f8f9fa;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        /* =========================================================
+           4. MENU MOBILE & OFF CANVAS
+           ========================================================= */
+        @media (max-width: 991px) {
+            .app-offcanvas {
+                position: fixed !important;
+                top: 0 !important; bottom: 0 !important; right: 0 !important;
+                left: auto !important;
+                width: 85vw !important; max-width: 320px !important;
+                height: 100vh !important;
+                background-color: #ffffff !important;
+                z-index: 1050 !important;
+                box-shadow: -5px 0 30px rgba(0,0,0,0.15) !important;
+                border-left: 1px solid rgba(0,0,0,0.05) !important;
+                transform: translate3d(100%, 0, 0) !important;
+                visibility: hidden !important;
+                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0.4s !important;
+                display: flex !important; flex-direction: column !important;
+            }
+
+            .app-offcanvas.show, .app-offcanvas.showing { 
+                transform: translate3d(0, 0, 0) !important;
+                visibility: visible !important;
+                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0s !important;
+            }
+
+            .app-offcanvas.hiding {
+                transform: translate3d(100%, 0, 0) !important;
+                visibility: visible !important; 
+                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            }
+
+            .offcanvas-header {
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 18px 20px; border-bottom: 1px solid #f2f2f2; min-height: 70px;
+            }
+            .offcanvas-body {
+                flex-grow: 1; padding: 20px;
+                overflow-y: auto !important; overscroll-behavior: contain;
+            }
+            .btn-close { opacity: 1 !important; padding: 10px !important; margin: 0 !important; box-shadow: none !important; }
+            .offcanvas-header img { width: 40px !important; height: 40px !important; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
+
+            .navbar-nav .nav-item { width: 100%; margin-bottom: 0.5rem; }
+            .navbar-nav .nav-link {
+                padding: 12px 16px !important; border-radius: 12px;
+                background-color: #f8f9fa; color: #333 !important;
+                font-weight: 600; font-size: 15px; display: flex; align-items: center; transition: all 0.2s;
+            }
+            .navbar-nav .nav-link:active { background-color: #fffbe6; color: #d9b205 !important; transform: scale(0.97); }
+
+            .social-icon-mobile {
+                width: 44px; height: 44px; background: #f8f9fa;
+                border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                color: #333; text-decoration: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            }
         }
-    }
+
         /* --- DESKTOP STYLES (>= 992px) --- */
         @media (min-width: 992px) {
             .mobile-bottom-nav { display: none !important; } 
             .btn-call-mobile { display: none !important; }
             
-            .nav-link { 
-                font-weight: 600;
-                color: #444 !important; 
-                padding: 0.5rem 1rem !important;
-                transition: all 0.2s;
-            }
-            .nav-link:hover, .nav-link.active { 
-                color: #d9b205 !important;
-            }
+            .nav-link { font-weight: 600; color: #444 !important; padding: 0.5rem 1rem !important; transition: all 0.2s; }
+            .nav-link:hover, .nav-link.active { color: #d9b205 !important; }
         }
 
         /* =========================================
-       MOBILE BOTTOM NAVIGATION - NATIVE APP STYLE
-       ========================================= */
-    @media (max-width: 991px) {
-
-        /* 1. Tạo khoảng trống đáy */
-        body { 
-            padding-bottom: 80px !important;
-            background-color: #f8f9fa; 
+           MOBILE BOTTOM NAVIGATION
+           ========================================= */
+        @media (max-width: 991px) {
+            body { background-color: #f8f9fa; }
+            .mobile-bottom-nav {
+                position: fixed; bottom: 0; left: 0; width: 100%; height: 68px;
+                background: rgba(255, 255, 255, 0.92);
+                backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+                display: flex; justify-content: space-around; align-items: center;
+                z-index: 199; padding-bottom: env(safe-area-inset-bottom);
+            }
+            .nav-item-mobile {
+                flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+                text-decoration: none; border: none; background: none; padding: 8px 0;
+                color: #8e8e93; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); -webkit-tap-highlight-color: transparent;
+            }
+            .nav-item-mobile i { font-size: 22px; margin-bottom: 4px; }
+            .nav-item-mobile span { font-size: 11px; font-weight: 500; letter-spacing: 0.2px; }
+            .nav-item-mobile.active { color: #d9b205; }
+            .nav-item-mobile.active span { font-weight: 700; }
+            .nav-item-mobile.share-btn:active i { color: #28a745; transform: scale(1.1); }
+            .nav-item-mobile.zalo-btn { color: #0068ff; opacity: 0.9; }
+            .nav-item-mobile.zalo-btn span { font-weight: 600; }
+            .nav-item-mobile:not(.active):not(.zalo-btn):active { color: var(--primary-color); transform: scale(0.95); }
         }
 
-        /* 2. Container chính */
-        .mobile-bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 68px;
-            
-            /* Hiệu ứng kính mờ */
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 199;
-            padding-bottom: env(safe-area-inset-bottom);
+        /* HEADER NAVIGATION */
+        .app-header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 1px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; padding: 10px 0; z-index: 1040;
         }
-
-        /* 3. Style chung cho từng nút */
-        .nav-item-mobile {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            border: none;
-            background: none;
-            padding: 8px 0;
-            color: #8e8e93;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Icon và Text */
-        .nav-item-mobile i {
-            font-size: 22px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item-mobile span {
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.2px;
-        }
-
-        /* 4. Trạng thái ACTIVE */
-        .nav-item-mobile.active {
-            color: #d9b205;
-        }
-        .nav-item-mobile.active span {
-            font-weight: 700;
-        }
-
-        /* 5. Màu sắc riêng cho các nút chức năng */
-        .nav-item-mobile.share-btn:active i {
-            color: #28a745;
-            transform: scale(1.1);
-        }
-
-        .nav-item-mobile.zalo-btn {
-            color: #0068ff;
-            opacity: 0.9;
-        }
-        .nav-item-mobile.zalo-btn span {
-             font-weight: 600;
-        }
+        .brand-text { font-size: 1.1rem; color: #d9b205 !important; letter-spacing: -0.5px; }
+        .brand-slogan { font-size: 0.75rem; font-weight: 500; }
         
-        .nav-item-mobile:not(.active):not(.zalo-btn):active {
-             color: var(--primary-color);
-             transform: scale(0.95);
-        }
-    }
-           /* =========================================
-       HEADER NAVIGATION - GLASSMORPHISM STYLE
-       ========================================= */
-    
-    /* 1. Header chính */
-    .app-header {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 1px 15px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        padding: 10px 0;
-        z-index: 1040;
-    }
-    
-    .brand-text {
-        font-size: 1.1rem;
-        color: #d9b205 !important;
-        letter-spacing: -0.5px;
-    }
-    
-    .brand-slogan {
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
+        .hamburger-icon { width: 24px; height: 18px; position: relative; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+        .hamburger-icon span { display: block; width: 100%; height: 2px; background-color: #333; border-radius: 2px; }
 
-    /* 2. Hamburger Icon */
-    .hamburger-icon {
-        width: 24px;
-        height: 18px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        cursor: pointer;
-    }
-    .hamburger-icon span {
-        display: block;
-        width: 100%;
-        height: 2px;
-        background-color: #333;
-        border-radius: 2px;
-    }
-
-    /* 3. Nút Call Action trên Header */
-    .btn-header-cta {
-        background: #d9b205 !important;
-        border: none;
-        color: #1a1a1a !important;
-        padding: 8px 20px;
-        transition: transform 0.2s;
-    }
-    .btn-header-cta:active {
-        transform: scale(0.96);
-    }
-    
-    /* Hiệu ứng rung icon điện thoại */
-    @keyframes ring {
-        0% { transform: rotate(0); }
-        10% { transform: rotate(30deg); }
-        30% { transform: rotate(-28deg); }
-        50% { transform: rotate(34deg); }
-        70% { transform: rotate(-32deg); }
-        90% { transform: rotate(30deg); }
-        100% { transform: rotate(0); }
-    }
-    .animate-ring {
-        animation: ring 4s infinite ease-in-out;
-    }
-
-    /* 5. Desktop Adjustments */
-    @media (min-width: 992px) {
-        .app-offcanvas {
-            visibility: visible !important;
-            display: flex !important;
-            transform: none !important;
-            position: static !important;
-            height: auto !important;
-            width: auto !important;
-            background: transparent !important;
-            box-shadow: none !important;
+        .btn-header-cta { background: #d9b205 !important; border: none; color: #1a1a1a !important; padding: 8px 20px; transition: transform 0.2s; }
+        .btn-header-cta:active { transform: scale(0.96); }
+        
+        @keyframes ring {
+            0% { transform: rotate(0); } 10% { transform: rotate(30deg); } 30% { transform: rotate(-28deg); }
+            50% { transform: rotate(34deg); } 70% { transform: rotate(-32deg); } 90% { transform: rotate(30deg); } 100% { transform: rotate(0); }
         }
-        .nav-link:hover {
-            color: #d9b205 !important;
-            background: rgba(217, 178, 5, 0.08);
-        }
-    } 
+        .animate-ring { animation: ring 4s infinite ease-in-out; }
 
-        /* --- FOOTER STYLES --- */
-        footer {
-            background-color: #1a1a1a;
-            color: #e0e0e0;
-            flex-shrink: 0;
-        }
-
-        footer a {
-            color: #e0e0e0;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        footer a:hover {
-            color: var(--warning-color);
-        }
-
-        .footer-logo {
-            height: 60px;
-            width: auto;
-            border-radius: 8px;
-        }
-
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            margin-right: 12px;
-            font-size: 18px;
-            transition: all 0.3s ease;
-        }
-
-        .social-link:hover {
-            background: var(--warning-color);
-            color: #1a1a1a !important;
-            transform: translateY(-3px);
-        }
         @media (min-width: 992px) {
-        .app-offcanvas {
-            display: none !important;
+            .app-offcanvas {
+                visibility: visible !important; display: flex !important; transform: none !important;
+                position: static !important; height: auto !important; width: auto !important;
+                background: transparent !important; box-shadow: none !important;
+            }
+            .nav-link:hover { color: #d9b205 !important; background: rgba(217, 178, 5, 0.08); }
         }
-        .navbar-nav .nav-link {
-            color: #333 !important;
+
+        /* FOOTER & HELPERS */
+        footer { background-color: #1a1a1a; color: #e0e0e0; flex-shrink: 0; }
+        footer a { color: #e0e0e0; text-decoration: none; transition: color 0.3s ease; }
+        footer a:hover { color: var(--warning-color); }
+        .footer-logo { height: 60px; width: auto; border-radius: 8px; }
+        .social-link {
+            display: flex; align-items: center; justify-content: center;
+            width: 42px; height: 42px; background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%; margin-right: 12px; font-size: 18px; transition: all 0.3s ease;
         }
-        .navbar-nav .nav-link:hover {
-            color: #d9b205 !important;
-            background: rgba(217, 178, 5, 0.1);
+        .social-link:hover { background: var(--warning-color); color: #1a1a1a !important; transform: translateY(-3px); }
+
+        @media (min-width: 992px) {
+            .app-offcanvas { display: none !important; }
+            .navbar-nav .nav-link { color: #333 !important; }
+            .navbar-nav .nav-link:hover { color: #d9b205 !important; background: rgba(217, 178, 5, 0.1); }
         }
-    }
-    /* =========================================================
-           FIX LỖI STICKY SIDEBAR (QUAN TRỌNG)
-           Bắt buộc các thẻ bao quanh Sidebar phải cho phép hiển thị tràn (visible)
-           Nếu để hidden/auto/scroll thì Sticky sẽ chết.
-        ========================================================= */
         
-        /* 1. Đảm bảo thẻ html/body cuộn tự nhiên, không tạo scroll ảo */
-        html, body {
-            overflow-x: clip !important; /* Dùng clip thay vì hidden để an toàn hơn cho sticky */
-            overflow-y: visible !important; /* Để trình duyệt quản lý thanh cuộn */
-        }
-
-        /* 2. Cứu cánh cho thẻ Main và Container */
-        main, 
-        .container, 
-        .row,
-        .col-lg-3, 
-        aside {
-            overflow: visible !important; 
-        }
-
-        /* 3. Ép cột Sidebar và cột Nội dung cao bằng nhau (Flex Stretch) */
-        /* Đây là điều kiện tiên quyết để sidebar có "đường ray" để trượt */
-        .row {
-            align-items: stretch !important;
-        }
+        /* FIX STICKY */
+        .container, .row, .col-lg-3, aside { overflow: visible !important; }
+        .row { align-items: stretch !important; }
     </style>
 </head>
 <body>
@@ -595,7 +394,7 @@ if (currentCity) {
                             </ul>
                         </li>
                     ) : (
-                        /* Nếu ở trang chủ (không có city) hoặc lỗi data, giữ link mặc định an toàn */
+                         /* Nếu ở trang chủ (không có city) hoặc lỗi data, giữ link mặc định an toàn */
                          <>
                             <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">TP.HCM</a></li>
                             <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
@@ -802,7 +601,7 @@ if (currentCity) {
                     <>
                         <li class="nav-item">
                             <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">
-                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>TP. Hồ Chí Minh
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>TP.HCM
                             </a>
                         </li>
                         <li class="nav-item">

@@ -26,12 +26,34 @@ function getVideoId(url) {
 }
 
 // --- 3. GET STATIC PATHS ---
+// --- 3. GET STATIC PATHS (ĐÃ SỬA: Đọc từ 2 file data thành phố) ---
 export async function getStaticPaths() {
-  const dataPath = path.join(process.cwd(), 'public', 'data.json');
-  const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-  const activeRooms = jsonData.rooms.filter(r => r.status === 'active');
+  // Đường dẫn đến 2 file data mới
+  const hanoiPath = path.join(process.cwd(), 'public', 'data_hanoi.json');
+  const hcmPath = path.join(process.cwd(), 'public', 'data_hochiminh.json');
 
-  // Hàm slug nội bộ (giữ nguyên logic slug của bạn)
+  let roomsHN = [];
+  let roomsHCM = [];
+
+  // Đọc file an toàn (Try-catch phòng khi file chưa build)
+  try {
+      if (fs.existsSync(hanoiPath)) {
+          const dataHN = JSON.parse(fs.readFileSync(hanoiPath, 'utf-8'));
+          roomsHN = dataHN.rooms || [];
+      }
+      if (fs.existsSync(hcmPath)) {
+          const dataHCM = JSON.parse(fs.readFileSync(hcmPath, 'utf-8'));
+          roomsHCM = dataHCM.rooms || [];
+      }
+  } catch (e) {
+      console.error("Lỗi đọc data json:", e);
+  }
+
+  // Gộp danh sách phòng ACTIVE từ cả 2 thành phố
+  // (Nếu bạn muốn build cả phòng đã thuê thì bỏ .filter đi)
+  const activeRooms = [...roomsHN, ...roomsHCM].filter(r => r.status === 'active');
+
+  // Hàm slug nội bộ
   const makeSlug = (str) => {
       if (!str) return '';
       return str.toString().toLowerCase()
@@ -43,19 +65,18 @@ export async function getStaticPaths() {
   };
 
   return activeRooms.map((room) => {
-      // [MỚI] Xác định City Slug cho từng phòng
+      // Xác định City Slug chuẩn xác từ dữ liệu
       const cityCode = room.city ? room.city : 'hochiminh';
       const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
       const districtSlug = makeSlug(room.district);
       
       return {
-        // [QUAN TRỌNG] Phải có đủ 3 params: city, district, id
         params: { city: citySlug, district: districtSlug, id: room.id },
         props: { 
             room, 
             allRooms: activeRooms, 
             cityCode, 
-            citySlug // Truyền thêm biến này để dùng bên dưới
+            citySlug 
         },
       };
   });
@@ -69,51 +90,64 @@ const currentCitySlug = citySlug || 'ho-chi-minh';
 const currentCityName = currentCityCode === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
 const currentDistrictSlug = createSlug(room.district);
 
-// --- LOGIC XỬ LÝ ẢNH ---
-function filterImages(sourceArr, keyword) {
-    return (sourceArr || []).filter(img => img.includes(keyword));
-}
+// --- LOGIC XỬ LÝ ẢNH (ĐÃ SỬA: Ghép link từ ID R2) ---
+const IMG_BASE_URL = "https://img.thochothuetro.com";
 
-const detailSource = room.image_detail || [];
-const collageSource = room.image_collage || [];
+// Lấy mảng ID từ dữ liệu (Fallback về mảng rỗng nếu lỗi)
+const detailIDs = Array.isArray(room.image_detail) ? room.image_detail : [];
+const collageIDs = Array.isArray(room.image_collage) ? room.image_collage : [];
+const thumbID = room.image_thumb || (detailIDs.length > 0 ? detailIDs[0] : "");
 
-// 4.1. Ảnh Web
-let imagesWeb = filterImages(detailSource, '_web');
-if (imagesWeb.length < 6) {
-    const collageWeb = filterImages(collageSource, '_web');
-    const uniqueCollage = collageWeb.filter(img => !imagesWeb.includes(img));
+// 4.1. Tạo mảng ảnh Web (Full HD - 1200px)
+let imagesWeb = detailIDs.map(id => `${IMG_BASE_URL}/${id}_web.webp`);
+
+// Nếu ít ảnh quá (dưới 6), lấy thêm từ Collage bù vào
+if (imagesWeb.length < 6 && collageIDs.length > 0) {
+    const collageWeb = collageIDs.map(id => `${IMG_BASE_URL}/${id}_web.webp`);
+    // Chỉ lấy ảnh collage nào chưa có trong list web
+    const uniqueCollage = collageWeb.filter(url => !imagesWeb.includes(url));
     imagesWeb = [...imagesWeb, ...uniqueCollage];
 }
-imagesWeb = imagesWeb.slice(0, 6);
+imagesWeb = imagesWeb.slice(0, 6); // Chỉ lấy tối đa 6 ảnh hiển thị slider
 
-// 4.2. Ảnh Mobile
-let imagesMobile = filterImages(detailSource, '_medium');
-if (imagesMobile.length === 0) imagesMobile = imagesWeb;
+// 4.2. Tạo mảng ảnh Mobile (Medium - 800px)
+// Dùng để hiển thị trên điện thoại hoặc làm srcset
+let imagesMobile = detailIDs.map(id => `${IMG_BASE_URL}/${id}_medium.webp`);
+
+// Bù ảnh nếu thiếu (Logic tương tự web)
 if (imagesMobile.length < imagesWeb.length) {
     const diff = imagesWeb.length - imagesMobile.length;
-    const fillers = imagesWeb.slice(-diff); 
-    imagesMobile = [...imagesMobile, ...fillers];
+    // Bù bằng chính ảnh web nếu bí quá, hoặc lấy thêm từ collage medium
+    const collageMobile = collageIDs.map(id => `${IMG_BASE_URL}/${id}_medium.webp`);
+    const uniqueCollageMobile = collageMobile.filter(url => !imagesMobile.includes(url));
+    imagesMobile = [...imagesMobile, ...uniqueCollageMobile].slice(0, imagesWeb.length);
 }
-imagesMobile = imagesMobile.slice(0, imagesWeb.length);
 
-// 4.3. Ảnh Thumb (Fallback thông minh: Thumb -> Mobile -> Web)
-let imagesThumb = filterImages(detailSource, '_thumb');
-if (imagesThumb.length === 0) imagesThumb = imagesMobile; 
-if (imagesThumb.length < imagesWeb.length) {
-    const diff = imagesWeb.length - imagesThumb.length;
-    imagesThumb = [...imagesThumb, ...imagesMobile.slice(-diff)]; 
-}
+// 4.3. Tạo mảng ảnh Thumb (Cho thanh gallery bên dưới)
+// Logic: Chỉ ảnh nào trùng với thumbID thì mới có bản _thumb.webp (400px)
+// Các ảnh còn lại dùng bản _medium.webp (800px) để hiển thị nhỏ
+let imagesThumb = detailIDs.map(id => {
+    if (id === thumbID) {
+        return `${IMG_BASE_URL}/${id}_thumb.webp`;
+    } else {
+        return `${IMG_BASE_URL}/${id}_medium.webp`;
+    }
+});
+// Đồng bộ số lượng với imagesWeb
 imagesThumb = imagesThumb.slice(0, imagesWeb.length);
 
 // Ảnh đại diện chính (LCP Image)
 const mainImageWeb = imagesWeb[0] || '/logo.png';
 const mainImageMobile = imagesMobile[0] || mainImageWeb;
 
-// 4.4. Collage Banner
-const collageListWeb = filterImages(collageSource, '_web');
-const collageListMobile = filterImages(collageSource, '_medium');
-const collageImageWeb = collageListWeb[0] || (imagesWeb.length > 1 ? imagesWeb[1] : null);
-const collageImageMobile = collageListMobile[0] || collageImageWeb;
+// 4.4. Ảnh Collage (Banner ngang)
+const collageImageWeb = collageIDs.length > 0 
+    ? `${IMG_BASE_URL}/${collageIDs[0]}_web.webp` 
+    : (imagesWeb.length > 1 ? imagesWeb[1] : null); // Fallback: Lấy ảnh thứ 2 nếu không có collage
+
+const collageImageMobile = collageIDs.length > 0
+    ? `${IMG_BASE_URL}/${collageIDs[0]}_medium.webp`
+    : collageImageWeb;
 
 // --- DỮ LIỆU TEXT & SEO ---
 const cleanAddress = hideNumber(room.address);
@@ -188,7 +222,7 @@ const schemaBreadcrumb = {
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://thochothuetro.com/" },
-    { "@type": "ListItem", "position": 2, "name": `Quận ${room.district}`, "item": `https://thochothuetro.com/${currentDistrictSlug}` },
+    { "@type": "ListItem", "position": 2, "name": `Quận ${room.district}`, "item": `https://thochothuetro.com/${currentCitySlug}/${currentDistrictSlug}` },
     { "@type": "ListItem", "position": 3, "name": room.room_code, "item": canonicalURL }
   ]
 };
@@ -240,7 +274,7 @@ const relatedRooms = allRooms.filter(r =>
             <nav aria-label="breadcrumb" class="d-none d-md-block">
                  <ol class="breadcrumb mb-0 small justify-content-center">
                      <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
-                     <li class="breadcrumb-item"><a href={`/${currentDistrictSlug}`} class="text-decoration-none text-muted">{room.district}</a></li>
+                     <li class="breadcrumb-item"><a href={`/${currentCitySlug}/${currentDistrictSlug}`} class="text-decoration-none text-muted">{room.district}</a></li>
                      <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">{room.room_code}</li>
                 </ol>
             </nav>

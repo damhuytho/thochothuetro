@@ -1,20 +1,25 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { ViewTransitions } from 'astro:transitions';
 
 // Trang Landing Page: Chỉ dùng để điều hướng
 const pageTitle = "Hệ thống phòng trọ Thọ Cho Thuê Trọ - Hà Nội & TP.HCM";
 const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, giá rẻ tại Hà Nội và TP.HCM. Giờ giấc tự do, full nội thất.";
+
+// Cấu hình Link ảnh Banner (Đảm bảo 2 ảnh này có trên R2 hoặc host ảnh của bạn)
+const BANNER_HCM = "https://img.thochothuetro.com/banner-mobile.webp";
+const BANNER_HN  = "https://img.thochothuetro.com/banner.webp";
 ---
 
 <Layout title={pageTitle} description={pageDesc} isLanding={true}>
     <section class="landing-hero d-flex align-items-center justify-content-center">
         <div class="overlay"></div>
         <div class="content text-center position-relative z-2 container">
-            <img src="/logo.png" alt="Logo" width="100" height="100" class="mb-4 animate-up logo-landing">
+            <img src="/logo.png" alt="Logo Thọ Cho Thuê Trọ" width="100" height="100" class="mb-4 animate-up logo-landing">
+            
             <h1 class="text-white fw-bold text-uppercase mb-3 animate-up delay-1">
                 Chào mừng bạn đến với <br> <span class="text-warning">Thọ Cho Thuê Trọ</span>
             </h1>
+            
             <p class="text-white-50 mb-5 fs-5 animate-up delay-2" style="max-width: 600px; margin: 0 auto;">
                 Vui lòng chọn khu vực bạn muốn tìm phòng
             </p>
@@ -23,7 +28,7 @@ const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, 
                 <div class="col-md-5 col-lg-4">
                     <a href="/ho-chi-minh" class="city-card card border-0 rounded-4 overflow-hidden text-decoration-none shadow-lg">
                         <div class="city-img-wrapper">
-                            <img src="https://img.thochothuetro.com/banner-mobile.webp" alt="Phòng trọ Hồ Chí Minh" class="w-100 h-100 object-fit-cover city-img">
+                            <img src={BANNER_HCM} alt="Phòng trọ Hồ Chí Minh" class="w-100 h-100 object-fit-cover city-img">
                             <div class="city-overlay d-flex flex-column align-items-center justify-content-center">
                                 <i class="fas fa-building fa-3x text-warning mb-3"></i>
                                 <h2 class="h3 fw-bold text-white m-0">TP. HỒ CHÍ MINH</h2>
@@ -36,7 +41,7 @@ const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, 
                 <div class="col-md-5 col-lg-4">
                     <a href="/ha-noi" class="city-card card border-0 rounded-4 overflow-hidden text-decoration-none shadow-lg">
                         <div class="city-img-wrapper">
-                            <img src="https://img.thochothuetro.com/banner.webp" alt="Phòng trọ Hà Nội" class="w-100 h-100 object-fit-cover city-img">
+                            <img src={BANNER_HN} alt="Phòng trọ Hà Nội" class="w-100 h-100 object-fit-cover city-img">
                             <div class="city-overlay d-flex flex-column align-items-center justify-content-center">
                                 <i class="fas fa-landmark fa-3x text-warning mb-3"></i>
                                 <h2 class="h3 fw-bold text-white m-0">HÀ NỘI</h2>
@@ -55,6 +60,7 @@ const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, 
         position: relative;
         min-height: 100vh;
         background-color: #1a1a1a;
+        /* Ảnh nền chung cho cả trang landing */
         background-image: url('https://img.thochothuetro.com/banner.webp');
         background-size: cover;
         background-position: center;
@@ -66,31 +72,21 @@ const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, 
         background: rgba(0,0,0,0.7);
         backdrop-filter: blur(8px);
     }
-    .city-card {
-        transition: transform 0.3s ease;
-    }
-    .city-card:hover {
-        transform: translateY(-10px);
-    }
-    .city-img-wrapper {
-        position: relative;
-        height: 300px;
-    }
-    .city-img {
-        transition: transform 0.5s ease;
-    }
-    .city-card:hover .city-img {
-        transform: scale(1.1);
-    }
+    .city-card { transition: transform 0.3s ease; }
+    .city-card:hover { transform: translateY(-10px); }
+    
+    .city-img-wrapper { position: relative; height: 300px; }
+    .city-img { transition: transform 0.5s ease; }
+    .city-card:hover .city-img { transform: scale(1.1); }
+    
     .city-overlay {
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         background: rgba(0,0,0,0.5);
         transition: background 0.3s;
     }
-    .city-card:hover .city-overlay {
-        background: rgba(0,0,0,0.3);
-    }
+    .city-card:hover .city-overlay { background: rgba(0,0,0,0.3); }
 
     /* Animation */
     .animate-up { opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s forwards; }

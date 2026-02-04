@@ -5,22 +5,25 @@ import path from 'node:path';
 // [MỚI] Nhận biết đang ở thành phố nào (Mặc định là HCM)
 const { currentCity = 'hochiminh' } = Astro.props;
 
-// 1. DATA SERVER-SIDE
+// 1. DATA SERVER-SIDE (CHẠY TRÊN SERVER)
 let uniqueDistricts = [];
 try {
-    const dataPath = path.join(process.cwd(), 'public', 'data.json');
-    const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    // Chọn file data tương ứng
+    const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
+    const dataPath = path.join(process.cwd(), 'public', fileName);
     
-    // [MỚI] Lọc phòng theo thành phố trước
-    const cityRooms = jsonData.rooms.filter(r => {
-        const rCity = r.city ? r.city : 'hochiminh'; // Nếu data cũ chưa có city, coi là hcm
-        return rCity === currentCity;
-    });
+    // Kiểm tra và đọc file
+    if (fs.existsSync(dataPath)) {
+        const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        
+        // Data mới đã phân loại sẵn, lấy trực tiếp
+        const cityRooms = jsonData.rooms || [];
 
-    // [MỚI] Chỉ lấy quận của thành phố đó
-    uniqueDistricts = [...new Set(cityRooms.map(r => r.district).filter(d => d))].sort();
+        // Lấy danh sách quận duy nhất
+        uniqueDistricts = [...new Set(cityRooms.map(r => r.district).filter(d => d))].sort();
+    }
 } catch (error) {
-    console.error("Lỗi đọc data.json:", error);
+    console.error(`Lỗi đọc file ${currentCity}:`, error);
     uniqueDistricts = [];
 }
 
@@ -33,7 +36,7 @@ const listPrices = [
 ];
 const listAmenities = ["ban công", "cửa sổ", "tách bếp", "nuôi pet", "máy giặt riêng", "thang máy"];
 
-// 3. GET CURRENT PARAMS
+// 3. GET CURRENT PARAMS (SERVER SIDE - Dùng Astro.url thay vì window)
 const { searchParams } = Astro.url;
 const currentDist = searchParams.get('district') || 'all';
 const currentType = searchParams.get('type') || 'all';
@@ -116,6 +119,7 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
                                 type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-display-price">
                             -- Tất cả --
                         </button>
+                        
                         <ul class="dropdown-menu w-100 shadow border-0">
                             <li><a class="dropdown-item active" href="#" data-value="all" onclick="selectItem(this, 'sb-price', 'btn-display-price')">-- Tất cả --</a></li>
                             {listPrices.map((p) => (
@@ -164,52 +168,45 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 </div>
 
 <style is:global>
-/* Ép thẻ cha trực tiếp của sidebar phải cao bằng cột chứa nó */
 :global(aside .sidebar-sticky-wrapper) {
     height: fit-content;
 }
 
-/* Quan trọng: Nếu sidebar nằm trong một div trung gian, ép div đó bung lụa */
 :global(aside > div), :global(aside > astro-island) {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
-    /* 1. SỬA LỖI VỊ TRÍ & CHIỀU CAO (QUAN TRỌNG NHẤT) */
     .sidebar-sticky-wrapper {
-        position: -webkit-sticky !important; /* Hỗ trợ Safari */
-        position: sticky !important;         /* Bắt buộc dùng !important để đè các style rác */
-        top: 80px;                           /* Cách đỉnh màn hình 80px */
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 80px;
         z-index: 90;
-        
-        /* QUAN TRỌNG: Sửa lỗi "Thẻ cha không cao hơn Sidebar" */
-        height: fit-content; 
-        max-height: calc(100vh - 100px);     /* Nếu sidebar quá dài, cho phép nó cuộn riêng */
-        overflow-y: auto;                    /* Cuộn nội dung bên trong sidebar nếu cần */
+        height: fit-content;
+        max-height: calc(100vh - 100px);     
+        overflow-y: auto;
     }
     
-    /* Ẩn thanh cuộn của sidebar cho đẹp */
     .sidebar-sticky-wrapper::-webkit-scrollbar { width: 4px; }
     .sidebar-sticky-wrapper::-webkit-scrollbar-thumb { background: #eee; border-radius: 4px; }
 
-    /* 2. SỬA LỖI TYPO CŨ (font-weight: 400) */
     .custom-check { 
-        display: flex; 
+        display: flex;
         align-items: center; 
         cursor: pointer; 
         font-size: 1rem; 
         margin-bottom: 4px; 
-        font-weight: 400; /* ĐÃ SỬA: 4 00 -> 400 */
+        font-weight: 400;
     }
 
-    /* --- CÁC CSS KHÁC GIỮ NGUYÊN --- */
     .btn-white { background: white; color: #333; }
     .btn-white:hover, .btn-white:focus { background: #f8f9fa; border-color: #f1c40f !important; }
     .dropdown-item.active, .dropdown-item:active { background-color: #f1c40f; color: #000; font-weight: 600; }
     .dropdown-menu { font-size: 0.9rem; margin-top: 5px !important; border-radius: 8px; }
     
     .mobile-filter-bar {
-        position: fixed; top: 0; left: 0; width: 100%; height: auto; min-height: 60px; 
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: auto; min-height: 60px; 
         background: #fff; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         border-bottom: 1px solid #eee; cursor: pointer; display: none; padding: 8px 0;
     }
@@ -246,15 +243,15 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 </style>
 
 <script is:inline>
-    // --- HÀM XỬ LÝ SLUG TIẾNG VIỆT CHUẨN (Quan trọng cho mở rộng) ---
+    // --- HÀM XỬ LÝ SLUG TIẾNG VIỆT CHUẨN ---
     function createSlug(str) {
         if (!str) return '';
         return str.toString().toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Bỏ dấu tiếng Việt
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[đĐ]/g, 'd')
-            .replace(/[^a-z0-9\s]/g, '') // Bỏ ký tự đặc biệt
+            .replace(/[^a-z0-9\s]/g, '')
             .trim()
-            .replace(/\s+/g, '-'); // Thay khoảng trắng bằng dấu gạch ngang
+            .replace(/\s+/g, '-');
     }
 
     // 1. Helper: Hàm chọn Item trong Dropdown
@@ -266,7 +263,6 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
 
         const btn = document.getElementById(btnId);
         if(btn) btn.textContent = element.textContent;
-
         const menu = element.closest('.dropdown-menu');
         menu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
         element.classList.add('active');
@@ -279,17 +275,12 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         if (!input || !btn || !targetValue) return;
 
         input.value = targetValue;
-        
-        // Tìm item dựa vào data-value (chuẩn xác nhất)
         const menu = btn.nextElementSibling;
         let targetItem = null;
         
-        // Nếu là 'all' thì tìm cái all
         if (targetValue === 'all') {
             targetItem = menu.querySelector(`.dropdown-item[data-value="all"]`);
         } else {
-            // Nếu là tên quận (VD: Tân Bình), tìm chính xác tên đó trong data-value
-            // Lưu ý: data-value trong HTML ở trên được gen từ Data thật (có dấu)
             targetItem = menu.querySelector(`.dropdown-item[data-value="${targetValue}"]`);
         }
         
@@ -313,19 +304,17 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         price !== 'all' ? params.set('price', price) : params.delete('price');
         amenities.length > 0 ? params.set('amenities', amenities.join(',')) : params.delete('amenities');
         
-        // Xóa params district cũ vì ta sẽ đưa nó lên URL path
-        params.delete('district'); 
-
-        // [MỚI] Xác định tiền tố thành phố (Prefix) dựa trên URL hiện tại
-        let cityPrefix = '/ho-chi-minh'; // Mặc định
+        params.delete('district');
+        
+        // Logic xác định thành phố dựa trên URL hiện tại
+        let cityPrefix = '/ho-chi-minh';
         if (window.location.pathname.includes('/ha-noi')) {
             cityPrefix = '/ha-noi';
         }
 
-        let targetPath = cityPrefix; // Mặc định về trang chủ của City đó
+        let targetPath = cityPrefix;
 
         if (district !== 'all') {
-            // Nối thêm slug quận: /ha-noi/cau-giay
             targetPath = cityPrefix + '/' + createSlug(district);
         }
 
@@ -412,24 +401,24 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
-        // --- KHÔI PHỤC TRẠNG THÁI ---
+        // --- KHÔI PHỤC TRẠNG THÁI (ĐÃ SỬA: CHẠY TRÊN CLIENT) ---
         const params = new URLSearchParams(window.location.search);
-
-        // Logic khôi phục tên quận từ URL (để nút dropdown hiện đúng tên quận)
-        // VD: URL là /binh-thanh -> Cần hiện "Quận Bình Thạnh"
-        // Cách làm: Lấy slug từ URL, so sánh với slug của từng option trong danh sách
+        
+        // Logic khôi phục tên quận từ URL (ĐÃ SỬA: Hỗ trợ URL /thanh-pho/quan)
         let currentPathDist = 'all';
-        const pathSegments = window.location.pathname.split('/').filter(Boolean); // Lấy các phần của URL
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        
         if (pathSegments.length > 0) {
-            const potentialSlug = pathSegments[0]; // Lấy slug đầu tiên (vd: tan-binh)
-            
-            // Tìm trong dropdown xem có quận nào khớp slug này không
             const districtLinks = document.querySelectorAll('#btn-display-district + .dropdown-menu .dropdown-item');
-            districtLinks.forEach(link => {
-                const val = link.getAttribute('data-value');
-                if (val !== 'all' && createSlug(val) === potentialSlug) {
-                    currentPathDist = val; // Tìm thấy! (VD: tìm thấy val="Tân Bình" khớp slug "tan-binh")
-                }
+            
+            // Quét từng phần của URL (segment) xem có khớp với quận nào không
+            pathSegments.forEach(segment => {
+                districtLinks.forEach(link => {
+                    const val = link.getAttribute('data-value');
+                    if (val !== 'all' && createSlug(val) === segment) {
+                        currentPathDist = val; 
+                    }
+                });
             });
         }
         
@@ -446,7 +435,6 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         }
 
         const hasFilter = renderMobileActiveTags();
-
         if (window.innerWidth < 992) {
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
             if (hasFilter) {

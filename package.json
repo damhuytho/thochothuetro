@@ -3,6 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "sync-images": "node scripts/sync-images.js",
+    "deploy": "node scripts/deploy.js",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -17,6 +19,7 @@
     "bootstrap": "^5.3.8",
     "critical": "^7.2.1",
     "dotenv": "^17.2.3",
+    "googleapis": "^171.1.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

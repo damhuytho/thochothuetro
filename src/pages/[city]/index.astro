@@ -6,7 +6,7 @@ import CommitmentFooter from '../../components/CommitmentFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// --- 1. GET STATIC PATHS (Định nghĩa các thành phố) ---
+// --- 1. GET STATIC PATHS ---
 export async function getStaticPaths() {
     return [
         { params: { city: 'ho-chi-minh' }, props: { cityName: 'Hồ Chí Minh', cityCode: 'hochiminh' } },
@@ -17,16 +17,24 @@ export async function getStaticPaths() {
 const { city } = Astro.params;
 const { cityName, cityCode } = Astro.props;
 
-// --- 2. LOAD DATA & FILTER ---
-const dataPath = path.join(process.cwd(), 'public', 'data.json');
-const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+// --- 2. LOAD DATA (SỬA ĐỔI: Đọc đúng file data của thành phố) ---
+// Thay vì đọc data.json, ta đọc data_hanoi.json hoặc data_hochiminh.json
+const fileName = `data_${cityCode}.json`; 
+const dataPath = path.join(process.cwd(), 'public', fileName);
 
-// Lọc phòng theo thành phố
-const cityRooms = jsonData.rooms.filter(r => {
-    // Nếu data chưa có trường city, mặc định là hochiminh
-    const rCity = r.city ? r.city : 'hochiminh';
-    return rCity === cityCode && r.status === 'active';
-});
+// Đọc file (Cần try-catch để an toàn nếu file chưa sinh ra)
+let cityRooms = [];
+try {
+    const fileContent = fs.readFileSync(dataPath, 'utf-8');
+    const jsonData = JSON.parse(fileContent);
+    
+    // Lấy danh sách phòng ACTIVE (Bỏ qua phòng đã thuê nếu muốn trang sạch sẽ)
+    // Lưu ý: data json mới đã phân loại sẵn city, nên không cần filter city nữa
+    cityRooms = jsonData.rooms.filter(r => r.status === 'active');
+} catch (e) {
+    console.error(`Lỗi đọc file ${fileName}:`, e);
+    cityRooms = [];
+}
 
 // Logic sắp xếp: Ưu tiên Promotion
 function sortRooms(rooms) {
@@ -37,7 +45,7 @@ function sortRooms(rooms) {
     });
 }
 
-// Gom nhóm theo quận (Chỉ lấy quận của thành phố này)
+// Gom nhóm theo quận
 const districtNames = [...new Set(cityRooms.map(r => r.district))];
 let districtsData = districtNames.map(name => {
     return { name: name, rooms: sortRooms(cityRooms.filter(r => r.district === name)) };
@@ -59,7 +67,6 @@ function createSlug(text) {
 const pageTitle = `Phòng Trọ ${cityName} Giá Rẻ, Full Nội Thất | Thọ Cho Thuê Trọ`;
 const pageDesc = `Hệ thống phòng trọ, căn hộ dịch vụ tại ${cityName}. Giờ giấc tự do, an ninh 24/7, full nội thất. Xem phòng ngay!`;
 const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
-
 ---
 
 <Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL}>
@@ -116,17 +123,34 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
                                      data-district={room.district}
                                      data-price={room.price}
                                      data-type={room.type}
-                                     data-status={room.status}>
-                                    <CardRoom room={room} priority={idx < 6} citySlug={city} />
+                                     data-status={room.status}
+                                     data-keypoint={room.keypoint} 
+                                     data-pet={room.pet}>
+                                    {/* SỬA ĐỔI: Thêm data-keypoint và data-pet để bộ lọc JS hoạt động */}
+                                     
+                                     <CardRoom room={room} priority={idx < 6} citySlug={city} />
                                 </div>
                             ))}
                         </div>
+
+                        {/* Nút Xem Thêm (Ẩn mặc định, JS sẽ hiện nếu còn dư phòng) */}
+                        <div class="view-more-wrapper text-center mt-3" style="display: none;" data-district={dData.name}>
+                            <a href="#" class="view-more-link btn btn-outline-warning rounded-pill px-4">
+                                Xem thêm <span class="remaining-count fw-bold"></span> phòng khác <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+
                    </section>
                 )) : (
                     <div class="text-center py-5">
                         <p class="text-muted">Đang cập nhật dữ liệu phòng tại {cityName}...</p>
                     </div>
                 )}
+
+                <div id="no-result" class="d-none text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không tìm thấy phòng phù hợp với bộ lọc.</p>
+                </div>
             </main>
         </div>
     </div>
@@ -146,37 +170,23 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
     }
 
     @media (min-width: 768px) {
-        .banner-hero-wrapper {
-            height: 450px;
-        }
+        .banner-hero-wrapper { height: 450px; }
     }
 
     .banner-bg-img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; object-position: center;
     }
 
     .banner-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
         z-index: 1;
     }
 
-    .banner-content {
-        position: relative;
-        z-index: 2;
-    }
+    .banner-content { position: relative; z-index: 2; }
 
-    /* HERO TEXT STYLES */
     .hero-title {
         font-size: clamp(1.75rem, 5vw, 3.2rem);
         line-height: 1.2;
@@ -197,15 +207,13 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
 
     /* BADGE LUXURY */
     .badge-luxury {
-        display: inline-flex;
-        align-items: center;
+        display: inline-flex; align-items: center;
         padding: 0.6rem 1.2rem;
         background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
         border-radius: 25px;
         color: white;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: 0.9rem; font-weight: 600;
         border: 1px solid rgba(255, 255, 255, 0.2);
         transition: all 0.3s ease;
     }
@@ -215,51 +223,17 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
         transform: translateY(-2px);
     }
 
-    /* ANIMATIONS */
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-slide-up {
-        animation: slideUp 0.8s ease-out forwards;
-        opacity: 0;
-    }
-
-    .animate-slide-up.delay-1 {
-        animation-delay: 0.2s;
-    }
-
-    .animate-slide-up.delay-2 {
-        animation-delay: 0.4s;
-    }
-
-    /* RESPONSIVE ADJUSTMENTS */
+    /* RESPONSIVE */
     @media (max-width: 991px) {
-        .banner-hero-wrapper {
-            height: 350px;
-        }
-        
-        .hero-title {
-            font-size: 1.75rem;
-        }
-        
-        .badge-luxury {
-            font-size: 0.75rem;
-            padding: 0.5rem 0.9rem;
-        }
+        .banner-hero-wrapper { height: 350px; }
+        .hero-title { font-size: 1.75rem; }
+        .badge-luxury { font-size: 0.75rem; padding: 0.5rem 0.9rem; }
     }
-    /* Áp dụng cho container chứa danh sách phòng */
-.room-list-container {
-    content-visibility: auto;
-    contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của khu vực này để thanh cuộn không bị nhảy */
-}
+    
+    .room-list-container {
+        content-visibility: auto;
+        contain-intrinsic-size: 1000px; 
+    }
 </style>
 
 <script>
@@ -271,7 +245,10 @@ document.addEventListener('astro:page-load', () => {
     const noResult = document.getElementById('no-result');
     const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
 
-    // 1. ĐỔI TÊN HÀM TỪ toSlug -> createSlug ĐỂ ĐỒNG BỘ VÀ TRÁNH LỖI
+    // Lấy URL hiện tại (ví dụ: /ho-chi-minh) để ghép link cho đúng
+    // Bỏ dấu gạch chéo ở cuối nếu có
+    const currentPath = window.location.pathname.replace(/\/$/, '');
+
     const createSlug = (text) => {
         if(!text) return '';
         return text.toString().toLowerCase()
@@ -282,7 +259,6 @@ document.addEventListener('astro:page-load', () => {
             .replace(/\s+/g, '-');
     };
 
-    // Helper: Check if item has valid image
     function hasImage(el) {
         const img = el.querySelector('img');
         if (!img) return false;
@@ -291,7 +267,6 @@ document.addEventListener('astro:page-load', () => {
         return true;
     }
 
-    // Helper: Sort items (prioritize images) and cap rented
     function sortAndCap(items) {
         const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
         const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
@@ -304,7 +279,6 @@ document.addEventListener('astro:page-load', () => {
         return [...active, ...rentedCapped];
     }
 
-    // Group items by district
     const allItems = Array.from(document.querySelectorAll('.room-item'));
     const itemsByDistrict = {};
     allItems.forEach(item => {
@@ -320,7 +294,7 @@ document.addEventListener('astro:page-load', () => {
         });
     }
 
-    // NO FILTER - Default display
+    // --- NO FILTER (DEFAULT DISPLAY) ---
     if (!queryString) {
         if (introBanner) introBanner.classList.remove('d-none');
         let anyVisible = false;
@@ -347,8 +321,10 @@ document.addEventListener('astro:page-load', () => {
                 const link = wrapper.querySelector('.view-more-link');
                 const countSpan = wrapper.querySelector('.remaining-count');
                 if (countSpan) countSpan.textContent = remaining;
-                // SỬ DỤNG createSlug Ở ĐÂY
-                if (link) link.href = `/${createSlug(district)}`;
+                
+                // SỬA LỖI LINK: Phải ghép với currentPath
+                if (link) link.href = `${currentPath}/${createSlug(district)}`;
+                
                 wrapper.style.display = 'block';
             } else {
                 wrapper.style.display = 'none';
@@ -357,14 +333,16 @@ document.addEventListener('astro:page-load', () => {
             const section = wrapper.parentElement;
             if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
         });
+
         if (noResult) {
             noResult.classList.toggle('d-none', anyVisible);
         }
         return;
     }
 
-    // WITH FILTER
+    // --- WITH FILTER ---
     if (introBanner) introBanner.classList.add('d-none');
+    
     const fDistrict = params.get('district');
     const fType = (params.get('type') || 'all').toLowerCase();
     const fPrice = params.get('price');
@@ -376,21 +354,19 @@ document.addEventListener('astro:page-load', () => {
 
     const matchedMap = {};
     let totalMatched = 0;
+
     allItems.forEach(item => {
         let matches = true;
 
-        // Filter by district
         if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) {
             matches = false;
         }
         
-        // Filter by type
         const itemType = (item.getAttribute('data-type') || '').toLowerCase();
         if (matches && fType !== 'all' && itemType !== fType) {
             matches = false;
         }
 
-        // Filter by price
         if (matches && fPrice && fPrice !== 'all') {
             const price = parseInt(item.getAttribute('data-price')) / 1000000;
             if (fPrice === 'duoi-5' && price >= 5) matches = false;
@@ -398,7 +374,6 @@ document.addEventListener('astro:page-load', () => {
             if (fPrice === 'over8' && price < 8) matches = false;
         }
 
-        // Filter by amenities
         if (matches && fAmenities.length > 0) {
             const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
             const petAllowed = item.getAttribute('data-pet') === 'yes';
@@ -407,13 +382,11 @@ document.addEventListener('astro:page-load', () => {
                 if (!ami) continue;
                 if (ami === 'nuôi pet' || ami === 'nuoi pet') {
                     if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) {
-                        matches = false;
-                        break;
+                        matches = false; break;
                     }
                 } else {
                     if (!keypoints.includes(ami)) {
-                        matches = false;
-                        break;
+                        matches = false; break;
                     }
                 }
             }
@@ -437,7 +410,6 @@ document.addEventListener('astro:page-load', () => {
         }
     });
 
-    // Render filtered results
     viewMoreWrappers.forEach(wrapper => {
         const district = wrapper.getAttribute('data-district');
         const matchedList = matchedMap[district] || [];
@@ -455,9 +427,12 @@ document.addEventListener('astro:page-load', () => {
         if (remaining > 0) {
             const link = wrapper.querySelector('.view-more-link');
             const countSpan = wrapper.querySelector('.remaining-count');
+            
             if (countSpan) countSpan.textContent = remaining;
-            // SỬ DỤNG createSlug Ở ĐÂY
-            if (link) link.href = `/${createSlug(district)}?${queryString}`;
+            
+            // SỬA LỖI LINK: Phải ghép với currentPath
+            if (link) link.href = `${currentPath}/${createSlug(district)}?${queryString}`;
+            
             wrapper.style.display = 'block';
         } else {
             wrapper.style.display = 'none';
