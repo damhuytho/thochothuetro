@@ -205,7 +205,7 @@ const relatedRooms = allRooms.filter(r =>
 
 <Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb} canonicalURL={canonicalURL}>
     <link slot="head" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script slot="head" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script slot="head" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
     <link slot="head" rel="preload" href={mainImageMobile} as="image" media="(max-width: 767px)" fetchpriority="high" />
     <link slot="head" rel="preload" href={mainImageWeb} as="image" media="(min-width: 768px)" fetchpriority="high" />
 
@@ -361,10 +361,11 @@ const relatedRooms = allRooms.filter(r =>
                              </div>
                              <div class="ratio ratio-9x16 bg-light position-relative cursor-pointer video-facade" data-id={videoId}>
                                 <img 
-                                    src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
-                                    class="w-100 h-100 object-fit-cover" 
-                                    loading="lazy" 
-                                    alt="Video thumb" 
+                                  src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+                                  class="w-100 h-100 object-fit-cover" 
+                                  loading="lazy" 
+                                  alt="Video thumb"
+                                  width="480" height="360" 
                                 />
                                 <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25">
                                     <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 50px; height: 50px;">
@@ -449,7 +450,13 @@ const relatedRooms = allRooms.filter(r =>
                                 <i class="fas fa-video me-2"></i> Video thực tế
                             </div>
                             <div class="ratio ratio-9x16 bg-light cursor-pointer video-facade" data-id={videoId}>
-                                <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} class="w-100 h-100 object-fit-cover" alt="Video thumb" />
+                                <img 
+                                  src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} 
+                                     class="w-100 h-100 object-fit-cover" 
+                                   alt="Video thumb" 
+                                   loading="lazy"
+                                    width="480" height="360"
+                                />
                                 <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25">
                                     <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 60px; height: 60px;">
                                         <i class="fas fa-play fs-4 ms-1"></i>
