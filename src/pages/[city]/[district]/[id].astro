@@ -536,13 +536,12 @@ const relatedRooms = allRooms.filter(r =>
         el.classList.add('active');
     }
 
-    // --- 2. Map Lazy Loader Logic (TỐI ƯU MỚI) ---
-    // Chỉ tải thư viện Leaflet khi người dùng thực sự click vào
+    // --- 2. Map Logic (ĐÃ SỬA LỖI HIỂN THỊ) ---
     window.loadMap = function(placeholder, lat, lng, text) {
-        // 1. Hiển thị Spinner quay đều ngay lập tức
-        placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        // Hiện loading quay tròn
+        placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
         
-        // 2. Hàm bơm CSS và JS vào trang
+        // Hàm tải thư viện Leaflet (Lazy load)
         const loadLeafletLibrary = () => {
             return new Promise((resolve, reject) => {
                 if (window.L) return resolve(); // Nếu đã tải rồi thì thôi
@@ -551,74 +550,80 @@ const relatedRooms = allRooms.filter(r =>
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
                 link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-                link.crossOrigin = '';
                 document.head.appendChild(link);
 
                 // Tải JS
                 const script = document.createElement('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-                script.crossOrigin = '';
                 script.onload = () => resolve();
-                script.onerror = () => reject(new Error('Lỗi tải bản đồ'));
+                script.onerror = () => reject();
                 document.head.appendChild(script);
             });
         };
 
-        // 3. Thực thi tải và khởi tạo Map
-        loadLeafletLibrary()
-            .then(() => {
-                // Đợi một chút để CSS ăn vào (tránh vỡ hình)
-                setTimeout(() => {
-                    initMap(lat, lng, text);
-                    placeholder.classList.add('d-none');
-                    document.getElementById('real-map').classList.remove('d-none');
-                }, 100); 
-            })
-            .catch((err) => {
-                console.error(err);
-                placeholder.innerHTML = '<div class="text-danger p-3 small">Không thể tải bản đồ. Vui lòng kiểm tra kết nối mạng.</div>';
-            });
+        loadLeafletLibrary().then(() => {
+            // [QUAN TRỌNG] Phải hiện khung bản đồ trước khi khởi tạo Leaflet
+            // để tránh lỗi bản đồ bị xám (Lỗi số 2 trong ảnh của bạn)
+            placeholder.classList.add('d-none');
+            const realMapDiv = document.getElementById('real-map');
+            realMapDiv.classList.remove('d-none');
+            realMapDiv.style.display = 'block';
+
+            // Đợi 100ms để trình duyệt vẽ xong khung div rồi mới vẽ map
+            setTimeout(() => {
+                initMap(lat, lng, text);
+            }, 100);
+        });
     };
 
-    // Hàm khởi tạo Map (Được tách riêng cho gọn)
     function initMap(lat, lng, text) {
-        const realMap = document.getElementById('real-map');
-        if (realMap._leaflet_id) return; // Đã init rồi thì thoát
+        const mapDiv = document.getElementById('real-map');
+        if (mapDiv._leaflet_id) return; // Đã tạo rồi thì không tạo lại
 
         try {
             const map = L.map('real-map').setView([lat, lng], 16);
+            
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
                 attribution: '&copy; OSM',
                 maxZoom: 19
             }).addTo(map);
 
+            // [SỬA LỖI 3] Căn giữa Icon: iconAnchor [17, 17] là tâm hình tròn
             const icon = L.divIcon({
                 className: 'custom-pin',
                 html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
                 iconSize: [34, 34],
-                iconAnchor: [17, 34],
-                popupAnchor: [0, -35]
+                iconAnchor: [17, 17], // Tâm điểm là giữa hình (34/2 = 17)
+                popupAnchor: [0, -20] // Popup hiện lên trên một chút
             });
 
+            // [SỬA LỖI 1] Popup bị ép dòng: Thêm min-width và white-space
+            const popupContent = `
+                <div class="text-center p-2" style="min-width: 200px; white-space: nowrap;">
+                    <b style="font-size: 14px;">${text}</b>
+                </div>`;
+
             L.marker([lat, lng], {icon: icon}).addTo(map)
-                .bindPopup(`<div class="text-center p-2"><b>${text}</b></div>`)
+                .bindPopup(popupContent)
                 .openPopup();
-                
-            // Fix lỗi hiển thị map khi ẩn/hiện
-            setTimeout(() => { map.invalidateSize(); }, 200);
+            
+            // [SỬA LỖI 2] Fix bản đồ bị xám (invalidateSize)
+            // Gọi lệnh này để Leaflet tính toán lại kích thước khung chứa
+            setTimeout(() => { 
+                map.invalidateSize(); 
+            }, 300);
+
         } catch (e) {
-            console.error("Lỗi khởi tạo Map:", e);
+            console.error("Lỗi Map:", e);
         }
     }
 
-    // --- 3. Video Lazy Loader Logic (Giữ nguyên) ---
+    // --- 3. Video Lazy Loader Logic ---
     document.addEventListener('click', function(e) {
         const facade = e.target.closest('.video-facade');
         if (facade) {
             const id = facade.getAttribute('data-id');
-            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1&playlist=${id}" class="w-100 h-100 border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1" class="w-100 h-100 border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             facade.classList.remove('video-facade');
         }
     });
