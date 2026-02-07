@@ -204,6 +204,8 @@ const relatedRooms = allRooms.filter(r =>
 ---
 
 <Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb} canonicalURL={canonicalURL}>
+    <link slot="head" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script slot="head" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link slot="head" rel="preload" href={mainImageMobile} as="image" media="(max-width: 767px)" fetchpriority="high" />
     <link slot="head" rel="preload" href={mainImageWeb} as="image" media="(min-width: 768px)" fetchpriority="high" />
 
@@ -405,7 +407,7 @@ const relatedRooms = allRooms.filter(r =>
                 <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
                     <h3 class="h6 fw-bold mb-3 text-uppercase text-dark border-start border-4 border-warning ps-3">Vị trí</h3>
                     <div id="map-container" class="rounded overflow-hidden position-relative bg-light border" style="height: 300px;">
-                        <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" onclick={`loadMap(this, ${room.lat}, ${room.lng}, '${cleanAddress}')`}>
+                        <div id="map-placeholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer position-relative" onclick={`loadMap(this, ${room.lat}, ${room.lng}, '${cleanAddress.replace(/'/g, "\\'")}')`}>
                             <div class="position-absolute top-0 start-0 w-100 h-100" style="background: url('https://img.thochothuetro.com/map_detail_demo_1_11zon.webp') center/cover no-repeat; filter: blur(1px);"></div>
                             <div class="position-absolute top-0 start-0 w-100 h-100 bg-white opacity-50"></div>
                             
