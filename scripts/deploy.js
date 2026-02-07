@@ -160,7 +160,27 @@ async function main() {
     };
     const slugTracker = {}; 
 
-    // Hàm xử lý chung cho cả 2 nguồn
+    // --- HÀM PHỤ TRỢ: Tách mã phòng để làm ID (Bỏ giá, bỏ dấu) ---
+    const extractRoomCodeForID = (rawInput) => {
+        if (!rawInput) return "";
+        
+        // 1. Tách lấy phần trước dấu "-" đầu tiên
+        let str = String(rawInput).split('-')[0].trim();
+
+        // 2. Xóa dấu tiếng Việt (giữ nguyên chữ Hoa/Thường để đẹp nếu cần debug)
+        str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        str = str.replace(/đ/g, "d").replace(/Đ/g, "D");
+
+        // 3. Thay khoảng trắng thành dấu "-"
+        str = str.replace(/\s+/g, '-');
+        
+        // 4. Xóa ký tự lạ
+        str = str.replace(/[^a-zA-Z0-9\-]/g, "");
+
+        return str;
+    };
+
+    // Hàm xử lý chung cho cả 2 nguồn (ĐÃ SỬA LẠI THEO YÊU CẦU MỚI)
     const processBatch = (rows, forcedStatus) => {
         rows.forEach((row) => {
             const colE_Composite = row[COL.ROOM_CODE] || ""; 
@@ -171,8 +191,12 @@ async function main() {
             const cityKey = normalizeCity(inputCityRaw); 
 
             // 2. Xử lý thông tin cơ bản
-            // ĐÃ SỬA: Lấy toàn bộ nội dung cột E, không cắt chuỗi nữa
-            const roomCodeOnly = colE_Composite; 
+            // --- GIỮ NGUYÊN room_code (Cột E) ---
+            const roomCodeOriginal = colE_Composite; 
+
+            // --- TẠO BIẾN RIÊNG ĐỂ GHÉP VÀO ID ---
+            // Ví dụ Cột E là "P302-6.5TR-1PN" -> cleanCodeForSlug là "P302"
+            const cleanCodeForSlug = extractRoomCodeForID(colE_Composite);
             
             const streetName = extractStreetOnly(row[COL.ADDRESS]); 
             const roomType = row[COL.ROOM_TYPE] || "Studio";
@@ -183,8 +207,8 @@ async function main() {
                 finalKeypoint = "Tách bếp, " + finalKeypoint;
             }
 
-            // 3. Xử lý trạng thái (GÁN CỨNG DỰA TRÊN THAM SỐ TRUYỀN VÀO)
-            const finalStatus = forcedStatus; // 'active' hoặc 'rented'
+            // 3. Xử lý trạng thái
+            const finalStatus = forcedStatus; 
 
             // Thống kê
             if (cityKey === 'hanoi') {
@@ -193,9 +217,12 @@ async function main() {
                 finalStatus === 'rented' ? stats.hcm.rented++ : stats.hcm.active++;
             }
 
-            // 4. Tạo Slug
+            // 4. Tạo Slug (ID)
             const amenSlug = getPriorityAmenitiesForSlug(finalKeypoint, roomType);
-            const rawIDString = `can-ho ${roomType} ${streetName} ${amenSlug} ${roomCodeOnly}`;
+            
+            // LƯU Ý: Ở đây dùng 'cleanCodeForSlug' thay vì 'roomCodeOriginal'
+            // ID sẽ KHÔNG còn chứa giá tiền
+            const rawIDString = `can-ho ${roomType} ${streetName} ${amenSlug} ${cleanCodeForSlug}`;
             const baseSlug = createSlug(rawIDString);
 
             let finalSlug = baseSlug;
@@ -213,18 +240,18 @@ async function main() {
 
             // 6. TẠO OBJECT
             const room = {
-                id: finalSlug,
+                id: finalSlug,        // Slug sạch, không chứa giá
                 city: cityKey,
-                room_code: roomCodeOnly,
+                room_code: roomCodeOriginal, // Vẫn giữ nguyên cột E (P302-6.5TR...)
                 district: row[COL.DISTRICT],
                 address: displayAddress,
                 keypoint: finalKeypoint,
                 price: parsePriceV2(row[COL.PRICE]),
                 desc: minifiedDesc,
                 pet: row[COL.PET],
-                status: finalStatus, // <--- Trạng thái chuẩn từ nguồn bảng
+                status: finalStatus, 
                 type: roomType,
-                updated_at: row[COL.UPDATED_AT] || row[COL.UPDATED_AT_FALLBACK], // Thêm lại updated_at cho đầy đủ
+                updated_at: row[COL.UPDATED_AT] || row[COL.UPDATED_AT_FALLBACK],
                 promotion: row[COL.PROMOTION],
                 lat: parseFloat(String(row[COL.LAT] || "0").replace(',', '.')),
                 lng: parseFloat(String(row[COL.LNG] || "0").replace(',', '.')),

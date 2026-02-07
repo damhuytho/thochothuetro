@@ -19,52 +19,6 @@ body {
 a { text-decoration: none; }
 ul { padding-left: 0; list-style: none; }
 
-
-/* =========================================
-   4. CARD (THẺ PHÒNG TRỌ)
-   ========================================= */
-.room-card {
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: #fff;
-    height: 100%;
-    display: flex; flex-direction: column;
-    border: 1px solid #eee;
-}
-
-.room-card .card-body { flex: 1; display: flex; flex-direction: column; }
-
-.room-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-    border-color: var(--primary);
-}
-
-.room-card .card-img-top {
-    height: 200px;
-    width: 100%;
-    object-fit: cover;
-}
-
-/* Style cho căn ĐÃ THUÊ */
-.room-card.rented {
-    opacity: 0.9; 
-    filter: grayscale(30%); 
-    cursor: pointer;
-}
-
-.rented-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-
 /* =========================================
    6. HEADER & BREADCRUMB
    ========================================= */
@@ -93,8 +47,7 @@ ul { padding-left: 0; list-style: none; }
 .breadcrumb-custom a:hover { color: #f1c40f !important; }
 .breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; opacity: 0.5; color: #999 !important; }
 
-/* Header riêng cho trang Detail */
-
+/* Header riêng cho trang Detail cũ - Giữ lại phòng hờ */
 .property-header {
     background: #ffffff !important;   /* Nền trắng */
     padding: 15px 0 !important;       /* Thu hẹp chiều cao */
@@ -104,92 +57,9 @@ ul { padding-left: 0; list-style: none; }
     box-shadow: none !important;      /* Bỏ bóng đổ */
 }
 
-
-
-/* =========================================
-   8. CHI TIẾT PHÒNG (DETAIL PAGE ELEMENTS)
-   ========================================= */
-
-/* Class ép tỷ lệ 4:3 cho mọi tình huống */
-.ratio-4-3-forced {
-    width: 100%;
-    aspect-ratio: 4/3;
-    object-fit: cover; /* Cắt ảnh thừa để lấp đầy khung 4:3 */
-    display: block;
-}
-
-/* Gallery Ảnh - Bố cục Thương mại điện tử */
-.gallery-container { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-}
-
-/* Khung ảnh lớn */
-.gallery-main-frame {
-    width: 100%; 
-    aspect-ratio: 4/3; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    position: relative; 
-    background: #f0f0f0;
-    border: 1px solid #eee;
-}
-
-/* Thanh trượt ảnh nhỏ (Thumbnails) */
-.gallery-thumbs-scroll { 
-    display: flex; 
-    gap: 10px; 
-    overflow-x: auto; /* Cho phép vuốt ngang */
-    scroll-snap-type: x mandatory; /* Hiệu ứng vuốt từng nấc */
-    padding-bottom: 5px; /* Chừa chỗ cho thanh scrollbar (nếu có) */
-    -webkit-overflow-scrolling: touch; /* Mượt mà trên iOS */
-}
-
-/* Ẩn thanh scrollbar cho đẹp */
-.gallery-thumbs-scroll::-webkit-scrollbar { height: 4px; }
-.gallery-thumbs-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-.gallery-thumbs-scroll::-webkit-scrollbar-track { background: transparent; }
-
-/* Từng ô ảnh nhỏ */
-.gallery-thumb-item { 
-    flex: 0 0 85px; /* Chiều rộng cố định 85px */
-    aspect-ratio: 4/3; 
-    border-radius: 8px; 
-    overflow: hidden; 
-    cursor: pointer; 
-    border: 2px solid transparent; /* Viền trong suốt */
-    opacity: 0.7; 
-    transition: all 0.2s;
-    scroll-snap-align: start;
-    background: #f0f0f0;
-}
-
-/* Trạng thái ảnh nhỏ đang được chọn hoặc hover */
-.gallery-thumb-item:hover, 
-.gallery-thumb-item.active { 
-    opacity: 1; 
-    border-color: var(--primary); /* Viền vàng khi chọn */
-}
-
-
-
-
-/* Tiêu đề section (Mô tả, Vị trí...) */
-.section-title { 
-    font-weight: 700; font-size: 1.25rem; margin-bottom: 20px; 
-    color: var(--text-dark); position: relative; padding-left: 15px; 
-}
-.section-title::before { 
-    content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; 
-    width: 4px; background: var(--primary); border-radius: 2px; 
-}
-
-
 /* =========================================
    9. SIDEBAR & CONTACT CARD (FIXED - STICKY)
    ========================================= */
-
 
 .sidebar-wrapper { 
     height: 100%; 
@@ -245,21 +115,16 @@ ul { padding-left: 0; list-style: none; }
     50% { opacity: 0.7; transform: scale(1.1); }
 }
 
-
 /* =========================================
    12. RESPONSIVE MEDIA QUERIES
    ========================================= */
-
-    /* Others */
-    .gallery-main-frame { aspect-ratio: 4/3; max-height: 400px; }
-    .room-card .card-img-top { height: 180px; }
-    
+@media (max-width: 991px) {
     /* Reset Sticky Mobile */
     .sidebar-sticky-inner { position: static !important; }
-    
     /* Đẩy footer lên tránh bị nút gọi che */
     body { padding-bottom: 70px !important; }
 }
+
 /* =========================================================
    FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN (ĐÃ SỬA LỖI)
    ========================================================= */
@@ -315,7 +180,6 @@ ul { padding-left: 0; list-style: none; }
     text-transform: uppercase; /* Viết hoa toàn bộ tiêu đề */
 }
 
-
 /* Định dạng lại Breadcrumb để nó nằm giữa và đẹp hơn */
 .header-breadcrumb {
     display: flex;
@@ -341,38 +205,13 @@ ul { padding-left: 0; list-style: none; }
     color: #ccc;
 }
 
-    /* Hiệu ứng hover chỉ khi CHƯA thuê */
-    .room-card:not(.rented-card):hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transition: all 0.3s ease; }
-    
-    /* Card đã thuê thì mờ đi chút */
-    .rented-card { opacity: 0.85; pointer-events: none; } /* Có thể bỏ pointer-events nếu vẫn muốn cho khách click vào xem */
-    .rented-card .stretched-link { pointer-events: auto; } /* Vẫn cho click để xem chi tiết */
-
-    .room-title { font-size: 1rem; line-height: 1.4; }
-    .room-price { font-size: 1.1rem; }
-    .room-keypoint { font-size: 0.95rem; }
-    .room-code { font-size: 0.75rem; }
-    .room-district { font-size: 0.85rem; }
-    .badge-promo { font-size: 0.75rem; }
-
-    @media (max-width: 576px) {
-        .room-title { font-size: 0.95rem; margin-bottom: 4px; }
-        .room-price { font-size: 0.95rem; }
-        .room-keypoint { font-size: 0.9rem; }
-        .room-code { font-size: 0.65rem; }
-        .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
-        .room-district { font-size: 0.8rem; }
-    }
-    
-    .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-    @media(min-width: 768px) { .text-truncate-2 { -webkit-line-clamp: 3; } }
 /* =========================================
-   13. MOBILE HEADER FIX (Thêm mới)
+   13. MOBILE HEADER FIX
    ========================================= */
 
 /* Chỉnh font chữ tên thương hiệu trên mobile */
 .brand-name-mobile {
-font-size: 1.25rem; /* Giảm nhẹ kích thước nếu cần */
+    font-size: 1.25rem; /* Giảm nhẹ kích thước nếu cần */
     line-height: 1.5;    /* Tăng khoảng cách dòng để không bị che khuất */
     display: flex;
     align-items: center;
@@ -406,7 +245,3 @@ font-size: 1.25rem; /* Giảm nhẹ kích thước nếu cần */
         font-size: 0.8rem !important;
     }
 }
-
-
-
-

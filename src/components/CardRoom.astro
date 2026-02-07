@@ -1,6 +1,5 @@
 ---
-const { room, priority = false, citySlug = 'ho-chi-minh' } = Astro.props; 
-
+const { room, priority = false, citySlug = 'ho-chi-minh' } = Astro.props;
 function hideNumber(address) {
     if (!address) return "";
     return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
@@ -25,7 +24,6 @@ function createSlug(str) {
 // --- LOGIC ẢNH MỚI (Ghép ID thành Link) ---
 const IMG_BASE_URL = "https://img.thochothuetro.com";
 let displayImage = '/logo.png';
-
 // 1. Ưu tiên dùng trường image_thumb (ID ảnh thumb chuẩn)
 if (room.image_thumb) {
     displayImage = `${IMG_BASE_URL}/${room.image_thumb}_thumb.webp`;
@@ -49,7 +47,7 @@ const isRented = room.status === 'rented';
              alt={`Cho thuê ${room.type} ${room.address}, ${room.district}`}
              width="400" height="300"
              loading={priority ? "eager" : "lazy"} 
-             fetchpriority={priority ? "auto" : "low"}
+             fetchpriority={priority ? "high" : "low"}
              decoding="async"
              style="aspect-ratio: 4/3; object-fit: cover; width: 100%; height: auto;">
         
@@ -72,6 +70,7 @@ const isRented = room.status === 'rented';
         <h6 class="fw-bold text-dark mb-1 mb-md-2 room-title">
             {cardTitle}
         </h6>
+    
         <div class="mb-1 mb-md-2">
             <span class="badge bg-light text-dark border fw-normal room-code">
                 {room.room_code}
@@ -96,3 +95,78 @@ const isRented = room.status === 'rented';
 
     <a href={detailLink} class="stretched-link"></a>
 </div>
+
+<style>
+    /* 4. CARD (THẺ PHÒNG TRỌ) - Di chuyển từ style.css */
+    .room-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: #fff;
+        height: 100%;
+        display: flex; flex-direction: column;
+        border: 1px solid #eee;
+    }
+
+    .room-card .card-body { flex: 1; display: flex; flex-direction: column; }
+
+    /* Hiệu ứng hover chỉ khi CHƯA thuê */
+    .room-card:not(.rented-card):hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        border-color: #f1c40f; /* var(--primary) */
+    }
+
+    .room-card .card-img-top {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    /* Style cho căn ĐÃ THUÊ */
+    .room-card.rented-card {
+        opacity: 0.9; 
+        filter: grayscale(30%); 
+        cursor: pointer;
+    }
+    
+    /* Vẫn cho click để xem chi tiết */
+    .rented-card .stretched-link { pointer-events: auto; } 
+
+    .rented-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
+    .room-title { font-size: 1rem; line-height: 1.4; }
+    .room-price { font-size: 1.1rem; }
+    .room-keypoint { font-size: 0.95rem; }
+    .room-code { font-size: 0.75rem; }
+    .room-district { font-size: 0.85rem; }
+    .badge-promo { font-size: 0.75rem; }
+    
+    .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* RESPONSIVE */
+    @media (max-width: 576px) {
+        .room-title { font-size: 0.95rem; margin-bottom: 4px; }
+        .room-price { font-size: 0.95rem; }
+        .room-keypoint { font-size: 0.9rem; }
+        .room-code { font-size: 0.65rem; }
+        .badge-promo { font-size: 0.6rem; padding: 2px 4px !important; }
+        .room-district { font-size: 0.8rem; }
+    }
+    
+    @media(min-width: 768px) { 
+        .text-truncate-2 { -webkit-line-clamp: 3; } 
+    }
+    
+    @media (max-width: 991px) {
+        .room-card .card-img-top { height: 180px; }
+    }
+</style>
