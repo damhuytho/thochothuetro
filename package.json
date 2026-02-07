@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
     "@aws-sdk/client-s3": "^3.981.0",
+    "@fontsource/be-vietnam-pro": "^5.2.8",
     "@popperjs/core": "^2.11.8",
     "astro": "^5.16.15",
     "axios": "^1.13.4",

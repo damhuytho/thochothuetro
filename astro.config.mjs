@@ -1,6 +1,13 @@
 import { defineConfig } from 'astro/config';
 
+import sitemap from '@astrojs/sitemap';
+
 export default defineConfig({
-  site: 'https://thochothuetro.com', // Thay bằng domain thật
-  base: '/', // Giữ nguyên là /
+  // Thay bằng domain thật
+  site: 'https://thochothuetro.com',
+
+  // Giữ nguyên là /
+  base: '/',
+
+  integrations: [sitemap()]
 });

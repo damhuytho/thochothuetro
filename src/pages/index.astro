@@ -7,10 +7,15 @@ const pageDesc = "Hệ thống phòng trọ, căn hộ dịch vụ tiện nghi, 
 
 // Cấu hình Link ảnh Banner (Đảm bảo 2 ảnh này có trên R2 hoặc host ảnh của bạn)
 const BANNER_HCM = "https://img.thochothuetro.com/banner-mobile.webp";
-const BANNER_HN  = "https://img.thochothuetro.com/banner.webp";
+const BANNER_HN  = "https://img.thochothuetro.com/banner-mobile.webp";
 ---
 
-<Layout title={pageTitle} description={pageDesc} isLanding={true} preloadImage={BANNER_HN}>
+<Layout title={pageTitle} description={pageDesc} isLanding={true}>
+    <Fragment slot="head">
+        <link rel="preload" href={BANNER_HCM} as="image" media="(max-width: 767px)" fetchpriority="high" />
+        
+        <link rel="preload" href={BANNER_HN} as="image" media="(min-width: 768px)" fetchpriority="high" />
+    </Fragment>
     <section class="landing-hero d-flex align-items-center justify-content-center">
         <div class="overlay"></div>
         <div class="content text-center position-relative z-2 container">
@@ -82,11 +87,19 @@ const BANNER_HN  = "https://img.thochothuetro.com/banner.webp";
         position: relative;
         min-height: 100vh;
         background-color: #1a1a1a;
-        /* Ảnh nền chung cho cả trang landing */
-        background-image: url('https://img.thochothuetro.com/banner.webp');
+        
+        /* 1. MẶC ĐỊNH (Mobile): Dùng ảnh nhẹ banner-mobile.webp */
+        background-image: url('https://img.thochothuetro.com/banner-mobile.webp');
         background-size: cover;
         background-position: center;
         overflow: hidden;
+    }
+
+    /* 2. MÀN HÌNH LỚN (Desktop/Tablet >= 768px): Đổi sang ảnh to banner.webp */
+    @media (min-width: 768px) {
+        .landing-hero {
+            background-image: url('https://img.thochothuetro.com/banner.webp');
+        }
     }
     .overlay {
         position: absolute;

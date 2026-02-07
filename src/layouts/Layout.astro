@@ -5,6 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import '../styles/main.scss';
 import '../styles/style.css';
+import '@fontsource/be-vietnam-pro/400.css';
+import '@fontsource/be-vietnam-pro/500.css';
+import '@fontsource/be-vietnam-pro/600.css';
+import '@fontsource/be-vietnam-pro/700.css';
 
 export interface Props {
     title: string;
@@ -92,7 +96,7 @@ if (currentCity) {
     <meta name="generator" content={Astro.generator} />
 
     <link rel="preconnect" href="https://img.thochothuetro.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
@@ -101,14 +105,9 @@ if (currentCity) {
         <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
     )}
     
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
-    </noscript>
-
+    
    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
+    
     
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -655,5 +654,7 @@ if (currentCity) {
             </div>
         </div>
     </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
 </body>
 </html>
