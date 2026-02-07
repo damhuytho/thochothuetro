@@ -1,14 +1,14 @@
 {
-  "timestamp": 1770192737303,
+  "timestamp": 1770472802254,
   "city": "Hồ Chí Minh",
   "total": 242,
-  "active": 242,
-  "rented": 0,
+  "active": 237,
+  "rented": 5,
   "rooms": [
     {
-      "id": "can-ho-studio-nguyen-bac-ban-cong-p201-6-5tr-studio",
+      "id": "can-ho-studio-nguyen-bac-ban-cong-p201",
       "city": "hochiminh",
-      "room_code": "P201-6.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Hầm xe, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -29,9 +29,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-bac-cua-so-tach-bep-p302-4-8tr-studio",
+      "id": "can-ho-studio-nguyen-bac-cua-so-tach-bep-p302",
       "city": "hochiminh",
-      "room_code": "P302-4.8TR-STUDIO",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang bộ, Hầm xe, Tách bếp, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -50,9 +50,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-hoang-van-thu-cua-so-thang-may-p203-5tr-studio",
+      "id": "can-ho-studio-hoang-van-thu-cua-so-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-5TR-STUDIO",
+      "room_code": "P203",
       "district": "Tân Bình",
       "address": "Hoàng Văn Thụ, Phường 4 Tân Bình",
       "keypoint": "STUDIO, Thang máy, Cửa sổ thoáng mát, phòng rộng ở được 3 người",
@@ -80,9 +80,9 @@
       "image_thumb": "P203-5TR-STUDIO-Khung-H_CD90A797-ID139621"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-pg01-6tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-6TR-STUDIO",
+      "room_code": "PG01",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Thang bộ, Máy giặt chung",
@@ -110,9 +110,9 @@
       "image_thumb": "PG01-6TR-STUDIO-Khung-H_6E3D6CEB-ID129864"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p101-4-8tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p101",
       "city": "hochiminh",
-      "room_code": "P101-4.8TR-STUDIO",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang bộ, Máy giặt chung",
@@ -140,9 +140,9 @@
       "image_thumb": "P101-4-8TR-STUDIO-Khung-149862-H_6E3D6CEB"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p301-4-8tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p301",
       "city": "hochiminh",
-      "room_code": "P301-4.8TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang bộ, Máy giặt chung",
@@ -170,9 +170,9 @@
       "image_thumb": "P301-4-8TR-STUDIO-Khung-H_6E3D6CEB-ID109802"
     },
     {
-      "id": "can-ho-studio-yen-the-cua-so-thang-may-p303-8-5tr-studio",
+      "id": "can-ho-studio-yen-the-cua-so-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-8.5TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Yên Thế, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Khóa vân tay, Giờ giấc tự do",
@@ -200,9 +200,9 @@
       "image_thumb": "P303-8-5TR-STUDIO-Khung-H_55760EDD-ID111016"
     },
     {
-      "id": "can-ho-1pn-yen-the-ban-cong-tach-bep-p505-9-5tr-1pn",
+      "id": "can-ho-1pn-yen-the-ban-cong-tach-bep-p505",
       "city": "hochiminh",
-      "room_code": "P505-9.5TR-1PN",
+      "room_code": "P505",
       "district": "Tân Bình",
       "address": "Yên Thế, Phường 2, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Khóa vân tay, Giờ giấc tự do",
@@ -230,9 +230,9 @@
       "image_thumb": "P505-9-5TR-1PN-Khung-H_55760EDD-ID136877"
     },
     {
-      "id": "can-ho-studio-banh-van-tran-ban-cong-thang-may-p203-8-5tr-studio",
+      "id": "can-ho-studio-banh-van-tran-ban-cong-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-8.5TR-STUDIO",
+      "room_code": "P203",
       "district": "Tân Bình",
       "address": "Bành Văn Trân, Phường 7, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang máy, Hầm xe",
@@ -260,9 +260,9 @@
       "image_thumb": "P203-8-5TR-STUDIO-Khung-H_13A215E2-ID111105"
     },
     {
-      "id": "can-ho-studio-banh-van-tran-ban-cong-thang-may-p303-8-5tr-studio",
+      "id": "can-ho-studio-banh-van-tran-ban-cong-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-8.5TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Bành Văn Trân, Phường 7, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang máy, Hầm xe",
@@ -290,9 +290,9 @@
       "image_thumb": "P303-8-5TR-STUDIO-Khung-H_13A215E2-ID264235"
     },
     {
-      "id": "can-ho-1pn-le-van-sy-tach-bep-thang-may-p5c-13tr-1pn",
+      "id": "can-ho-1pn-le-van-sy-tach-bep-thang-may-p5c",
       "city": "hochiminh",
-      "room_code": "P5C-13TR-1PN",
+      "room_code": "P5C",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Thang máy, Nuôi Pet",
@@ -320,9 +320,9 @@
       "image_thumb": "P5C-13TR-1PN-Khung-H_6FB62E63-ID121822"
     },
     {
-      "id": "can-ho-studio-co-giang-p101-8-5tr-studio",
+      "id": "can-ho-studio-co-giang-p101",
       "city": "hochiminh",
-      "room_code": "P101-8.5TR-STUDIO",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Cô Giang, Phường Cầu Kiệu, Quận Phú Nhuận",
       "keypoint": "STUDIO, Giờ giấc tự do",
@@ -350,9 +350,9 @@
       "image_thumb": "P101-8-5TR-STUDIO-Khung-151784-H_35B05C55"
     },
     {
-      "id": "can-ho-studio-nguyen-thi-huynh-ban-cong-p201-5-5tr-studio",
+      "id": "can-ho-studio-nguyen-thi-huynh-ban-cong-p201",
       "city": "hochiminh",
-      "room_code": "P201-5.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Nguyễn thị Huỳnh, Phú nhuận",
       "keypoint": "STUDIO, Ban công, Full nội thất",
@@ -379,9 +379,9 @@
       "image_thumb": "P201-5-5TR-STUDIO-Khung-H_8F33B495-ID232745"
     },
     {
-      "id": "can-ho-studio-hoang-dieu-cua-so-thang-may-p502-9tr-studio",
+      "id": "can-ho-studio-hoang-dieu-cua-so-thang-may-p502",
       "city": "hochiminh",
-      "room_code": "P502-9TR-STUDIO",
+      "room_code": "P502",
       "district": "Phú Nhuận",
       "address": "Hoàng Diệu, phường 10 Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -409,9 +409,9 @@
       "image_thumb": "P502-9TR-STUDIO-Khung-190152-H_09DB34AA"
     },
     {
-      "id": "can-ho-studio-phan-dang-luu-cua-so-thang-may-p402-5-5tr-studio",
+      "id": "can-ho-studio-phan-dang-luu-cua-so-thang-may-p402",
       "city": "hochiminh",
-      "room_code": "P402-5.5TR-STUDIO",
+      "room_code": "P402",
       "district": "Phú Nhuận",
       "address": "Phan Đăng Lưu, Phường 3, Q Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Giờ giấc tự do, Máy giặt chung, Nuôi Pet",
@@ -430,9 +430,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chinh-ban-cong-p05-7tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chinh-ban-cong-p05",
       "city": "hochiminh",
-      "room_code": "P05-7TR-STUDIO",
+      "room_code": "P05",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chính, Phường 15, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -453,9 +453,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-phung-van-cung-ban-cong-p101-5-5tr-studio",
+      "id": "can-ho-studio-phung-van-cung-ban-cong-p101",
       "city": "hochiminh",
-      "room_code": "P101-5.5TR-STUDIO",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Phùng Văn Cung, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thoáng mát",
@@ -481,9 +481,9 @@
       "image_thumb": "P101-5-5TR-STUDIO-Khung-H_0D003631-ID393467"
     },
     {
-      "id": "can-ho-studio-dao-duy-anh-cua-so-p001-6-5tr-studio",
+      "id": "can-ho-studio-dao-duy-anh-cua-so-p001",
       "city": "hochiminh",
-      "room_code": "P001-6.5TR-STUDIO",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Đào Duy Anh, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ",
@@ -511,9 +511,9 @@
       "image_thumb": "P001-6-5TR-STUDIO-Khung-H_30A355FE-ID301291"
     },
     {
-      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p101-6-5tr-1pn",
+      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P101-6.5TR-1PN",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "1PN, Ban công, Thang máy, Tách bếp, Máy giặt chung, Full nội thất, Gần Sân bay, Camera an ninh 24/7",
@@ -541,9 +541,9 @@
       "image_thumb": "P101-6-5TR-1PN-Khung-H_684EB3FB-ID148467"
     },
     {
-      "id": "can-ho-1pn-hoang-sa-ban-cong-tach-bep-p103-7-5tr-1pn",
+      "id": "can-ho-1pn-hoang-sa-ban-cong-tach-bep-p103",
       "city": "hochiminh",
-      "room_code": "P103-7.5TR-1PN",
+      "room_code": "P103",
       "district": "Tân Bình",
       "address": "Hoàng Sa, Tân Bình",
       "keypoint": "1PN, Ban công, Tách bếp, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -571,9 +571,9 @@
       "image_thumb": "P103-7-5TR-1PN-Khung-H_814AFFE8-ID177072"
     },
     {
-      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p202-14tr-1pn",
+      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p202",
       "city": "hochiminh",
-      "room_code": "P202-14TR-1PN",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Cô Giang, Phường 2, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công",
@@ -601,9 +601,9 @@
       "image_thumb": "P202-14TR-1PN-Khung-H_A0EC13F4-ID148249"
     },
     {
-      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p203-14tr-1pn",
+      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p203",
       "city": "hochiminh",
-      "room_code": "P203-14TR-1PN",
+      "room_code": "P203",
       "district": "Phú Nhuận",
       "address": "Cô Giang, Phường 2, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công",
@@ -631,9 +631,9 @@
       "image_thumb": "P203-14TR-1PN-Khung-H_A0EC13F4-ID183892"
     },
     {
-      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p204-14tr-1pn",
+      "id": "can-ho-1pn-co-giang-ban-cong-tach-bep-p204",
       "city": "hochiminh",
-      "room_code": "P204-14TR-1PN",
+      "room_code": "P204",
       "district": "Phú Nhuận",
       "address": "Cô Giang, Phường 2, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công",
@@ -652,9 +652,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-p304-4-5tr-duplex",
+      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-p304",
       "city": "hochiminh",
-      "room_code": "P304-4.5TR-DUPLEX",
+      "room_code": "P304",
       "district": "Bình Thạnh",
       "address": "Xô Viết Nghệ Tĩnh, Phường 25, Quận Bình Thạnh",
       "keypoint": "DUPLEX, Cửa sổ, Khóa vân tay, Giờ giấc tự do, Máy giặt chung",
@@ -682,9 +682,9 @@
       "image_thumb": "P304-4-5TR-DUPLEX-Khung-H_3383C115-ID362769"
     },
     {
-      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-p102-4-5tr-duplex",
+      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-4.5TR-DUPLEX",
+      "room_code": "P102",
       "district": "Bình Thạnh",
       "address": "Xô Viết Nghệ Tĩnh, Phường 25, Quận Bình Thạnh",
       "keypoint": "DUPLEX, Cửa sổ, Khóa vân tay, Giờ giấc tự do, Máy giặt chung",
@@ -712,9 +712,9 @@
       "image_thumb": "P102-4-5TR-DUPLEX-Khung-H_3383C115-ID229481"
     },
     {
-      "id": "can-ho-1pn-dao-duy-tu-cua-so-tach-bep-pg01-7-9tr-1pn",
+      "id": "can-ho-1pn-dao-duy-tu-cua-so-tach-bep-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-7.9TR-1PN",
+      "room_code": "PG01",
       "district": "Phú Nhuận",
       "address": "Đào Duy Từ, Phường 15, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Cửa sổ, Thoáng mát, Máy giặt chung, Full nội thất, Gần Chợ/Siêu thị",
@@ -742,9 +742,9 @@
       "image_thumb": "PG01-7-9TR-1PN-Khung-H_79263C93-ID114080"
     },
     {
-      "id": "can-ho-studio-phan-xich-long-cua-so-p202-4-3tr-studio",
+      "id": "can-ho-studio-phan-xich-long-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-4.3TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Phan Xích Long, Quận Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát",
@@ -772,9 +772,9 @@
       "image_thumb": "P202-4-3TR-STUDIO-Khung-230656-H_52D67974"
     },
     {
-      "id": "can-ho-studio-hoang-sa-p001-6-8tr-studio",
+      "id": "can-ho-studio-hoang-sa-p001",
       "city": "hochiminh",
-      "room_code": "P001-6.8TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Hoàng Sa, Tân Sơn Nhất, Tân Bình",
       "keypoint": "STUDIO, Gần Sân bay, Gần Chợ/Siêu thị",
@@ -802,9 +802,9 @@
       "image_thumb": "P001-6-8TR-STUDIO-Khung-H_2050D01A-ID105720"
     },
     {
-      "id": "can-ho-studio-hoang-sa-p002-6-3tr-studio",
+      "id": "can-ho-studio-hoang-sa-p002",
       "city": "hochiminh",
-      "room_code": "P002-6.3TR-STUDIO",
+      "room_code": "P002",
       "district": "Tân Bình",
       "address": "Hoàng Sa, Tân Sơn Nhất, Tân Bình",
       "keypoint": "STUDIO, Gần Sân bay, Gần Chợ/Siêu thị",
@@ -832,9 +832,9 @@
       "image_thumb": "P002-6-3TR-STUDIO-Khung-H_2050D01A-ID131994"
     },
     {
-      "id": "can-ho-studio-cong-hoa-cua-so-p102-5tr-studio",
+      "id": "can-ho-studio-cong-hoa-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-5TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Cộng Hoà, Phường 4, Quận Tân Bình",
       "keypoint": "STUDIO, Hầm xe, Giờ giấc tự do, Full nội thất, Gần Chợ/Siêu thị, Camera an ninh 24/7, cửa sổ thoáng rộng",
@@ -862,9 +862,9 @@
       "image_thumb": "P102-5TR-STUDIO-Khung-177358-H_14BFFB63"
     },
     {
-      "id": "can-ho-1pn-nguyen-thi-huynh-tach-bep-p202-5-2tr-1pn",
+      "id": "can-ho-1pn-nguyen-thi-huynh-tach-bep-p202",
       "city": "hochiminh",
-      "room_code": "P202-5.2TR-1PN",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Nguyễn Thị Huỳnh, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Khóa vân tay",
@@ -891,9 +891,9 @@
       "image_thumb": "P202-5-2TR-1PN-Khung-H_F808E784-ID326284"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-cua-so-p202-4-9tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-4.9TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ",
@@ -921,9 +921,9 @@
       "image_thumb": "P202-4-9TR-STUDIO-Khung-141493-H_143F8516"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chinh-pm001-4-1tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chinh-pm001",
       "city": "hochiminh",
-      "room_code": "PM001-4.1TR-STUDIO",
+      "room_code": "PM001",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chính, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Tầng trệt 🎁 KM Giảm 4.3tr còn 4.1tr cho dịp tết",
@@ -951,9 +951,9 @@
       "image_thumb": "PM001-4-1TR-STUDIO-Khung-H_0A478C2E-ID173814"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chinh-pm002-4-3tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chinh-pm002",
       "city": "hochiminh",
-      "room_code": "PM002-4.3TR-STUDIO",
+      "room_code": "PM002",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chính, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Lầu 1 🎁 KM Giảm từ 4.6tr còn 4.5tr",
@@ -981,9 +981,9 @@
       "image_thumb": "PM002-4-3TR-STUDIO-Khung-H_0A478C2E-ID179623"
     },
     {
-      "id": "can-ho-studio-cuu-long-thang-may-p502-9tr-studio",
+      "id": "can-ho-studio-cuu-long-thang-may-p502",
       "city": "hochiminh",
-      "room_code": "P502-9TR-STUDIO",
+      "room_code": "P502",
       "district": "Tân Bình",
       "address": "Cửu Long, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Giờ giấc tự do",
@@ -1011,60 +1011,9 @@
       "image_thumb": "P502-9TR-STUDIO-Khung-227731-H_1EF09F85"
     },
     {
-      "id": "can-ho-1pn-tan-son-hoa-ban-cong-tach-bep-p302-6-2tr-1pn",
+      "id": "can-ho-studio-243-5-7-bui-thi-xuan-p102",
       "city": "hochiminh",
-      "room_code": "P302-6.2TR-1PN",
-      "district": "Tân Bình",
-      "address": "Tân Sơn Hoà, Phường 3, Quận Tân Bình",
-      "keypoint": "Tách bếp, 1PN, Ban công",
-      "price": 6200000,
-      "desc": "🏠 Tìm kiếm căn hộ 1PN ban công rộng rãi, an ninh tại đường Tân Sơn Hoà, quận Tân Bình? Dành cho người nội trợ, dân văn phòng yêu thích sự tiện lợi!\n\n📍 Vị trí đắc địa: Ngay đường Tân Sơn Hoà, dễ dàng di chuyển đến Phú Nhuận và các khu vực trung tâm Tân Bình.\n🚀 Tiện ích liền kề: Chỉ 200m đến Chợ Phạm Văn Hai sầm uất, 600m đến Công an Quận Tân Bình, an tâm tuyệt đối. Hồ bơi Cộng Hòa cách 700m, THCS Ngô Tất Tố cách 800m, Bệnh viện Đa khoa Tâm Anh cách 800m.\n🔑 Chi tiết căn hộ: Ban công siêu rộng. Điện 4K/kWh, nước 100K/người, phí dịch vụ 150K/phòng. Gửi xe ngay bãi gần nhà (cách 50m) với giá 300K/chiếc. Ký hợp đồng 12 tháng, miễn phí dịch vụ!",
-      "pet": "Hỏi lại",
-      "status": "active",
-      "type": "1PN",
-      "updated_at": "06/01/2026 11:19:03",
-      "promotion": "",
-      "lat": 10.7962112,
-      "lng": 106.6624832,
-      "video": "",
-      "image_detail": [
-        "P302-6-2TR-1PN-Khung-102316-H_F3184FCB",
-        "P302-6-2TR-1PN-Khung-230559-H_F3184FCB",
-        "P302-6-2TR-1PN-Khung-266860-H_F3184FCB",
-        "P302-6-2TR-1PN-Khung-461757-H_F3184FCB",
-        "P302-6-2TR-1PN-Khung-483332-H_F3184FCB",
-        "P302-6-2TR-1PN-Khung-501337-H_F3184FCB"
-      ],
-      "image_collage": [
-        "P302-6-2TR-1PN-Collage-294352-H_F3184FCB"
-      ],
-      "image_thumb": "P302-6-2TR-1PN-Khung-102316-H_F3184FCB"
-    },
-    {
-      "id": "can-ho-studio-243-5-7-bui-thi-xuan-pg03-6-5tr-studio",
-      "city": "hochiminh",
-      "room_code": "PG03-6.5TR-STUDIO",
-      "district": "Tân Bình",
-      "address": "243/5-7 Bùi Thị Xuân, Phường 1, Quận Tân Bình",
-      "keypoint": "STUDIO",
-      "price": 6500000,
-      "desc": "🔑 Sở hữu ngay căn hộ STUDIO tiện nghi tại đường Bùi Thị Xuân, Quận Tân Bình!\n\n📍 Vị trí đắc địa trung tâm Quận Tân Bình, thuận tiện di chuyển đến Phú Nhuận và các khu vực lân cận.\n\n🏠 Dành cho những ai yêu thích cuộc sống năng động:\n  - Chợ Phạm Văn Hai chỉ cách 400m, tha hồ mua sắm.\n  - THCS Ngô Tất Tố (700m) và Trường Mầm non Sơn Ca 10 (800m) ngay gần nhà, tiện lợi cho gia đình trẻ.\n  - Dành cho sinh viên UEF, chỉ 800m là đến trường.\n  - Hồ bơi Cộng Hòa cách 800m, dễ dàng rèn luyện sức khỏe.\n\n🚀 Tận hưởng cuộc sống tiện nghi với chi phí hợp lý:\n  - Điện: 4K/Kwh\n  - Nước: 150K/người\n  - Gửi xe: 150K/xe\n  - Quản lý: 200K/phòng\n\nVới vị trí trung tâm và tiện ích xung quanh, căn hộ STUDIO tại Bùi Thị Xuân là lựa chọn lý tưởng cho người độc thân, vợ chồng trẻ hoặc sinh viên đang tìm kiếm một không gian sống thoải mái và tiện lợi.",
-      "pet": "Hỏi lại",
-      "status": "active",
-      "type": "STUDIO",
-      "updated_at": "06/01/2026",
-      "promotion": "",
-      "lat": 10.7926635,
-      "lng": 106.6655612,
-      "video": "",
-      "image_detail": [],
-      "image_collage": [],
-      "image_thumb": ""
-    },
-    {
-      "id": "can-ho-studio-243-5-7-bui-thi-xuan-p102-6-2tr-studio",
-      "city": "hochiminh",
-      "room_code": "P102-6.2TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "243/5-7 Bùi Thị Xuân, Phường 1, Quận Tân Bình",
       "keypoint": "STUDIO",
@@ -1092,32 +1041,9 @@
       "image_thumb": "P102-6-2TR-STUDIO-Khung-H_9FC26709-ID276050"
     },
     {
-      "id": "can-ho-studio-243-5-7-bui-thi-xuan-p301-6-2tr-studio",
+      "id": "can-ho-studio-tran-hung-dao-p201",
       "city": "hochiminh",
-      "room_code": "P301-6.2TR-STUDIO",
-      "district": "Tân Bình",
-      "address": "243/5-7 Bùi Thị Xuân, Phường 1, Quận Tân Bình",
-      "keypoint": "STUDIO",
-      "price": 6200000,
-      "desc": "🔑 Sở hữu ngay căn hộ STUDIO tiện nghi tại đường Bùi Thị Xuân, Quận Tân Bình! Vị trí trung tâm, kết nối dễ dàng đến Phú Nhuận.\n\n📍 Vị trí đắc địa: Chợ Phạm Văn Hai chỉ cách 400m, tha hồ mua sắm. THCS Ngô Tất Tố cách 700m, Trường Mầm non Sơn Ca 10 cách 800m – lựa chọn lý tưởng cho gia đình trẻ có con nhỏ.\n\n🏠 Tiện ích liền kề: Sinh viên UEF chỉ mất vài phút di chuyển (cách 800m). Hồ bơi Cộng Hòa (cách 800m) giúp bạn thư giãn sau ngày dài.\n\n🚀 Chi phí hợp lý: Điện 4K/kWh, nước 150K/người, gửi xe 150K/xe, quản lý 200K/phòng. Khu vực sầm uất, an ninh, phù hợp với nhân viên văn phòng Quận Tân Bình.",
-      "pet": "Hỏi lại",
-      "status": "active",
-      "type": "STUDIO",
-      "updated_at": "6/1/2026 07:54:59",
-      "promotion": "",
-      "lat": 10.7926635,
-      "lng": 106.6655612,
-      "video": "",
-      "image_detail": [],
-      "image_collage": [
-        "P301-6-2TR-STUDIO-Collage-205936-H_9FC26709"
-      ],
-      "image_thumb": ""
-    },
-    {
-      "id": "can-ho-studio-tran-hung-dao-p201-10-5tr-studio",
-      "city": "hochiminh",
-      "room_code": "P201-10.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Quận 1",
       "address": "Trần Hưng Đạo, Quận 1",
       "keypoint": "STUDIO",
@@ -1145,9 +1071,9 @@
       "image_thumb": "P201-10-5TR-STUDIO-Khung-H_889BDD16-ID139369"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p702-13tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p702",
       "city": "hochiminh",
-      "room_code": "P702-13TR-2PN",
+      "room_code": "P702",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Khóa vân tay, Máy giặt riêng, Nuôi Pet",
@@ -1175,9 +1101,9 @@
       "image_thumb": "P702-13TR-2PN-Khung-H_3F2B3FC4-ID192745"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p602-13tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p602",
       "city": "hochiminh",
-      "room_code": "P602-13TR-2PN",
+      "room_code": "P602",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Khóa vân tay, Máy giặt riêng, Nuôi Pet",
@@ -1205,9 +1131,9 @@
       "image_thumb": "P602-13TR-2PN-Khung-127668-H_3F2B3FC4"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p501-13-5tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p501",
       "city": "hochiminh",
-      "room_code": "P501-13.5TR-2PN",
+      "room_code": "P501",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Khóa vân tay, Máy giặt riêng, Nuôi Pet",
@@ -1234,69 +1160,9 @@
       "image_thumb": "P501-13-5TR-2PN-Khung-H_3F2B3FC4-ID592899"
     },
     {
-      "id": "can-ho-studio-cuu-long-ban-cong-p205-6-2tr-studio",
+      "id": "can-ho-studio-truong-son-ban-cong-thang-may-p101",
       "city": "hochiminh",
-      "room_code": "P205-6.2TR-STUDIO",
-      "district": "Tân Bình",
-      "address": "Cửu Long, Phường 2, Tân Bình",
-      "keypoint": "STUDIO, Ban công, Gần Sân bay, Free Xe",
-      "price": 6200000,
-      "desc": "🔑 Studio ban công riêng, Đường Cửu Long, Tân Bình - Free Xe!\n📍 Vị trí đắc địa tại trung tâm quận Tân Bình, căn hộ studio 35m2 này là lựa chọn lý tưởng cho người tìm kiếm sự tiện lợi và thoải mái.\n\n🚀 Chỉ cách Sân bay Tân Sơn Nhất 1 khoảng đi bộ ngắn, rất thuận tiện cho những ai thường xuyên di chuyển.\n\n🏠 Tận hưởng không gian sống riêng tư với ban công thoáng mát. Nội thất đầy đủ: máy lạnh, kệ bếp, tủ lạnh, bàn làm việc, giường nệm, tủ quần áo. Máy giặt chung tiện lợi.\n\n📍 Vị trí vàng kết nối:\n- Chùa Phổ Quang (0.7km) - Dành cho Phật tử tìm sự an yên.\n- Công viên Gia Định (0.8km) - Thích hợp cho gia đình và người yêu thể thao.\n- Bệnh viện Đa khoa Tâm Anh (0.9km) - Thuận tiện cho chuyên gia y tế.\n- THPT Phú Nhuận (1km) - Lựa chọn tốt cho phụ huynh và học sinh.\n\n🅿️ Đặc biệt, free đến 3 xe! Điện 3.8K/số, nước 100K/người, phí dịch vụ 200K/phòng.",
-      "pet": "Hỏi lại",
-      "status": "active",
-      "type": "STUDIO",
-      "updated_at": "6/1/2026 09:36:53",
-      "promotion": "",
-      "lat": 10.8109393,
-      "lng": 106.6664706,
-      "video": "",
-      "image_detail": [
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID117998",
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID178342",
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID185045",
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID197490",
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID209282",
-        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID224665"
-      ],
-      "image_collage": [
-        "P205-6-2TR-STUDIO-Collage-H_89724A3E-ID127743"
-      ],
-      "image_thumb": "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID117998"
-    },
-    {
-      "id": "can-ho-1pn-hoang-van-thu-tach-bep-p301-6tr-1pn",
-      "city": "hochiminh",
-      "room_code": "P301-6TR-1PN",
-      "district": "Phú Nhuận",
-      "address": "Hoàng Văn Thụ, Phường 8, Quận Phú Nhuận",
-      "keypoint": "1PN, Khóa vân tay, Giờ giấc tự do, Tách bếp, Full nội thất, Free Xe, Nuôi Pet",
-      "price": 6000000,
-      "desc": "🏠 Tìm kiếm sự an toàn và tiện nghi tại căn hộ Phú Nhuận, ngay đường Hoàng Văn Thụ! An ninh tuyệt đối, lựa chọn hoàn hảo cho nữ độc thân và những ai yêu thích sự yên tĩnh.\n\n📍 Vị trí đắc địa: Chỉ 0.1km đến Công an Quận Phú Nhuận, an tâm tuyệt đối. Học viên Hàng Không VN cách 0.3km, lý tưởng cho sinh viên ngành bay và tiếp viên tương lai.\n\n🚀 Tiện ích vượt trội:\n🔑 Khóa vân tay an toàn, giờ giấc tự do.\n🏠 Full nội thất mới 100%, tách bếp riêng tư.\n🐕‍🦺 Cho phép nuôi pet, thoải mái tận hưởng cuộc sống.\n🛵 Free xe, không lo chi phí gửi xe.\n\n📍 Di chuyển dễ dàng: Bệnh viện Quận Phú Nhuận (0.4km), Trường Mầm non Sơn Ca 10 (0.5km), ĐH Kinh tế Tài chính (UEF) (0.5km). Kết nối nhanh chóng đến Tân Bình và các khu vực trung tâm khác của Phú Nhuận. Điện 4K, nước 100K/người, phí dịch vụ 200K/phòng.",
-      "pet": "Có",
-      "status": "active",
-      "type": "1PN",
-      "updated_at": "06/01/2026",
-      "promotion": "",
-      "lat": 10.7992445,
-      "lng": 106.6750619,
-      "video": "",
-      "image_detail": [
-        "P301-6TR-1PN-Khung-H_942D9B32-ID141412",
-        "P301-6TR-1PN-Khung-H_942D9B32-ID376916",
-        "P301-6TR-1PN-Khung-H_942D9B32-ID490102",
-        "P301-6TR-1PN-Khung-H_942D9B32-ID576722",
-        "P301-6TR-1PN-Khung-H_942D9B32-ID601882",
-        "P301-6TR-1PN-Khung-H_942D9B32-ID656755"
-      ],
-      "image_collage": [
-        "P301-6TR-1PN-Collage-H_942D9B32-ID166491"
-      ],
-      "image_thumb": "P301-6TR-1PN-Khung-H_942D9B32-ID141412"
-    },
-    {
-      "id": "can-ho-studio-truong-son-ban-cong-thang-may-p101-9tr-studio",
-      "city": "hochiminh",
-      "room_code": "P101-9TR-STUDIO",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Trường Sơn, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thoáng mát, Thang máy, Hầm xe, Gần Chợ/Siêu thị",
@@ -1315,9 +1181,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-bach-dang-ban-cong-p301-8-1tr-studio",
+      "id": "can-ho-studio-bach-dang-ban-cong-p301",
       "city": "hochiminh",
-      "room_code": "P301-8.1TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Quận Tân Bình",
       "keypoint": "STUDIO, Ban công, Giờ giấc tự do, Máy giặt riêng, Gần Sân bay",
@@ -1345,9 +1211,9 @@
       "image_thumb": "P301-8-1TR-STUDIO-Khung-H_C68D2566-ID485169"
     },
     {
-      "id": "can-ho-studio-bach-dang-ban-cong-p302-6-1tr-studio",
+      "id": "can-ho-studio-bach-dang-ban-cong-p302",
       "city": "hochiminh",
-      "room_code": "P302-6.1TR-STUDIO",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Quận Tân Bình",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Thoáng mát, Giờ giấc tự do, Full nội thất, Gần Sân bay, Gần Chợ/Siêu thị",
@@ -1375,9 +1241,9 @@
       "image_thumb": "P302-6-1TR-STUDIO-Khung-H_C68D2566-ID364522"
     },
     {
-      "id": "can-ho-1pn-nguyen-van-vinh-ban-cong-tach-bep-p101-9-5tr-1pn",
+      "id": "can-ho-1pn-nguyen-van-vinh-ban-cong-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P101-9.5TR-1PN",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Nguyễn Văn Vĩnh, Tân Sơn Nhất, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Full nội thất, Nuôi Pet",
@@ -1405,9 +1271,9 @@
       "image_thumb": "P101-9-5TR-1PN-Khung-H_4C0436DC-ID280310"
     },
     {
-      "id": "can-ho-1pn-nguyen-van-vinh-cua-so-tach-bep-p202-7-7tr-1pn",
+      "id": "can-ho-1pn-nguyen-van-vinh-cua-so-tach-bep-p202",
       "city": "hochiminh",
-      "room_code": "P202-7.7TR-1PN",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Nguyễn Văn Vĩnh, Tân Sơn Nhất, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Cửa sổ, Full nội thất, Nuôi Pet",
@@ -1435,9 +1301,9 @@
       "image_thumb": "P202-7-7TR-1PN-Khung-H_4C0436DC-ID139977"
     },
     {
-      "id": "can-ho-1pn-nguyen-van-vinh-tach-bep-p302-7-2tr-1pn",
+      "id": "can-ho-1pn-nguyen-van-vinh-tach-bep-p302",
       "city": "hochiminh",
-      "room_code": "P302-7.2TR-1PN",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Nguyễn Văn Vĩnh, Tân Sơn Nhất, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Full nội thất, Nuôi Pet",
@@ -1458,9 +1324,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-hoang-van-thu-cua-so-p102-5-5tr-studio",
+      "id": "can-ho-studio-hoang-van-thu-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-5.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Hoàng Văn Thụ, Phường 1, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Giờ giấc tự do, Full nội thất",
@@ -1488,9 +1354,9 @@
       "image_thumb": "P102-5-5TR-STUDIO-Khung-H_9E549744-ID122203"
     },
     {
-      "id": "can-ho-studio-hoang-van-thu-cua-so-p202-5-5tr-studio",
+      "id": "can-ho-studio-hoang-van-thu-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-5.5TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Hoàng Văn Thụ, Phường 1, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Giờ giấc tự do, Full nội thất",
@@ -1518,9 +1384,9 @@
       "image_thumb": "P202-5-5TR-STUDIO-Khung-H_9E549744-ID153727"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-ban-cong-p102-6tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-ban-cong-p102",
       "city": "hochiminh",
-      "room_code": "P102-6TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Giờ giấc tự do, Nuôi Pet",
@@ -1548,9 +1414,9 @@
       "image_thumb": "P102-6TR-STUDIO-Khung-H_339D4A32-ID132072"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p-tret-6-5tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-ptret",
       "city": "hochiminh",
-      "room_code": "P.Trệt-6.5TR-STUDIO",
+      "room_code": "PTret",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Phú Nhuận",
       "keypoint": "STUDIO, Giờ giấc tự do, Full nội thất, Nuôi Pet",
@@ -1578,9 +1444,9 @@
       "image_thumb": "P-Tret-6-5TR-STUDIO-Khung-H_339D4A32-ID101643"
     },
     {
-      "id": "can-ho-studio-huynh-van-banh-cua-so-p102-5tr-studio",
+      "id": "can-ho-studio-huynh-van-banh-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-5TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1608,9 +1474,9 @@
       "image_thumb": "P102-5TR-STUDIO-Khung-H_08C90D8A-ID156018"
     },
     {
-      "id": "can-ho-studio-huynh-van-banh-cua-so-p202-5tr-studio",
+      "id": "can-ho-studio-huynh-van-banh-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-5TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1638,9 +1504,9 @@
       "image_thumb": "P202-5TR-STUDIO-Khung-H_08C90D8A-ID326210"
     },
     {
-      "id": "can-ho-studio-huynh-van-banh-cua-so-p302-5tr-studio",
+      "id": "can-ho-studio-huynh-van-banh-cua-so-p302",
       "city": "hochiminh",
-      "room_code": "P302-5TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "Studio, Cửa sổ, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1668,9 +1534,9 @@
       "image_thumb": "P302-5TR-STUDIO-Khung-H_08C90D8A-ID199466"
     },
     {
-      "id": "can-ho-1pn-huynh-van-banh-tach-bep-p101-9-5tr-1pn",
+      "id": "can-ho-1pn-huynh-van-banh-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P101-9.5TR-1PN",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1698,9 +1564,9 @@
       "image_thumb": "P101-9-5TR-1PN-Khung-H_08C90D8A-ID172676"
     },
     {
-      "id": "can-ho-1pn-huynh-van-banh-tach-bep-p201-9-5tr-1pn",
+      "id": "can-ho-1pn-huynh-van-banh-tach-bep-p201",
       "city": "hochiminh",
-      "room_code": "P201-9.5TR-1PN",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1728,9 +1594,9 @@
       "image_thumb": "P201-9-5TR-1PN-Khung-H_08C90D8A-ID310186"
     },
     {
-      "id": "can-ho-2pn-huynh-van-banh-p301-11tr-2pn",
+      "id": "can-ho-2pn-huynh-van-banh-p301",
       "city": "hochiminh",
-      "room_code": "P301-11TR-2PN",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Huỳnh Văn Bánh, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "2PN, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -1758,9 +1624,9 @@
       "image_thumb": "P301-11TR-2PN-Khung-H_08C90D8A-ID154337"
     },
     {
-      "id": "can-ho-1pn-ho-van-hue-ban-cong-tach-bep-p001-6-8tr-1pn",
+      "id": "can-ho-1pn-ho-van-hue-ban-cong-tach-bep-p001",
       "city": "hochiminh",
-      "room_code": "P001-6.8TR-1PN",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Hồ Văn Huê, Phường 9, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy",
@@ -1788,9 +1654,9 @@
       "image_thumb": "P001-6-8TR-1PN-Khung-H_E74C1160-ID181348"
     },
     {
-      "id": "can-ho-1pn-thich-quang-duc-cua-so-tach-bep-p01-5tr-1pn",
+      "id": "can-ho-1pn-thich-quang-duc-cua-so-tach-bep-p01",
       "city": "hochiminh",
-      "room_code": "P01-5TR-1PN",
+      "room_code": "P01",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phường 5, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Cửa sổ, Giờ giấc tự do, Máy giặt riêng, Free Xe, Nuôi Pet",
@@ -1818,9 +1684,9 @@
       "image_thumb": "P01-5TR-1PN-Khung-H_3741E2BE-ID130336"
     },
     {
-      "id": "can-ho-studio-dao-duy-anh-p303-7tr-studio",
+      "id": "can-ho-studio-dao-duy-anh-p303",
       "city": "hochiminh",
-      "room_code": "P303-7TR-STUDIO",
+      "room_code": "P303",
       "district": "Phú Nhuận",
       "address": "Đào Duy Anh, Phú Nhuận",
       "keypoint": "STUDIO",
@@ -1848,9 +1714,9 @@
       "image_thumb": "P303-7TR-STUDIO-Khung-H_D2684F3B-ID142298"
     },
     {
-      "id": "can-ho-1pn-nguyen-kiem-ban-cong-tach-bep-p301-8-8tr-1pn",
+      "id": "can-ho-1pn-nguyen-kiem-ban-cong-tach-bep-p301",
       "city": "hochiminh",
-      "room_code": "P301-8.8TR-1PN",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Nguyễn Kiệm, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Khóa vân tay, Máy giặt riêng, Full nội thất",
@@ -1878,9 +1744,9 @@
       "image_thumb": "P301-8-8TR-1PN-Khung-H_644843FD-ID433552"
     },
     {
-      "id": "can-ho-studio-nguyen-thi-huynh-ban-cong-p203-7tr-studio",
+      "id": "can-ho-studio-nguyen-thi-huynh-ban-cong-p203",
       "city": "hochiminh",
-      "room_code": "P203-7TR-STUDIO",
+      "room_code": "P203",
       "district": "Phú Nhuận",
       "address": "Nguyễn Thị Huỳnh, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Full nội thất, Camera an ninh 24/7, Free Xe",
@@ -1908,9 +1774,9 @@
       "image_thumb": "P203-7TR-STUDIO-Khung-H_6C165666-ID200533"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-p201-5-7tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-p201",
       "city": "hochiminh",
-      "room_code": "P201-5.7TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet",
@@ -1938,9 +1804,9 @@
       "image_thumb": "P201-5-7TR-STUDIO-Khung-H_D31EE5C3-ID123642"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-ban-cong-p301-5-7tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-ban-cong-p301",
       "city": "hochiminh",
-      "room_code": "P301-5.7TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Nuôi Pet",
@@ -1968,9 +1834,9 @@
       "image_thumb": "P301-5-7TR-STUDIO-Khung-H_D31EE5C3-ID105451"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-ban-cong-p101-5-9tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-ban-cong-p101",
       "city": "hochiminh",
-      "room_code": "P101-5.9TR-STUDIO",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Nuôi Pet",
@@ -1998,9 +1864,9 @@
       "image_thumb": "P101-5-9TR-STUDIO-Khung-H_D31EE5C3-ID268537"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-p202-3-9tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-p202",
       "city": "hochiminh",
-      "room_code": "P202-3.9TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet",
@@ -2027,9 +1893,9 @@
       "image_thumb": "P202-3-9TR-STUDIO-Khung-H_D31EE5C3-ID100821"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-p302-3-9tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-p302",
       "city": "hochiminh",
-      "room_code": "P302-3.9TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet",
@@ -2056,9 +1922,9 @@
       "image_thumb": "P302-3-9TR-STUDIO-Khung-H_D31EE5C3-ID192610"
     },
     {
-      "id": "can-ho-studio-hoang-hoa-tham-p402-3-9tr-studio",
+      "id": "can-ho-studio-hoang-hoa-tham-p402",
       "city": "hochiminh",
-      "room_code": "P402-3.9TR-STUDIO",
+      "room_code": "P402",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet",
@@ -2085,9 +1951,9 @@
       "image_thumb": "P402-3-9TR-STUDIO-Khung-H_D31EE5C3-ID134625"
     },
     {
-      "id": "can-ho-1pn-nguyen-kiem-ban-cong-tach-bep-p201-7-5tr-1pn",
+      "id": "can-ho-1pn-nguyen-kiem-ban-cong-tach-bep-p201",
       "city": "hochiminh",
-      "room_code": "P201-7.5TR-1PN",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Nguyễn Kiệm, Phường 9, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công, Nuôi Pet",
@@ -2115,9 +1981,9 @@
       "image_thumb": "P201-7-5TR-1PN-Khung-H_A6DC2AA1-ID175859"
     },
     {
-      "id": "can-ho-2pn-phan-tay-ho-p301-11-5tr-2pn",
+      "id": "can-ho-2pn-phan-tay-ho-p301",
       "city": "hochiminh",
-      "room_code": "P301-11.5TR-2PN",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Phan Tây Hồ, Quận Phú Nhuận",
       "keypoint": "2PN",
@@ -2145,9 +2011,9 @@
       "image_thumb": "P301-11-5TR-2PN-Khung-H_305479E5-ID101849"
     },
     {
-      "id": "can-ho-studio-phan-tay-ho-ban-cong-p302-9tr-studio",
+      "id": "can-ho-studio-phan-tay-ho-ban-cong-p302",
       "city": "hochiminh",
-      "room_code": "P302-9TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Phan Tây Hồ, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công",
@@ -2175,9 +2041,9 @@
       "image_thumb": "P302-9TR-STUDIO-Khung-H_305479E5-ID275648"
     },
     {
-      "id": "can-ho-studio-phan-tay-ho-cua-so-p102-7-5tr-studio",
+      "id": "can-ho-studio-phan-tay-ho-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-7.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Phan Tây Hồ, Quận Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ",
@@ -2203,9 +2069,9 @@
       "image_thumb": "P102-7-5TR-STUDIO-Khung-H_305479E5-ID177643"
     },
     {
-      "id": "can-ho-studio-do-tan-phong-p001-6tr-studio",
+      "id": "can-ho-studio-do-tan-phong-p001",
       "city": "hochiminh",
-      "room_code": "P001-6TR-STUDIO",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet | 🎁 KM 10/01: Chốt trong T1 FREE 1 năm phí dịch vụ,",
@@ -2224,9 +2090,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-2pn-nguyen-trong-loi-thang-may-pc-203-12-8tr-2pn",
+      "id": "can-ho-2pn-nguyen-trong-loi-thang-may-pc203",
       "city": "hochiminh",
-      "room_code": "PC.203-12.8TR-2PN",
+      "room_code": "PC203",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Lội, Tân Sơn Nhất, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Camera an ninh 24/7, Nuôi Pet",
@@ -2254,9 +2120,9 @@
       "image_thumb": "PC-203-12-8TR-2PN-Khung-H_267D96D2-ID167362"
     },
     {
-      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p301-6-5tr-1pn",
+      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p301",
       "city": "hochiminh",
-      "room_code": "P301-6.5TR-1PN",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Giờ giấc tự do, Máy giặt riêng, Full nội thất, Free Xe, Nuôi Pet | 🎁 KM 08/01: 3th đầu:6.000.000",
@@ -2284,9 +2150,9 @@
       "image_thumb": "P301-6-5TR-1PN-Khung-619189-H_7D34A475"
     },
     {
-      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p302-6-5tr-1pn",
+      "id": "can-ho-1pn-bach-dang-ban-cong-tach-bep-p302",
       "city": "hochiminh",
-      "room_code": "P302-6.5TR-1PN",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Giờ giấc tự do, Máy giặt riêng, Full nội thất, Free Xe, Nuôi Pet | 🎁 KM 08/01: 3th đầu:6.000.000",
@@ -2314,9 +2180,9 @@
       "image_thumb": "P302-6-5TR-1PN-Khung-H_7D34A475-ID194948"
     },
     {
-      "id": "can-ho-1pn-hoang-van-thu-tach-bep-thang-may-p303-6tr-1pn",
+      "id": "can-ho-1pn-hoang-van-thu-tach-bep-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-6TR-1PN",
+      "room_code": "P303",
       "district": "Phú Nhuận",
       "address": "Hoàng Văn Thụ, Phường 8, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Thang máy",
@@ -2344,9 +2210,9 @@
       "image_thumb": "P303-6TR-1PN-Khung-H_1CD07675-ID208073"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p102-5-3tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-p102",
       "city": "hochiminh",
-      "room_code": "P102-5.3TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -2374,9 +2240,9 @@
       "image_thumb": "P102-5-3TR-STUDIO-Khung-H_6C8DCC91-ID157896"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p302-5-2tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-p302",
       "city": "hochiminh",
-      "room_code": "P302-5.2TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -2404,9 +2270,9 @@
       "image_thumb": "P302-5-2TR-STUDIO-Khung-H_6C8DCC91-ID115548"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p206-5-5tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-p206",
       "city": "hochiminh",
-      "room_code": "P206-5.5TR-STUDIO",
+      "room_code": "P206",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -2434,9 +2300,9 @@
       "image_thumb": "P206-5-5TR-STUDIO-Khung-H_6C8DCC91-ID120416"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p306-5-5tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-p306",
       "city": "hochiminh",
-      "room_code": "P306-5.5TR-STUDIO",
+      "room_code": "P306",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 15, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -2464,9 +2330,9 @@
       "image_thumb": "P306-5-5TR-STUDIO-Khung-H_6C8DCC91-ID164299"
     },
     {
-      "id": "can-ho-studio-dao-duy-anh-p202-4-3tr-studio",
+      "id": "can-ho-studio-dao-duy-anh-p202",
       "city": "hochiminh",
-      "room_code": "P202-4.3TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Đào Duy Anh, Phường Phú Nhuận, Phú Nhuận",
       "keypoint": "STUDIO, Giờ giấc tự do, Máy giặt riêng, Free Xe",
@@ -2494,9 +2360,9 @@
       "image_thumb": "P202-4-3TR-STUDIO-Khung-H_FB91B554-ID236101"
     },
     {
-      "id": "can-ho-3pn-hoang-van-thu-thang-may-p01-21tr-3pn",
+      "id": "can-ho-3pn-hoang-van-thu-thang-may-p01",
       "city": "hochiminh",
-      "room_code": "P01-21TR-3PN",
+      "room_code": "P01",
       "district": "Phú Nhuận",
       "address": "Hoàng Văn Thụ, Phú Nhuận",
       "keypoint": "3PN, Thang máy, Full nội thất, Gần Chợ/Siêu thị",
@@ -2524,9 +2390,9 @@
       "image_thumb": "P01-21TR-3PN-Khung-H_F812A769-ID115696"
     },
     {
-      "id": "can-ho-studio-phan-dinh-phung-p301-6-8tr-studio",
+      "id": "can-ho-studio-phan-dinh-phung-p301",
       "city": "hochiminh",
-      "room_code": "P301-6.8TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Phan Đình Phùng, Phường 17, Phú Nhuận",
       "keypoint": "STUDIO, Full nội thất, Duplex",
@@ -2552,9 +2418,9 @@
       "image_thumb": "P301-6-8TR-STUDIO-Khung-H_0BD107BB-ID173337"
     },
     {
-      "id": "can-ho-1pn-nguyen-lam-tach-bep-p002-6tr-1pn",
+      "id": "can-ho-1pn-nguyen-lam-tach-bep-p002",
       "city": "hochiminh",
-      "room_code": "P002-6TR-1PN",
+      "room_code": "P002",
       "district": "Phú Nhuận",
       "address": "Nguyễn Lâm, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "1PN, Tách bếp, Gần Chợ/Siêu thị",
@@ -2582,9 +2448,9 @@
       "image_thumb": "P002-6TR-1PN-Khung-H_F02ED0C0-ID210173"
     },
     {
-      "id": "can-ho-studio-bach-dang-p202-5-2tr-studio",
+      "id": "can-ho-studio-bach-dang-p202",
       "city": "hochiminh",
-      "room_code": "P202-5.2TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình, Hồ Chí Minh",
       "keypoint": "STUDIO, Khóa vân tay, Máy giặt riêng, Full nội thất, Camera an ninh 24/7 | 🎁 KM 09/01: thương lượng 100-200k",
@@ -2612,9 +2478,9 @@
       "image_thumb": "P202-5-2TR-STUDIO-Khung-H_F572BD95-ID113691"
     },
     {
-      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p103-5-2tr-studio",
+      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p103",
       "city": "hochiminh",
-      "room_code": "P103-5.2TR-STUDIO",
+      "room_code": "P103",
       "district": "Tân Bình",
       "address": "Bùi Thị Xuân, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Hầm xe",
@@ -2642,9 +2508,9 @@
       "image_thumb": "P103-5-2TR-STUDIO-Khung-H_12A4DACB-ID153616"
     },
     {
-      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p303-5-2tr-studio",
+      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-5.2TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Bùi Thị Xuân, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Hầm xe",
@@ -2672,9 +2538,9 @@
       "image_thumb": "P303-5-2TR-STUDIO-Khung-H_12A4DACB-ID131236"
     },
     {
-      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p304-5-2tr-studio",
+      "id": "can-ho-studio-bui-thi-xuan-cua-so-thang-may-p304",
       "city": "hochiminh",
-      "room_code": "P304-5.2TR-STUDIO",
+      "room_code": "P304",
       "district": "Tân Bình",
       "address": "Bùi Thị Xuân, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Hầm xe",
@@ -2702,9 +2568,9 @@
       "image_thumb": "P304-5-2TR-STUDIO-Khung-H_12A4DACB-ID168575"
     },
     {
-      "id": "can-ho-studio-xuan-dieu-cua-so-thang-may-p302b-7tr-studio",
+      "id": "can-ho-studio-xuan-dieu-cua-so-thang-may-p302b",
       "city": "hochiminh",
-      "room_code": "P302B-7TR-STUDIO",
+      "room_code": "P302B",
       "district": "Tân Bình",
       "address": "Xuân Diệu, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Thang máy, Full nội thất",
@@ -2732,9 +2598,9 @@
       "image_thumb": "P302B-7TR-STUDIO-Khung-H_DB291395-ID123162"
     },
     {
-      "id": "can-ho-studio-cong-hoa-thang-may-p001-10-5tr-studio",
+      "id": "can-ho-studio-cong-hoa-thang-may-p001",
       "city": "hochiminh",
-      "room_code": "P001-10.5TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Cộng Hoà, Phường 4, Quận Tân Bình",
       "keypoint": "STUDIO, Thang máy, Full nội thất, Gần Chợ/Siêu thị",
@@ -2762,9 +2628,9 @@
       "image_thumb": "P001-10-5TR-STUDIO-Khung-H_F068AB1E-ID123708"
     },
     {
-      "id": "can-ho-studio-bach-dang-ban-cong-thang-may-p601-12-5tr-studio",
+      "id": "can-ho-studio-bach-dang-ban-cong-thang-may-p601",
       "city": "hochiminh",
-      "room_code": "P601-12.5TR-STUDIO",
+      "room_code": "P601",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Thang máy, Hầm xe, Máy giặt riêng, Gần Sân bay, Free Xe",
@@ -2792,9 +2658,9 @@
       "image_thumb": "P601-12-5TR-STUDIO-Khung-H_66709490-ID127416"
     },
     {
-      "id": "can-ho-studio-bach-dang-ban-cong-p502-10-5tr-studio",
+      "id": "can-ho-studio-bach-dang-ban-cong-p502",
       "city": "hochiminh",
-      "room_code": "P502-10.5TR-STUDIO",
+      "room_code": "P502",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Hầm xe, Máy giặt riêng, Gần Sân bay, Free Xe",
@@ -2822,9 +2688,9 @@
       "image_thumb": "P502-10-5TR-STUDIO-Khung-H_66709490-ID117129"
     },
     {
-      "id": "can-ho-studio-bach-dang-ban-cong-p602-10tr-studio",
+      "id": "can-ho-studio-bach-dang-ban-cong-p602",
       "city": "hochiminh",
-      "room_code": "P602-10TR-STUDIO",
+      "room_code": "P602",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Hầm xe, Máy giặt riêng, Gần Sân bay, Free Xe",
@@ -2852,9 +2718,9 @@
       "image_thumb": "P602-10TR-STUDIO-Khung-H_66709490-ID231807"
     },
     {
-      "id": "can-ho-studio-cach-mang-thang-tam-ban-cong-thang-may-p301-8tr-studio",
+      "id": "can-ho-studio-cach-mang-thang-tam-ban-cong-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-8TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Cách Mạng Tháng Tám, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang máy, Nuôi Pet",
@@ -2882,9 +2748,9 @@
       "image_thumb": "P301-8TR-STUDIO-Khung-H_76A1482B-ID337287"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p403-9-5tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p403",
       "city": "hochiminh",
-      "room_code": "P403-9.5TR-2PN",
+      "room_code": "P403",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Giờ giấc tự do, Full nội thất, Máy giặt riêng",
@@ -2912,9 +2778,9 @@
       "image_thumb": "P403-9-5TR-2PN-Khung-H_39EC824D-ID228412"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p503-9-5tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p503",
       "city": "hochiminh",
-      "room_code": "P503-9.5TR-2PN",
+      "room_code": "P503",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Giờ giấc tự do, Full nội thất, Máy giặt riêng",
@@ -2942,9 +2808,9 @@
       "image_thumb": "P503-9-5TR-2PN-Khung-H_39EC824D-ID121495"
     },
     {
-      "id": "can-ho-2pn-bach-dang-thang-may-p603-10tr-2pn",
+      "id": "can-ho-2pn-bach-dang-thang-may-p603",
       "city": "hochiminh",
-      "room_code": "P603-10TR-2PN",
+      "room_code": "P603",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Thang máy, Hầm xe, Giờ giấc tự do, Full nội thất, Máy giặt riêng",
@@ -2972,9 +2838,9 @@
       "image_thumb": "P603-10TR-2PN-Khung-H_39EC824D-ID185343"
     },
     {
-      "id": "can-ho-1pn-bach-dang-tach-bep-thang-may-p303-9-5tr-1pn",
+      "id": "can-ho-1pn-bach-dang-tach-bep-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-9.5TR-1PN",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Thang máy, Hầm xe, Giờ giấc tự do, Full nội thất, Máy giặt riêng",
@@ -3002,9 +2868,9 @@
       "image_thumb": "P303-9-5TR-1PN-Khung-H_39EC824D-ID131171"
     },
     {
-      "id": "can-ho-studio-tran-quoc-hoan-cua-so-p202-6-5tr-studio",
+      "id": "can-ho-studio-tran-quoc-hoan-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-6.5TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Trần Quốc Hoàn, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Full nội thất, Gần Sân bay, Gần Chợ/Siêu thị, Free Xe",
@@ -3032,9 +2898,9 @@
       "image_thumb": "P202-6-5TR-STUDIO-Khung-H_183F0046-ID136490"
     },
     {
-      "id": "can-ho-studio-tran-quoc-hoan-cua-so-p103-7-5tr-studio",
+      "id": "can-ho-studio-tran-quoc-hoan-cua-so-p103",
       "city": "hochiminh",
-      "room_code": "P103-7.5TR-STUDIO",
+      "room_code": "P103",
       "district": "Tân Bình",
       "address": "Trần Quốc Hoàn, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Full nội thất, Gần Sân bay, Free Xe",
@@ -3062,9 +2928,9 @@
       "image_thumb": "P103-7-5TR-STUDIO-Khung-H_183F0046-ID102403"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-thang-may-p109-4-7tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-thang-may-p109",
       "city": "hochiminh",
-      "room_code": "P109-4.7TR-STUDIO",
+      "room_code": "P109",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chiểu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Hầm xe, Giờ giấc tự do",
@@ -3083,9 +2949,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-thang-may-p402-4-7tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-thang-may-p402",
       "city": "hochiminh",
-      "room_code": "P402-4.7TR-STUDIO",
+      "room_code": "P402",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chiểu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Hầm xe, Giờ giấc tự do",
@@ -3111,9 +2977,9 @@
       "image_thumb": "P402-4-7TR-STUDIO-Khung-H_6F4B96D2-ID117828"
     },
     {
-      "id": "can-ho-1pn-nguyen-cong-hoan-cua-so-tach-bep-pt01nch-9-5tr-1pn",
+      "id": "can-ho-1pn-nguyen-cong-hoan-cua-so-tach-bep-pt01nch",
       "city": "hochiminh",
-      "room_code": "PT01NCH-9.5TR-1PN",
+      "room_code": "PT01NCH",
       "district": "Phú Nhuận",
       "address": "Nguyễn Công Hoan, Phường 7, Phú Nhuận",
       "keypoint": "1PN, Cửa sổ, Tách bếp, Full nội thất, Gần Chợ/Siêu thị, Giếng trời",
@@ -3141,9 +3007,9 @@
       "image_thumb": "PT01NCH-9-5TR-1PN-Khung-H_5D3FE697-ID394516"
     },
     {
-      "id": "can-ho-duplex-tan-vien-p308-4-2tr-duplex",
+      "id": "can-ho-duplex-tan-vien-p308",
       "city": "hochiminh",
-      "room_code": "P308-4.2TR-DUPLEX",
+      "room_code": "P308",
       "district": "Tân Bình",
       "address": "Tản Viên, Tân Bình",
       "keypoint": "DUPLEX, Giờ giấc tự do",
@@ -3162,9 +3028,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-tan-vien-p104-3-6tr-studio",
+      "id": "can-ho-studio-tan-vien-p104",
       "city": "hochiminh",
-      "room_code": "P104-3.6TR-STUDIO",
+      "room_code": "P104",
       "district": "Tân Bình",
       "address": "Tản Viên, Tân Bình",
       "keypoint": "STUDIO, Giờ giấc tự do",
@@ -3191,9 +3057,9 @@
       "image_thumb": "P104-3-6TR-STUDIO-Khung-H_857EE060-ID150806"
     },
     {
-      "id": "can-ho-1pn-phan-dang-luu-tach-bep-p001-6-8tr-1pn",
+      "id": "can-ho-1pn-phan-dang-luu-tach-bep-p001",
       "city": "hochiminh",
-      "room_code": "P001-6.8TR-1PN",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Phan Đăng Lưu, Đức Nhuận, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Máy giặt riêng",
@@ -3219,9 +3085,9 @@
       "image_thumb": "P001-6-8TR-1PN-Khung-H_FBDC2933-ID471292"
     },
     {
-      "id": "can-ho-16-01-2026-song-thuong-ban-cong-thang-may-p104-8-2tr-1pn",
+      "id": "can-ho-16-01-2026-song-thuong-ban-cong-thang-may-p104",
       "city": "hochiminh",
-      "room_code": "P104-8.2TR-1PN",
+      "room_code": "P104",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3240,9 +3106,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p203-8-4tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p203",
       "city": "hochiminh",
-      "room_code": "P203-8.4TR-1PN",
+      "room_code": "P203",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3261,9 +3127,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p103-7-9tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p103",
       "city": "hochiminh",
-      "room_code": "P103-7.9TR-1PN",
+      "room_code": "P103",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3289,9 +3155,9 @@
       "image_thumb": "P103-7-9TR-1PN-Khung-H_0D2350B4-ID116984"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p102-8-5tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p102",
       "city": "hochiminh",
-      "room_code": "P102-8.5TR-1PN",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3319,9 +3185,9 @@
       "image_thumb": "P102-8-5TR-1PN-Khung-H_0D2350B4-ID150961"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p201-7-7tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p201",
       "city": "hochiminh",
-      "room_code": "P201-7.7TR-1PN",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3349,9 +3215,9 @@
       "image_thumb": "P201-7-7TR-1PN-Khung-H_0D2350B4-ID243332"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p101-7-4tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P101-7.4TR-1PN",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Giếng trời, Nuôi Pet",
@@ -3379,9 +3245,9 @@
       "image_thumb": "P101-7-4TR-1PN-Khung-H_0D2350B4-ID116793"
     },
     {
-      "id": "can-ho-duplex-song-thuong-thang-may-pg04-7-5tr-duplex",
+      "id": "can-ho-duplex-song-thuong-thang-may-pg04",
       "city": "hochiminh",
-      "room_code": "PG04-7.5TR-DUPLEX",
+      "room_code": "PG04",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "DUPLEX, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3409,9 +3275,9 @@
       "image_thumb": "PG04-7-5TR-DUPLEX-Khung-H_0D2350B4-ID177106"
     },
     {
-      "id": "can-ho-duplex-song-thuong-thang-may-pg03-5-9tr-duplex",
+      "id": "can-ho-duplex-song-thuong-thang-may-pg03",
       "city": "hochiminh",
-      "room_code": "PG03-5.9TR-DUPLEX",
+      "room_code": "PG03",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "DUPLEX, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3439,9 +3305,9 @@
       "image_thumb": "PG03-5-9TR-DUPLEX-Khung-H_0D2350B4-ID166366"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-pg02-9-5tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-pg02",
       "city": "hochiminh",
-      "room_code": "PG02-9.5TR-1PN",
+      "room_code": "PG02",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3469,9 +3335,9 @@
       "image_thumb": "PG02-9-5TR-1PN-Khung-H_0D2350B4-ID153759"
     },
     {
-      "id": "can-ho-studio-song-thuong-ban-cong-thang-may-pg01-7-2tr-studio",
+      "id": "can-ho-studio-song-thuong-ban-cong-thang-may-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-7.2TR-STUDIO",
+      "room_code": "PG01",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -3499,9 +3365,9 @@
       "image_thumb": "PG01-7-2TR-STUDIO-Khung-H_0D2350B4-ID114144"
     },
     {
-      "id": "can-ho-studio-phan-dang-luu-thang-may-p403-6-5tr-studio",
+      "id": "can-ho-studio-phan-dang-luu-thang-may-p403",
       "city": "hochiminh",
-      "room_code": "P403-6.5TR-STUDIO",
+      "room_code": "P403",
       "district": "Phú Nhuận",
       "address": "Phan Đăng Lưu, Phường 3, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay, Giờ giấc tự do, Full nội thất | 🎁 KM 09/01: giảm còn 6TR cho 3 tháng đầu",
@@ -3528,9 +3394,9 @@
       "image_thumb": "P403-6-5TR-STUDIO-Khung-H_88D2B864-ID241128"
     },
     {
-      "id": "can-ho-studio-hau-giang-ban-cong-p202-7-5tr-studio",
+      "id": "can-ho-studio-hau-giang-ban-cong-p202",
       "city": "hochiminh",
-      "room_code": "P202-7.5TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Hậu Giang, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Ban công, Giờ giấc tự do, Máy giặt riêng, Nuôi Pet",
@@ -3558,9 +3424,9 @@
       "image_thumb": "P202-7-5TR-STUDIO-Khung-H_2F073414-ID183875"
     },
     {
-      "id": "can-ho-1pn-hau-giang-tach-bep-pg01-7tr-1pn",
+      "id": "can-ho-1pn-hau-giang-tach-bep-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-7TR-1PN",
+      "room_code": "PG01",
       "district": "Tân Bình",
       "address": "Hậu Giang, Phường 4, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Giờ giấc tự do, Máy giặt riêng, Giếng trời, Nuôi Pet",
@@ -3588,9 +3454,9 @@
       "image_thumb": "PG01-7TR-1PN-Khung-H_2F073414-ID156775"
     },
     {
-      "id": "can-ho-studio-do-son-p202-4tr-studio",
+      "id": "can-ho-studio-do-son-p202",
       "city": "hochiminh",
-      "room_code": "P202-4TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Đồ Sơn, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Khóa vân tay",
@@ -3617,9 +3483,9 @@
       "image_thumb": "P202-4TR-STUDIO-Khung-H_5E530E95-ID371678"
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-pg02-8tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-pg02",
       "city": "hochiminh",
-      "room_code": "PG02-8TR-STUDIO",
+      "room_code": "PG02",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Giờ giấc tự do, Gần Chợ/Siêu thị, Free Xe",
@@ -3647,9 +3513,9 @@
       "image_thumb": "PG02-8TR-STUDIO-Khung-H_11ED3593-ID135916"
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p102-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p102",
       "city": "hochiminh",
-      "room_code": "P102-7TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3677,9 +3543,9 @@
       "image_thumb": "P102-7TR-STUDIO-Khung-H_11ED3593-ID136525"
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p202-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p202",
       "city": "hochiminh",
-      "room_code": "P202-7TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3700,9 +3566,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p302-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p302",
       "city": "hochiminh",
-      "room_code": "P302-7TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3723,9 +3589,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p103-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p103",
       "city": "hochiminh",
-      "room_code": "P103-7TR-STUDIO",
+      "room_code": "P103",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3746,9 +3612,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p203-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-7TR-STUDIO",
+      "room_code": "P203",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3769,9 +3635,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p303-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-7TR-STUDIO",
+      "room_code": "P303",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3792,9 +3658,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-pg01-7tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-7TR-STUDIO",
+      "room_code": "PG01",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3815,9 +3681,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p104-8tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p104",
       "city": "hochiminh",
-      "room_code": "P104-8TR-STUDIO",
+      "room_code": "P104",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3845,9 +3711,9 @@
       "image_thumb": "P104-8TR-STUDIO-Khung-H_11ED3593-ID266227"
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p204-8tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p204",
       "city": "hochiminh",
-      "room_code": "P204-8TR-STUDIO",
+      "room_code": "P204",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3868,9 +3734,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-thang-may-p304-8tr-studio",
+      "id": "can-ho-studio-le-van-sy-thang-may-p304",
       "city": "hochiminh",
-      "room_code": "P304-8TR-STUDIO",
+      "room_code": "P304",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Gần Chợ/Siêu thị, Free Xe",
@@ -3891,9 +3757,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-le-van-sy-tach-bep-p001-5-5tr-studio",
+      "id": "can-ho-studio-le-van-sy-tach-bep-p001",
       "city": "hochiminh",
-      "room_code": "P001-5.5TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Lê Văn Sỹ, Phường 1, Tân Bình",
       "keypoint": "STUDIO, Tách bếp",
@@ -3921,9 +3787,9 @@
       "image_thumb": "P001-5-5TR-STUDIO-Khung-H_3960A96E-ID105208"
     },
     {
-      "id": "can-ho-studio-nghia-phat-cua-so-p202-5-6tr-studio",
+      "id": "can-ho-studio-nghia-phat-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-5.6TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Nghĩa Phát, Phường 7, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ",
@@ -3951,9 +3817,9 @@
       "image_thumb": "P202-5-6TR-STUDIO-Khung-H_F9EEA160-ID137654"
     },
     {
-      "id": "can-ho-studio-nghia-phat-p001-4-8tr-studio",
+      "id": "can-ho-studio-nghia-phat-p001",
       "city": "hochiminh",
-      "room_code": "P001-4.8TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Nghĩa Phát, Phường 7, Tân Bình",
       "keypoint": "STUDIO",
@@ -3979,9 +3845,9 @@
       "image_thumb": "P001-4-8TR-STUDIO-Khung-H_F9EEA160-ID397924"
     },
     {
-      "id": "can-ho-studio-le-van-sy-cua-so-thang-may-p302-5tr-studio",
+      "id": "can-ho-studio-le-van-sy-cua-so-thang-may-p302",
       "city": "hochiminh",
-      "room_code": "P302-5TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Lê Văn Sỹ, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy",
@@ -4009,9 +3875,9 @@
       "image_thumb": "P302-5TR-STUDIO-Khung-H_A3456E4D-ID104303"
     },
     {
-      "id": "can-ho-studio-hoang-van-thu-thang-may-p604-4-1tr-studio",
+      "id": "can-ho-studio-hoang-van-thu-thang-may-p604",
       "city": "hochiminh",
-      "room_code": "P604-4.1TR-STUDIO",
+      "room_code": "P604",
       "district": "Tân Bình",
       "address": "Hoàng Văn Thụ, Phường 4 Tân Bình",
       "keypoint": "STUDIO, Thang máy, Máy giặt chung",
@@ -4039,9 +3905,9 @@
       "image_thumb": "P604-4-1TR-STUDIO-Khung-H_CD90A797-ID112024"
     },
     {
-      "id": "can-ho-studio-tran-huy-lieu-p3-4-5tr-studio",
+      "id": "can-ho-studio-tran-huy-lieu-p3",
       "city": "hochiminh",
-      "room_code": "P3-4.5TR-STUDIO",
+      "room_code": "P3",
       "district": "Phú Nhuận",
       "address": "Trần Huy Liệu, Phường 15, Phú Nhuận",
       "keypoint": "STUDIO, Nuôi Pet",
@@ -4069,9 +3935,9 @@
       "image_thumb": "P3-4-5TR-STUDIO-Khung-H_76737B08-ID128285"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-p1-5-2tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-p1",
       "city": "hochiminh",
-      "room_code": "P1-5.2TR-STUDIO",
+      "room_code": "P1",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phú Nhuận",
       "keypoint": "STUDIO, Giờ giấc tự do, Free Xe",
@@ -4098,9 +3964,9 @@
       "image_thumb": "P1-5-2TR-STUDIO-Khung-H_912F2308-ID136834"
     },
     {
-      "id": "can-ho-studio-dang-van-ngu-thang-may-p301-5-5tr-studio",
+      "id": "can-ho-studio-dang-van-ngu-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-5.5TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Đặng Văn Ngữ, Phường Phú Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Thang máy",
@@ -4128,9 +3994,9 @@
       "image_thumb": "P301-5-5TR-STUDIO-Khung-H_7EEE2FF6-ID199814"
     },
     {
-      "id": "can-ho-studio-xuan-hong-thang-may-p001-4-5tr-studio",
+      "id": "can-ho-studio-xuan-hong-thang-may-p001",
       "city": "hochiminh",
-      "room_code": "P001-4.5TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Xuân Hồng, Tân Bình, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay | 🎁 KM 10/01: Giá 5000k giảm còn 4500k",
@@ -4158,9 +4024,9 @@
       "image_thumb": "P001-4-5TR-STUDIO-Khung-H_CE5828B5-ID129504"
     },
     {
-      "id": "can-ho-studio-cong-hoa-p303-7-5tr-studio",
+      "id": "can-ho-studio-cong-hoa-p303",
       "city": "hochiminh",
-      "room_code": "P303-7.5TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Cộng Hoà, Quận Tân Bình",
       "keypoint": "STUDIO",
@@ -4181,9 +4047,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p402-8-5tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p402",
       "city": "hochiminh",
-      "room_code": "P402-8.5TR-STUDIO",
+      "room_code": "P402",
       "district": "Phú Nhuận",
       "address": "Nguyễn Trọng Tuyển, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Giờ giấc tự do, Máy giặt riêng, Full nội thất, Free Xe",
@@ -4211,9 +4077,9 @@
       "image_thumb": "P402-8-5TR-STUDIO-Khung-H_FAD1B126-ID119217"
     },
     {
-      "id": "can-ho-1pn-co-giang-tach-bep-p203-6tr-1pn",
+      "id": "can-ho-1pn-co-giang-tach-bep-p203",
       "city": "hochiminh",
-      "room_code": "P203-6TR-1PN",
+      "room_code": "P203",
       "district": "Phú Nhuận",
       "address": "Cô Giang, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -4241,9 +4107,9 @@
       "image_thumb": "P203-6TR-1PN-Khung-H_EFF03C8F-ID203304"
     },
     {
-      "id": "can-ho-1pn-cu-lao-ban-cong-tach-bep-p101-11tr-1pn",
+      "id": "can-ho-1pn-cu-lao-ban-cong-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P101-11TR-1PN",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Cù Lao, Phường Cầu Kiệu, Quận Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công, Cửa sổ, Gần Chợ/Siêu thị",
@@ -4271,9 +4137,9 @@
       "image_thumb": "P101-11TR-1PN-Khung-H_BF88D71D-ID152144"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p002-5-3tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-cua-so-p002",
       "city": "hochiminh",
-      "room_code": "P002-5.3TR-STUDIO",
+      "room_code": "P002",
       "district": "Phú Nhuận",
       "address": "Nguyễn Trọng Tuyển, Phường 8, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Full nội thất",
@@ -4301,9 +4167,9 @@
       "image_thumb": "P002-5-3TR-STUDIO-Khung-H_265C0930-ID415575"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p101-5-2tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p101",
       "city": "hochiminh",
-      "room_code": "P101-5.2TR-STUDIO",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Nguyễn Trọng Tuyển, Phường 8, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Full nội thất",
@@ -4331,9 +4197,9 @@
       "image_thumb": "P101-5-2TR-STUDIO-Khung-H_265C0930-ID245319"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-p102-5tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-p102",
       "city": "hochiminh",
-      "room_code": "P102-5TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO",
@@ -4361,9 +4227,9 @@
       "image_thumb": "P102-5TR-STUDIO-Khung-H_D055E8C9-ID145191"
     },
     {
-      "id": "can-ho-studio-nguyen-kiem-p310-4-2tr-studio",
+      "id": "can-ho-studio-nguyen-kiem-p310",
       "city": "hochiminh",
-      "room_code": "P310-4.2TR-STUDIO",
+      "room_code": "P310",
       "district": "Phú Nhuận",
       "address": "Nguyễn Kiệm, Phường 3, Phú Nhuận",
       "keypoint": "STUDIO",
@@ -4391,9 +4257,9 @@
       "image_thumb": "P310-4-2TR-STUDIO-Khung-H_2B90B642-ID113825"
     },
     {
-      "id": "can-ho-1pn-hoang-viet-ban-cong-tach-bep-p305-16-5tr-1pn",
+      "id": "can-ho-1pn-hoang-viet-ban-cong-tach-bep-p305",
       "city": "hochiminh",
-      "room_code": "P305-16.5TR-1PN",
+      "room_code": "P305",
       "district": "Tân Bình",
       "address": "Hoàng Việt, Phường 4, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công",
@@ -4421,9 +4287,9 @@
       "image_thumb": "P305-16-5TR-1PN-Khung-H_BCEA3FC9-ID342937"
     },
     {
-      "id": "can-ho-studio-xuan-dieu-thang-may-p203-4-5tr-studio",
+      "id": "can-ho-studio-xuan-dieu-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-4.5TR-STUDIO",
+      "room_code": "P203",
       "district": "Tân Bình",
       "address": "Xuân Diệu, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Máy giặt riêng",
@@ -4449,9 +4315,9 @@
       "image_thumb": "P203-4-5TR-STUDIO-Khung-H_CBDB0AE0-ID167856"
     },
     {
-      "id": "can-ho-studio-xuan-dieu-thang-may-p301-3-5tr-studio",
+      "id": "can-ho-studio-xuan-dieu-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-3.5TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Xuân Diệu, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Thang máy",
@@ -4478,9 +4344,9 @@
       "image_thumb": "P301-3-5TR-STUDIO-Khung-H_CBDB0AE0-ID239549"
     },
     {
-      "id": "can-ho-studio-cong-hoa-p201-5-5tr-studio",
+      "id": "can-ho-studio-cong-hoa-p201",
       "city": "hochiminh",
-      "room_code": "P201-5.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Cộng Hoà, Tân Bình",
       "keypoint": "STUDIO",
@@ -4506,9 +4372,9 @@
       "image_thumb": "P201-5-5TR-STUDIO-Khung-H_538C8FC8-ID231896"
     },
     {
-      "id": "can-ho-studio-nguyen-canh-di-thang-may-p102-8-5tr-studio",
+      "id": "can-ho-studio-nguyen-canh-di-thang-may-p102",
       "city": "hochiminh",
-      "room_code": "P102-8.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Nguyễn Cảnh Dị, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Hầm xe, Máy giặt riêng",
@@ -4536,9 +4402,9 @@
       "image_thumb": "P102-8-5TR-STUDIO-Khung-H_3160564C-ID315485"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p01-8tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p01",
       "city": "hochiminh",
-      "room_code": "P01-8TR-STUDIO",
+      "room_code": "P01",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, cửa sổ thoáng mát, nội thất xịn, phòng xinh",
@@ -4566,9 +4432,9 @@
       "image_thumb": "P01-8TR-STUDIO-Khung-H_B65D997E-ID102829"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-loi-p2-1-8-5tr-studio",
+      "id": "can-ho-studio-nguyen-trong-loi-p21",
       "city": "hochiminh",
-      "room_code": "P2.1-8.5TR-STUDIO",
+      "room_code": "P21",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Lội, Phường 4, Tân Bình",
       "keypoint": "STUDIO",
@@ -4596,9 +4462,9 @@
       "image_thumb": "P2-1-8-5TR-STUDIO-Khung-H_8F50281C-ID152624"
     },
     {
-      "id": "can-ho-studio-nguyen-canh-di-thang-may-p402-8tr-studio",
+      "id": "can-ho-studio-nguyen-canh-di-thang-may-p402",
       "city": "hochiminh",
-      "room_code": "P402-8TR-STUDIO",
+      "room_code": "P402",
       "district": "Tân Bình",
       "address": "Nguyễn Cảnh Dị, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Hầm xe, Máy giặt riêng",
@@ -4626,9 +4492,9 @@
       "image_thumb": "P402-8TR-STUDIO-Khung-H_3160564C-ID158447"
     },
     {
-      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-pg-01-4-5tr-duplex",
+      "id": "can-ho-duplex-xo-viet-nghe-tinh-cua-so-pg-01",
       "city": "hochiminh",
-      "room_code": "PG 01-4.5TR-DUPLEX",
+      "room_code": "PG-01",
       "district": "Bình Thạnh",
       "address": "Xô Viết Nghệ Tĩnh, Phường 25, Quận Bình Thạnh",
       "keypoint": "DUPLEX, Cửa sổ, Khóa vân tay, Giờ giấc tự do",
@@ -4656,9 +4522,9 @@
       "image_thumb": "PG-01-4-5TR-DUPLEX-Khung-H_3383C115-ID149400"
     },
     {
-      "id": "can-ho-1pn-truong-son-ban-cong-tach-bep-pg01-9-2tr-1pn",
+      "id": "can-ho-1pn-truong-son-ban-cong-tach-bep-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-9.2TR-1PN",
+      "room_code": "PG01",
       "district": "Tân Bình",
       "address": "Trường Sơn, Phường 2, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thoáng mát, Thang máy, Hầm xe",
@@ -4686,9 +4552,9 @@
       "image_thumb": "PG01-9-2TR-1PN-Khung-H_D3EF30F0-ID153364"
     },
     {
-      "id": "can-ho-studio-truong-son-cua-so-thang-may-p302-7-2tr-studio",
+      "id": "can-ho-studio-truong-son-cua-so-thang-may-p302",
       "city": "hochiminh",
-      "room_code": "P302-7.2TR-STUDIO",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Trường Sơn, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Thang máy, Hầm xe",
@@ -4716,9 +4582,9 @@
       "image_thumb": "P302-7-2TR-STUDIO-Khung-H_D3EF30F0-ID153262"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-pa2-7-2tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-pa2",
       "city": "hochiminh",
-      "room_code": "PA2-7.2TR-STUDIO",
+      "room_code": "PA2",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Free Xe",
@@ -4746,9 +4612,9 @@
       "image_thumb": "PA2-7-2TR-STUDIO-Khung-H_18AD8FC4-ID236636"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-pl01-12tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-pl01",
       "city": "hochiminh",
-      "room_code": "PL01-12TR-STUDIO",
+      "room_code": "PL01",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Máy giặt riêng",
@@ -4776,9 +4642,9 @@
       "image_thumb": "PL01-12TR-STUDIO-Khung-H_FAED09FD-ID152174"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-p101-8tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-p101",
       "city": "hochiminh",
-      "room_code": "P101-8TR-STUDIO",
+      "room_code": "P101",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Máy giặt riêng",
@@ -4806,9 +4672,9 @@
       "image_thumb": "P101-8TR-STUDIO-Khung-H_FAED09FD-ID140833"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-p201-8tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-p201",
       "city": "hochiminh",
-      "room_code": "P201-8TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Máy giặt riêng",
@@ -4836,9 +4702,9 @@
       "image_thumb": "P201-8TR-STUDIO-Khung-H_FAED09FD-ID189339"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-p301-8tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-p301",
       "city": "hochiminh",
-      "room_code": "P301-8TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Máy giặt riêng",
@@ -4859,9 +4725,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-tach-bep-p102-9tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-tach-bep-p102",
       "city": "hochiminh",
-      "room_code": "P102-9TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Phường Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Tách bếp",
@@ -4889,9 +4755,9 @@
       "image_thumb": "P102-9TR-STUDIO-Khung-H_FAED09FD-ID118837"
     },
     {
-      "id": "can-ho-studio-hoa-hong-cua-so-p102-6-3tr-studio",
+      "id": "can-ho-studio-hoa-hong-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-6.3TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Hoa Hồng, Phường 7, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Giếng trời, Nuôi Pet",
@@ -4919,9 +4785,9 @@
       "image_thumb": "P102-6-3TR-STUDIO-Khung-H_445673BF-ID115077"
     },
     {
-      "id": "can-ho-studio-hoa-hong-cua-so-p402-5-7tr-studio",
+      "id": "can-ho-studio-hoa-hong-cua-so-p402",
       "city": "hochiminh",
-      "room_code": "P402-5.7TR-STUDIO",
+      "room_code": "P402",
       "district": "Phú Nhuận",
       "address": "Hoa Hồng, Phường 7, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát, Nuôi Pet",
@@ -4949,9 +4815,9 @@
       "image_thumb": "P402-5-7TR-STUDIO-Khung-H_445673BF-ID219093"
     },
     {
-      "id": "can-ho-nguyen-can-dao-duy-anh-p001-17tr-nguyen-can",
+      "id": "can-ho-nguyen-can-dao-duy-anh-p001",
       "city": "hochiminh",
-      "room_code": "P001-17TR-NGUYÊN CĂN",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Đào Duy Anh, Phú Nhuận",
       "keypoint": "NGUYÊN CĂN, Gần Sân bay",
@@ -4979,9 +4845,9 @@
       "image_thumb": "P001-17TR-NGUYEN-CAN-Khung-H_3157E030-ID142769"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-p202-9tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-9TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát",
@@ -5009,9 +4875,9 @@
       "image_thumb": "P202-9TR-STUDIO-Khung-H_FAED09FD-ID113468"
     },
     {
-      "id": "can-ho-studio-truong-sa-cua-so-p302-9tr-studio",
+      "id": "can-ho-studio-truong-sa-cua-so-p302",
       "city": "hochiminh",
-      "room_code": "P302-9TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Trường Sa, Cầu Kiệu, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thoáng mát",
@@ -5039,9 +4905,9 @@
       "image_thumb": "P302-9TR-STUDIO-Khung-H_FAED09FD-ID249251"
     },
     {
-      "id": "can-ho-studio-do-tan-phong-tach-bep-thang-may-pg01-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-tach-bep-thang-may-pg01",
       "city": "hochiminh",
-      "room_code": "PG01-8.5TR-STUDIO",
+      "room_code": "PG01",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Thang máy, Giờ giấc tự do, Tách bếp, Máy giặt riêng, Free Dịch vụ",
@@ -5060,9 +4926,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p102-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p102",
       "city": "hochiminh",
-      "room_code": "P102-8.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thang máy, Giờ giấc tự do, Máy giặt riêng, Free Dịch vụ",
@@ -5081,9 +4947,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p201-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p201",
       "city": "hochiminh",
-      "room_code": "P201-8.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thang máy, Giờ giấc tự do, Máy giặt riêng, Free Dịch vụ",
@@ -5111,9 +4977,9 @@
       "image_thumb": "P201-8-5TR-STUDIO-Khung-H_03116F11-ID158980"
     },
     {
-      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p301-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-8.5TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thang máy, Giờ giấc tự do, Máy giặt riêng, Free Dịch vụ",
@@ -5141,9 +5007,9 @@
       "image_thumb": "P301-8-5TR-STUDIO-Khung-H_03116F11-ID109641"
     },
     {
-      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p202-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p202",
       "city": "hochiminh",
-      "room_code": "P202-8.5TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thang máy, Giờ giấc tự do, Máy giặt riêng, Free Dịch vụ",
@@ -5171,9 +5037,9 @@
       "image_thumb": "P202-8-5TR-STUDIO-Khung-H_03116F11-ID162347"
     },
     {
-      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p302-8-5tr-studio",
+      "id": "can-ho-studio-do-tan-phong-ban-cong-thang-may-p302",
       "city": "hochiminh",
-      "room_code": "P302-8.5TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Đỗ Tấn Phong, Phường Đức Nhuận, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Thang máy, Giờ giấc tự do, Máy giặt riêng, Free Dịch vụ",
@@ -5201,9 +5067,9 @@
       "image_thumb": "P302-8-5TR-STUDIO-Khung-H_03116F11-ID138546"
     },
     {
-      "id": "can-ho-duplex-nguyen-cong-hoan-cua-so-thang-may-p103-5-3tr-duplex",
+      "id": "can-ho-duplex-nguyen-cong-hoan-cua-so-thang-may-p103",
       "city": "hochiminh",
-      "room_code": "P103-5.3TR-DUPLEX",
+      "room_code": "P103",
       "district": "Phú Nhuận",
       "address": "Nguyễn Công Hoan, Phường 7, Phú Nhuận",
       "keypoint": "DUPLEX, Cửa sổ, Thang máy, Full nội thất | 🎁 KM 13/01: giảm còn 4tr9 trong 6th đầu",
@@ -5231,9 +5097,9 @@
       "image_thumb": "P103-5-3TR-DUPLEX-Khung-H_025F2032-ID438762"
     },
     {
-      "id": "can-ho-duplex-nguyen-cong-hoan-cua-so-thang-may-p203-5-3tr-duplex",
+      "id": "can-ho-duplex-nguyen-cong-hoan-cua-so-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-5.3TR-DUPLEX",
+      "room_code": "P203",
       "district": "Phú Nhuận",
       "address": "Nguyễn Công Hoan, Phường 7, Phú Nhuận",
       "keypoint": "DUPLEX, Cửa sổ, Thang máy, Full nội thất | 🎁 KM 13/01: giảm còn 4tr9 trong 6th đầu",
@@ -5261,9 +5127,9 @@
       "image_thumb": "P203-5-3TR-DUPLEX-Khung-H_025F2032-ID163343"
     },
     {
-      "id": "can-ho-duplex-ho-van-hue-pg01a-7-9tr-duplex",
+      "id": "can-ho-duplex-ho-van-hue-pg01a",
       "city": "hochiminh",
-      "room_code": "PG01A-7.9TR-DUPLEX",
+      "room_code": "PG01A",
       "district": "Phú Nhuận",
       "address": "Hồ Văn Huê, Phường 9, Phú Nhuận",
       "keypoint": "DUPLEX, Free Xe, Nuôi Pet | 🎁 KM 13/01: Fix 500-700k",
@@ -5282,9 +5148,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-2pn-ho-van-hue-ban-cong-p201-10-6tr-2pn",
+      "id": "can-ho-2pn-ho-van-hue-ban-cong-p201",
       "city": "hochiminh",
-      "room_code": "P201-10.6TR-2PN",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Hồ Văn Huê, Phường 9, Phú Nhuận",
       "keypoint": "2PN, Ban công, Free Xe, Nuôi Pet | 🎁 KM 13/01: Thương lượng 500-700k",
@@ -5312,9 +5178,9 @@
       "image_thumb": "P201-10-6TR-2PN-Khung-H_D09178C7-ID134441"
     },
     {
-      "id": "can-ho-studio-hoa-lan-cua-so-p302-6tr-studio",
+      "id": "can-ho-studio-hoa-lan-cua-so-p302",
       "city": "hochiminh",
-      "room_code": "P302-6TR-STUDIO",
+      "room_code": "P302",
       "district": "Phú Nhuận",
       "address": "Hoa Lan, Phường 2, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Full nội thất",
@@ -5342,9 +5208,9 @@
       "image_thumb": "P302-6TR-STUDIO-Khung-H_CD1B1CC7-ID100967"
     },
     {
-      "id": "can-ho-1pn-sam-son-ban-cong-tach-bep-p202-12tr-1pn",
+      "id": "can-ho-1pn-sam-son-ban-cong-tach-bep-p202",
       "city": "hochiminh",
-      "room_code": "P202-12TR-1PN",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Sầm Sơn, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy",
@@ -5372,9 +5238,9 @@
       "image_thumb": "P202-12TR-1PN-Khung-H_B3798FD5-ID102221"
     },
     {
-      "id": "can-ho-1pn-sam-son-ban-cong-tach-bep-p402-12tr-1pn",
+      "id": "can-ho-1pn-sam-son-ban-cong-tach-bep-p402",
       "city": "hochiminh",
-      "room_code": "P402-12TR-1PN",
+      "room_code": "P402",
       "district": "Tân Bình",
       "address": "Sầm Sơn, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy",
@@ -5402,9 +5268,9 @@
       "image_thumb": "P402-12TR-1PN-Khung-H_B3798FD5-ID158436"
     },
     {
-      "id": "can-ho-duplex-hoang-sa-ban-cong-thang-may-p303-9tr-duplex",
+      "id": "can-ho-duplex-hoang-sa-ban-cong-thang-may-p303",
       "city": "hochiminh",
-      "room_code": "P303-9TR-DUPLEX",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Hoàng Sa, Tân Sơn Nhất, Tân Bình",
       "keypoint": "DUPLEX, Ban công, Thang máy, Khóa vân tay, Giờ giấc tự do, Free Xe, Nuôi Pet",
@@ -5432,9 +5298,9 @@
       "image_thumb": "P303-9TR-DUPLEX-Khung-H_E79CFB5A-ID165333"
     },
     {
-      "id": "can-ho-duplex-hoang-sa-cua-so-thang-may-p301-7-3tr-duplex",
+      "id": "can-ho-duplex-hoang-sa-cua-so-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-7.3TR-DUPLEX",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Hoàng Sa, Tân Sơn Nhất, Tân Bình",
       "keypoint": "DUPLEX, Cửa sổ, Thang máy, Khóa vân tay, Giờ giấc tự do, Free Xe, Nuôi Pet",
@@ -5462,9 +5328,9 @@
       "image_thumb": "P301-7-3TR-DUPLEX-Khung-H_E79CFB5A-ID121919"
     },
     {
-      "id": "can-ho-studio-pham-van-hai-cua-so-p102-6-7tr-studio",
+      "id": "can-ho-studio-pham-van-hai-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-6.7TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Phạm Văn Hai, Phường 3, Tân Bình, TP. HCM",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Máy giặt riêng, Nuôi Pet",
@@ -5492,9 +5358,9 @@
       "image_thumb": "P102-6-7TR-STUDIO-Khung-H_EF3819AD-ID113682"
     },
     {
-      "id": "can-ho-studio-pham-van-hai-cua-so-p202-6-7tr-studio",
+      "id": "can-ho-studio-pham-van-hai-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-6.7TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Phạm Văn Hai, Phường 3, Tân Bình, TP. HCM",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Máy giặt riêng, Nuôi Pet",
@@ -5522,9 +5388,9 @@
       "image_thumb": "P202-6-7TR-STUDIO-Khung-H_EF3819AD-ID104683"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p303-8-5tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p303",
       "city": "hochiminh",
-      "room_code": "P303-8.5TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Giờ giấc tự do, Full nội thất, Camera an ninh 24/7",
@@ -5552,9 +5418,9 @@
       "image_thumb": "P303-8-5TR-STUDIO-Khung-H_EE1EAD3A-ID114887"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p201-9-5tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p201",
       "city": "hochiminh",
-      "room_code": "P201-9.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Giờ giấc tự do, Camera an ninh 24/7",
@@ -5582,9 +5448,9 @@
       "image_thumb": "P201-9-5TR-STUDIO-Khung-H_EE1EAD3A-ID115700"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p301-9-5tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p301",
       "city": "hochiminh",
-      "room_code": "P301-9.5TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Giờ giấc tự do, Camera an ninh 24/7",
@@ -5612,9 +5478,9 @@
       "image_thumb": "P301-9-5TR-STUDIO-Khung-H_EE1EAD3A-ID167367"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p401-9-5tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p401",
       "city": "hochiminh",
-      "room_code": "P401-9.5TR-STUDIO",
+      "room_code": "P401",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Giờ giấc tự do, Camera an ninh 24/7",
@@ -5642,9 +5508,9 @@
       "image_thumb": "P401-9-5TR-STUDIO-Khung-H_EE1EAD3A-ID204201"
     },
     {
-      "id": "can-ho-studio-bach-dang-cua-so-p501-9-5tr-studio",
+      "id": "can-ho-studio-bach-dang-cua-so-p501",
       "city": "hochiminh",
-      "room_code": "P501-9.5TR-STUDIO",
+      "room_code": "P501",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Hầm xe, Giờ giấc tự do, Camera an ninh 24/7",
@@ -5672,9 +5538,9 @@
       "image_thumb": "P501-9-5TR-STUDIO-Khung-H_EE1EAD3A-ID111917"
     },
     {
-      "id": "can-ho-studio-lam-son-thang-may-p201-6-8tr-studio",
+      "id": "can-ho-studio-lam-son-thang-may-p201",
       "city": "hochiminh",
-      "room_code": "P201-6.8TR-STUDIO",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Lam Sơn, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Thang máy",
@@ -5700,9 +5566,9 @@
       "image_thumb": "P201-6-8TR-STUDIO-Khung-H_056F0D36-ID262270"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-p201-7tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-p201",
       "city": "hochiminh",
-      "room_code": "P201-7TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phú Nhuận",
       "keypoint": "STUDIO, Máy giặt riêng, Gần Chợ/Siêu thị, Camera an ninh 24/7",
@@ -5730,9 +5596,9 @@
       "image_thumb": "P201-7TR-STUDIO-Khung-H_9C0E5C4F-ID127605"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-cua-so-p202-6tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-cua-so-p202-1",
       "city": "hochiminh",
-      "room_code": "P202-6TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Máy giặt riêng, Gần Chợ/Siêu thị, Camera an ninh 24/7",
@@ -5760,9 +5626,9 @@
       "image_thumb": "P202-6TR-STUDIO-Khung-H_9C0E5C4F-ID266551"
     },
     {
-      "id": "can-ho-studio-chien-thang-ban-cong-p202-5-7tr-studio",
+      "id": "can-ho-studio-chien-thang-ban-cong-p202",
       "city": "hochiminh",
-      "room_code": "P202-5.7TR-STUDIO",
+      "room_code": "P202",
       "district": "Phú Nhuận",
       "address": "Chiến Thắng, Phường 9, Phú Nhuận",
       "keypoint": "STUDIO, Ban công",
@@ -5789,9 +5655,9 @@
       "image_thumb": "P202-5-7TR-STUDIO-Khung-H_A4EEC87E-ID225662"
     },
     {
-      "id": "can-ho-2pn-nguyen-cong-hoan-cua-so-thang-may-p001-15tr-2pn",
+      "id": "can-ho-2pn-nguyen-cong-hoan-cua-so-thang-may-p001",
       "city": "hochiminh",
-      "room_code": "P001-15TR-2PN",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Nguyễn Công Hoan, Phú Nhuận",
       "keypoint": "2PN, Cửa sổ, Thang máy, Khóa vân tay, Camera an ninh 24/7",
@@ -5819,9 +5685,9 @@
       "image_thumb": "P001-15TR-2PN-Khung-H_D30E3BE7-ID102850"
     },
     {
-      "id": "can-ho-studio-phan-dang-luu-p102-4-5tr-studio",
+      "id": "can-ho-studio-phan-dang-luu-p102",
       "city": "hochiminh",
-      "room_code": "P102-4.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Phan Đăng Lưu, Phường 2, Phú Nhuận",
       "keypoint": "STUDIO, Free Wifi, Free Dọn phòng, Free Giặt",
@@ -5849,9 +5715,9 @@
       "image_thumb": "P102-4-5TR-STUDIO-Khung-H_6CFAA03D-ID111208"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-ban-cong-p301-9tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-ban-cong-p301",
       "city": "hochiminh",
-      "room_code": "P301-9TR-STUDIO",
+      "room_code": "P301",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phường 5, Phú Nhuận",
       "keypoint": "STUDIO, Ban công, Cửa sổ, Thoáng mát, Giờ giấc tự do, Máy giặt riêng, Gần Chợ/Siêu thị, Nuôi Pet | 🎁 KM 14/01: Hỗ trợ giảm 50% tiền thuê tháng đầu ( áp dụng HĐ từ 1 năm)",
@@ -5879,9 +5745,9 @@
       "image_thumb": "P301-9TR-STUDIO-Khung-H_A458FB9E-ID179345"
     },
     {
-      "id": "can-ho-2pn-bau-cat-5-p301-8-2tr-2pn",
+      "id": "can-ho-2pn-bau-cat-5-p301",
       "city": "hochiminh",
-      "room_code": "P301-8.2TR-2PN",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Bàu Cát 5, Phường 14, Tân Bình",
       "keypoint": "2PN, Máy giặt riêng",
@@ -5909,9 +5775,9 @@
       "image_thumb": "P301-8-2TR-2PN-Khung-H_C1039762-ID109711"
     },
     {
-      "id": "can-ho-studio-cong-hoa-cua-so-thang-may-p301-6-5tr-studio",
+      "id": "can-ho-studio-cong-hoa-cua-so-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-6.5TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Cộng Hòa, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang máy",
@@ -5939,9 +5805,9 @@
       "image_thumb": "P301-6-5TR-STUDIO-Khung-H_E5D57FDC-ID312502"
     },
     {
-      "id": "can-ho-1pn-nguyen-trong-loi-ban-cong-tach-bep-p201-10tr-1pn",
+      "id": "can-ho-1pn-nguyen-trong-loi-ban-cong-tach-bep-p201",
       "city": "hochiminh",
-      "room_code": "P201-10TR-1PN",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Lội, Phường 4, Tân Bình",
       "keypoint": "1PN, Ban công, Thoáng mát, Thang máy, Tách bếp, Máy giặt riêng, Gần Chợ/Siêu thị",
@@ -5969,9 +5835,9 @@
       "image_thumb": "P201-10TR-1PN-Khung-H_82C63253-ID123934"
     },
     {
-      "id": "can-ho-studio-dong-da-thang-may-p401-8-5tr-studio",
+      "id": "can-ho-studio-dong-da-thang-may-p401",
       "city": "hochiminh",
-      "room_code": "P401-8.5TR-STUDIO",
+      "room_code": "P401",
       "district": "Tân Bình",
       "address": "Đống Đa, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay, Camera an ninh 24/7",
@@ -5990,9 +5856,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-dong-da-thang-may-p102-8tr-studio",
+      "id": "can-ho-studio-dong-da-thang-may-p102",
       "city": "hochiminh",
-      "room_code": "P102-8TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Đống Đa, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay, Camera an ninh 24/7",
@@ -6011,9 +5877,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-dong-da-thang-may-p302-8tr-studio",
+      "id": "can-ho-studio-dong-da-thang-may-p302",
       "city": "hochiminh",
-      "room_code": "P302-8TR-STUDIO",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Đống Đa, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay, Camera an ninh 24/7",
@@ -6032,9 +5898,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-dong-da-thang-may-p203-7tr-studio",
+      "id": "can-ho-studio-dong-da-thang-may-p203",
       "city": "hochiminh",
-      "room_code": "P203-7TR-STUDIO",
+      "room_code": "P203",
       "district": "Tân Bình",
       "address": "Đống Đa, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "STUDIO, Thang máy, Khóa vân tay, Camera an ninh 24/7",
@@ -6053,9 +5919,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-tran-huy-lieu-p201-7-5tr-studio",
+      "id": "can-ho-studio-tran-huy-lieu-p201",
       "city": "hochiminh",
-      "room_code": "P201-7.5TR-STUDIO",
+      "room_code": "P201",
       "district": "Phú Nhuận",
       "address": "Trần Huy Liệu, Phường 11, Quận Phú Nhuận",
       "keypoint": "STUDIO, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -6083,9 +5949,9 @@
       "image_thumb": "P201-7-5TR-STUDIO-Khung-H_B1AA46DF-ID190438"
     },
     {
-      "id": "can-ho-studio-cu-lao-cua-so-thang-may-p001-6-7tr-studio",
+      "id": "can-ho-studio-cu-lao-cua-so-thang-may-p001",
       "city": "hochiminh",
-      "room_code": "P001-6.7TR-STUDIO",
+      "room_code": "P001",
       "district": "Phú Nhuận",
       "address": "Cù Lao, Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ, Thang máy, Full nội thất, Free Xe",
@@ -6111,9 +5977,9 @@
       "image_thumb": "P001-6-7TR-STUDIO-Khung-H_55EE02A5-ID106761"
     },
     {
-      "id": "can-ho-1pn-hoang-hoa-tham-ban-cong-tach-bep-pl01-01-10-4tr-1pn",
+      "id": "can-ho-1pn-hoang-hoa-tham-ban-cong-tach-bep-pl0101",
       "city": "hochiminh",
-      "room_code": "PL01.01-10.4TR-1PN",
+      "room_code": "PL0101",
       "district": "Phú Nhuận",
       "address": "Hoàng Hoa Thám, Phường 5, Phú Nhuận",
       "keypoint": "Tách bếp, 1PN, Ban công, Máy giặt riêng",
@@ -6141,9 +6007,9 @@
       "image_thumb": "PL01-01-10-4TR-1PN-Khung-H_C6AC371C-ID121381"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chieu-pt4-02-7-7tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chieu-pt402",
       "city": "hochiminh",
-      "room_code": "PT4.02-7.7TR-STUDIO",
+      "room_code": "PT402",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chiểu, Phường 4, Quận Phú Nhuận",
       "keypoint": "STUDIO",
@@ -6171,9 +6037,9 @@
       "image_thumb": "PT4-02-7-7TR-STUDIO-Khung-H_11D45166-ID200248"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-pt1-01-6-5tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chieu-cua-so-pt101",
       "city": "hochiminh",
-      "room_code": "PT1.01-6.5TR-STUDIO",
+      "room_code": "PT101",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chiểu, Phường 4, Quận Phú Nhuận",
       "keypoint": "STUDIO, Cửa sổ",
@@ -6201,9 +6067,9 @@
       "image_thumb": "PT1-01-6-5TR-STUDIO-Khung-H_11D45166-ID133665"
     },
     {
-      "id": "can-ho-studio-nguyen-dinh-chieu-pt4-01-7tr-studio",
+      "id": "can-ho-studio-nguyen-dinh-chieu-pt401",
       "city": "hochiminh",
-      "room_code": "PT4.01-7TR-STUDIO",
+      "room_code": "PT401",
       "district": "Phú Nhuận",
       "address": "Nguyễn Đình Chiểu, Phường 4, Quận Phú Nhuận",
       "keypoint": "STUDIO",
@@ -6231,9 +6097,9 @@
       "image_thumb": "PT4-01-7TR-STUDIO-Khung-H_11D45166-ID164752"
     },
     {
-      "id": "can-ho-2pn-pho-quang-cua-so-p202-11-5tr-2pn",
+      "id": "can-ho-2pn-pho-quang-cua-so-p202",
       "city": "hochiminh",
-      "room_code": "P202-11.5TR-2PN",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Phổ Quang, Phường 2, Tân Bình",
       "keypoint": "2PN, Cửa sổ, Giờ giấc tự do, Máy giặt riêng, Nuôi Pet",
@@ -6261,9 +6127,9 @@
       "image_thumb": "P202-11-5TR-2PN-Khung-H_5A43670D-ID394734"
     },
     {
-      "id": "can-ho-studio-truong-son-p303-4-5tr-studio",
+      "id": "can-ho-studio-truong-son-p303",
       "city": "hochiminh",
-      "room_code": "P303-4.5TR-STUDIO",
+      "room_code": "P303",
       "district": "Tân Bình",
       "address": "Trường Sơn, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Khóa vân tay, Giờ giấc tự do, Full nội thất, Gần Sân bay, Free Xe | 🎁 KM 14/01: chốt liền giảm cho khách 1 ít",
@@ -6291,9 +6157,9 @@
       "image_thumb": "P303-4-5TR-STUDIO-Khung-H_7E8D069E-ID258678"
     },
     {
-      "id": "can-ho-studio-bach-dang-thang-may-p705-5-8tr-studio",
+      "id": "can-ho-studio-bach-dang-thang-may-p705",
       "city": "hochiminh",
-      "room_code": "P705-5.8TR-STUDIO",
+      "room_code": "P705",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Hầm xe",
@@ -6321,9 +6187,9 @@
       "image_thumb": "P705-5-8TR-STUDIO-Khung-H_90AFB80E-ID119256"
     },
     {
-      "id": "can-ho-studio-bach-dang-thang-may-p406-5-3tr-studio",
+      "id": "can-ho-studio-bach-dang-thang-may-p406",
       "city": "hochiminh",
-      "room_code": "P406-5.3TR-STUDIO",
+      "room_code": "P406",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "STUDIO, Thang máy, Hầm xe",
@@ -6349,9 +6215,9 @@
       "image_thumb": "P406-5-3TR-STUDIO-Khung-H_90AFB80E-ID247876"
     },
     {
-      "id": "can-ho-studio-cu-lao-p09-8-5tr-studio",
+      "id": "can-ho-studio-cu-lao-p09",
       "city": "hochiminh",
-      "room_code": "P09-8.5TR-STUDIO",
+      "room_code": "P09",
       "district": "Phú Nhuận",
       "address": "Cù Lao, Phường 7, Phú Nhuận",
       "keypoint": "STUDIO, Giờ giấc tự do, Free Xe",
@@ -6379,9 +6245,9 @@
       "image_thumb": "P09-8-5TR-STUDIO-Khung-H_84FA3904-ID121192"
     },
     {
-      "id": "can-ho-studio-340c-3-5-hoang-van-thu-p201-6-8tr-studio",
+      "id": "can-ho-studio-340c-3-5-hoang-van-thu-p201",
       "city": "hochiminh",
-      "room_code": "P201-6.8TR-STUDIO",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "340C/3-5 Hoàng Văn Thụ, Quận Tân Bình",
       "keypoint": "STUDIO, Khóa vân tay, Free Xe, Nuôi Pet",
@@ -6402,9 +6268,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-340c-3-5-hoang-van-thu-cua-so-pg02-7tr-studio",
+      "id": "can-ho-studio-340c-3-5-hoang-van-thu-cua-so-pg02",
       "city": "hochiminh",
-      "room_code": "PG02-7TR-STUDIO",
+      "room_code": "PG02",
       "district": "Tân Bình",
       "address": "340C/3-5 Hoàng Văn Thụ, Quận Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Khóa vân tay, Free Xe, Nuôi Pet | 🎁 KM 15/01: có fix cho khách dài hạn",
@@ -6432,9 +6298,9 @@
       "image_thumb": "PG02-7TR-STUDIO-Khung-H_48600EB8-ID309801"
     },
     {
-      "id": "can-ho-1pn-xuan-hong-tach-bep-thang-may-p002-7-5tr-1pn",
+      "id": "can-ho-1pn-xuan-hong-tach-bep-thang-may-p002",
       "city": "hochiminh",
-      "room_code": "P002-7.5TR-1PN",
+      "room_code": "P002",
       "district": "Tân Bình",
       "address": "Xuân Hồng, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Thang máy, Khóa vân tay, Full nội thất",
@@ -6462,9 +6328,9 @@
       "image_thumb": "P002-7-5TR-1PN-Khung-H_CE5828B5-ID355374"
     },
     {
-      "id": "can-ho-studio-nguyen-bac-p001-5-5tr-studio",
+      "id": "can-ho-studio-nguyen-bac-p001",
       "city": "hochiminh",
-      "room_code": "P001-5.5TR-STUDIO",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Thang bộ, Hầm xe, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -6483,9 +6349,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-bac-ban-cong-p101-6-5tr-studio",
+      "id": "can-ho-studio-nguyen-bac-ban-cong-p101",
       "city": "hochiminh",
-      "room_code": "P101-6.5TR-STUDIO",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Hầm xe, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -6513,9 +6379,9 @@
       "image_thumb": "P101-6-5TR-STUDIO-Khung-H_6C77214C-ID105082"
     },
     {
-      "id": "can-ho-studio-nguyen-bac-cua-so-p102-4-5tr-studio",
+      "id": "can-ho-studio-nguyen-bac-cua-so-p102",
       "city": "hochiminh",
-      "room_code": "P102-4.5TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Cửa sổ, Thang bộ, Hầm xe, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -6543,9 +6409,9 @@
       "image_thumb": "P102-4-5TR-STUDIO-Khung-H_6C77214C-ID110107"
     },
     {
-      "id": "can-ho-studio-hau-giang-ban-cong-tach-bep-p-101-4-6tr-studio",
+      "id": "can-ho-studio-hau-giang-ban-cong-tach-bep-p101",
       "city": "hochiminh",
-      "room_code": "P.101-4.6TR-STUDIO",
+      "room_code": "P101",
       "district": "Tân Bình",
       "address": "Hậu Giang, Phường 4, Tân Bình",
       "keypoint": "STUDIO, Ban công, Khóa vân tay, Tách bếp, Full nội thất, Gần Sân bay, Camera an ninh 24/7 | 🎁 KM 10/01: Giá siêu ưu đãi chỉ còn 4,6 triệu",
@@ -6573,9 +6439,9 @@
       "image_thumb": "P-101-4-6TR-STUDIO-Khung-H_B53AA0BF-ID245142"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p202-7-8tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p202",
       "city": "hochiminh",
-      "room_code": "P202-7.8TR-1PN",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -6603,9 +6469,9 @@
       "image_thumb": "P202-7-8TR-1PN-Khung-H_0D2350B4-ID232211"
     },
     {
-      "id": "can-ho-1pn-nguyen-van-vinh-cua-so-tach-bep-p102-7-7tr-1pn",
+      "id": "can-ho-1pn-nguyen-van-vinh-cua-so-tach-bep-p102",
       "city": "hochiminh",
-      "room_code": "P102-7.7TR-1PN",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Nguyễn Văn Vĩnh, Tân Sơn Nhất, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Cửa sổ, Full nội thất, Nuôi Pet",
@@ -6633,9 +6499,9 @@
       "image_thumb": "P102-7-7TR-1PN-Khung-H_4C0436DC-ID173855"
     },
     {
-      "id": "can-ho-studio-thich-quang-duc-ban-cong-p102-4-9tr-studio",
+      "id": "can-ho-studio-thich-quang-duc-ban-cong-p102",
       "city": "hochiminh",
-      "room_code": "P102-4.9TR-STUDIO",
+      "room_code": "P102",
       "district": "Phú Nhuận",
       "address": "Thích Quảng Đức, Phường 4, Quận Phú Nhuận",
       "keypoint": "STUDIO, Ban công",
@@ -6654,9 +6520,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-2pn-bach-dang-ban-cong-thang-may-p301-13-5tr-2pn",
+      "id": "can-ho-2pn-bach-dang-ban-cong-thang-may-p301",
       "city": "hochiminh",
-      "room_code": "P301-13.5TR-2PN",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Bạch Đằng, Phường 2, Tân Bình",
       "keypoint": "2PN, Ban công, Thang máy, Hầm xe, Khóa vân tay, Máy giặt riêng, Nuôi Pet",
@@ -6675,9 +6541,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p202-6-8tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p202",
       "city": "hochiminh",
-      "room_code": "P202-6.8TR-STUDIO",
+      "room_code": "P202",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Máy giặt chung",
@@ -6705,9 +6571,9 @@
       "image_thumb": "P202-6-8TR-STUDIO-Khung-H_6E3D6CEB-ID290145"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p302-8tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p302",
       "city": "hochiminh",
-      "room_code": "P302-8TR-1PN",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, STUDIO, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet, Ban công",
@@ -6726,9 +6592,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-1pn-hoang-viet-cua-so-tach-bep-p102-14-5tr-1pn",
+      "id": "can-ho-1pn-hoang-viet-cua-so-tach-bep-p102",
       "city": "hochiminh",
-      "room_code": "P102-14.5TR-1PN",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Hoàng Việt, Phường 4, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Cửa sổ",
@@ -6756,9 +6622,9 @@
       "image_thumb": "P102-14-5TR-1PN-Khung-H_BCEA3FC9-ID132724"
     },
     {
-      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p301-7-7tr-1pn",
+      "id": "can-ho-1pn-song-thuong-ban-cong-tach-bep-p301",
       "city": "hochiminh",
-      "room_code": "P301-7.7TR-1PN",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Sông Thương, Phường Tân Sơn Hòa, Quận Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Thang máy, Gần Chợ/Siêu thị, Nuôi Pet",
@@ -6777,9 +6643,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-2pn-hau-giang-p001-9-5tr-2pn",
+      "id": "can-ho-2pn-hau-giang-p001",
       "city": "hochiminh",
-      "room_code": "P001-9.5TR-2PN",
+      "room_code": "P001",
       "district": "Tân Bình",
       "address": "Hậu Giang, Phường 4, Tân Bình",
       "keypoint": "2PN, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -6807,9 +6673,9 @@
       "image_thumb": "P001-9-5TR-2PN-Khung-H_FF480A62-ID132172"
     },
     {
-      "id": "can-ho-1pn-nguyen-van-vinh-ban-cong-tach-bep-p201-9-5tr-1pn",
+      "id": "can-ho-1pn-nguyen-van-vinh-ban-cong-tach-bep-p201",
       "city": "hochiminh",
-      "room_code": "P201-9.5TR-1PN",
+      "room_code": "P201",
       "district": "Tân Bình",
       "address": "Nguyễn Văn Vĩnh, Tân Sơn Nhất, Tân Bình",
       "keypoint": "Tách bếp, 1PN, Ban công, Full nội thất, Nuôi Pet",
@@ -6828,9 +6694,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-bac-ban-cong-p301-5-2tr-studio",
+      "id": "can-ho-studio-nguyen-bac-ban-cong-p301",
       "city": "hochiminh",
-      "room_code": "P301-5.2TR-STUDIO",
+      "room_code": "P301",
       "district": "Tân Bình",
       "address": "Nguyễn Bặc, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Hầm xe, Máy giặt riêng, Full nội thất, Nuôi Pet",
@@ -6849,9 +6715,9 @@
       "image_thumb": ""
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p302-6-1tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p302",
       "city": "hochiminh",
-      "room_code": "P302-6.1TR-STUDIO",
+      "room_code": "P302",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Máy giặt chung",
@@ -6879,9 +6745,9 @@
       "image_thumb": "P302-6-1TR-STUDIO-Khung-102457-H_6E3D6CEB"
     },
     {
-      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p102-6-8tr-studio",
+      "id": "can-ho-studio-nguyen-trong-tuyen-ban-cong-p102",
       "city": "hochiminh",
-      "room_code": "P102-6.8TR-STUDIO",
+      "room_code": "P102",
       "district": "Tân Bình",
       "address": "Nguyễn Trọng Tuyển, Tân Bình",
       "keypoint": "STUDIO, Ban công, Thang bộ, Máy giặt chung",
@@ -6898,6 +6764,140 @@
       "image_detail": [],
       "image_collage": [],
       "image_thumb": ""
+    },
+    {
+      "id": "can-ho-1pn-tan-son-hoa-ban-cong-tach-bep-p302",
+      "city": "hochiminh",
+      "room_code": "P302",
+      "district": "Tân Bình",
+      "address": "Tân Sơn Hoà, Phường 3, Quận Tân Bình",
+      "keypoint": "Tách bếp, 1PN, Ban công",
+      "price": 6200000,
+      "desc": "🏠 Tìm kiếm căn hộ 1PN ban công rộng rãi, an ninh tại đường Tân Sơn Hoà, quận Tân Bình? Dành cho người nội trợ, dân văn phòng yêu thích sự tiện lợi!\n\n📍 Vị trí đắc địa: Ngay đường Tân Sơn Hoà, dễ dàng di chuyển đến Phú Nhuận và các khu vực trung tâm Tân Bình.\n🚀 Tiện ích liền kề: Chỉ 200m đến Chợ Phạm Văn Hai sầm uất, 600m đến Công an Quận Tân Bình, an tâm tuyệt đối. Hồ bơi Cộng Hòa cách 700m, THCS Ngô Tất Tố cách 800m, Bệnh viện Đa khoa Tâm Anh cách 800m.\n🔑 Chi tiết căn hộ: Ban công siêu rộng. Điện 4K/kWh, nước 100K/người, phí dịch vụ 150K/phòng. Gửi xe ngay bãi gần nhà (cách 50m) với giá 300K/chiếc. Ký hợp đồng 12 tháng, miễn phí dịch vụ!",
+      "pet": "Hỏi lại",
+      "status": "rented",
+      "type": "1PN",
+      "updated_at": "06/01/2026",
+      "promotion": "",
+      "lat": 107.962,
+      "lng": 1.066,
+      "video": "",
+      "image_detail": [
+        "P302-6-2TR-1PN-Khung-102316-H_F3184FCB",
+        "P302-6-2TR-1PN-Khung-230559-H_F3184FCB",
+        "P302-6-2TR-1PN-Khung-266860-H_F3184FCB",
+        "P302-6-2TR-1PN-Khung-461757-H_F3184FCB",
+        "P302-6-2TR-1PN-Khung-483332-H_F3184FCB",
+        "P302-6-2TR-1PN-Khung-501337-H_F3184FCB"
+      ],
+      "image_collage": [
+        "P302-6-2TR-1PN-Collage-294352-H_F3184FCB"
+      ],
+      "image_thumb": "P302-6-2TR-1PN-Khung-102316-H_F3184FCB"
+    },
+    {
+      "id": "can-ho-studio-243-5-7-bui-thi-xuan-pg03",
+      "city": "hochiminh",
+      "room_code": "PG03",
+      "district": "Tân Bình",
+      "address": "243/5-7 Bùi Thị Xuân, Phường 1, Quận Tân Bình",
+      "keypoint": "STUDIO",
+      "price": 6500000,
+      "desc": "🔑 Sở hữu ngay căn hộ STUDIO tiện nghi tại đường Bùi Thị Xuân, Quận Tân Bình!\n\n📍 Vị trí đắc địa trung tâm Quận Tân Bình, thuận tiện di chuyển đến Phú Nhuận và các khu vực lân cận.\n\n🏠 Dành cho những ai yêu thích cuộc sống năng động:\n  - Chợ Phạm Văn Hai chỉ cách 400m, tha hồ mua sắm.\n  - THCS Ngô Tất Tố (700m) và Trường Mầm non Sơn Ca 10 (800m) ngay gần nhà, tiện lợi cho gia đình trẻ.\n  - Dành cho sinh viên UEF, chỉ 800m là đến trường.\n  - Hồ bơi Cộng Hòa cách 800m, dễ dàng rèn luyện sức khỏe.\n\n🚀 Tận hưởng cuộc sống tiện nghi với chi phí hợp lý:\n  - Điện: 4K/Kwh\n  - Nước: 150K/người\n  - Gửi xe: 150K/xe\n  - Quản lý: 200K/phòng\n\nVới vị trí trung tâm và tiện ích xung quanh, căn hộ STUDIO tại Bùi Thị Xuân là lựa chọn lý tưởng cho người độc thân, vợ chồng trẻ hoặc sinh viên đang tìm kiếm một không gian sống thoải mái và tiện lợi.",
+      "pet": "Hỏi lại",
+      "status": "rented",
+      "type": "STUDIO",
+      "updated_at": "06/01/2026",
+      "promotion": "",
+      "lat": 107.926,
+      "lng": 1.066,
+      "video": "",
+      "image_detail": [],
+      "image_collage": [],
+      "image_thumb": ""
+    },
+    {
+      "id": "can-ho-studio-243-5-7-bui-thi-xuan-p301",
+      "city": "hochiminh",
+      "room_code": "P301",
+      "district": "Tân Bình",
+      "address": "243/5-7 Bùi Thị Xuân, Phường 1, Quận Tân Bình",
+      "keypoint": "STUDIO",
+      "price": 6200000,
+      "desc": "🔑 Sở hữu ngay căn hộ STUDIO tiện nghi tại đường Bùi Thị Xuân, Quận Tân Bình! Vị trí trung tâm, kết nối dễ dàng đến Phú Nhuận.\n\n📍 Vị trí đắc địa: Chợ Phạm Văn Hai chỉ cách 400m, tha hồ mua sắm. THCS Ngô Tất Tố cách 700m, Trường Mầm non Sơn Ca 10 cách 800m – lựa chọn lý tưởng cho gia đình trẻ có con nhỏ.\n\n🏠 Tiện ích liền kề: Sinh viên UEF chỉ mất vài phút di chuyển (cách 800m). Hồ bơi Cộng Hòa (cách 800m) giúp bạn thư giãn sau ngày dài.\n\n🚀 Chi phí hợp lý: Điện 4K/kWh, nước 150K/người, gửi xe 150K/xe, quản lý 200K/phòng. Khu vực sầm uất, an ninh, phù hợp với nhân viên văn phòng Quận Tân Bình.",
+      "pet": "Hỏi lại",
+      "status": "rented",
+      "type": "STUDIO",
+      "updated_at": "06/01/2026",
+      "promotion": "",
+      "lat": 107.926,
+      "lng": 1.066,
+      "video": "",
+      "image_detail": [],
+      "image_collage": [
+        "P301-6-2TR-STUDIO-Collage-205936-H_9FC26709"
+      ],
+      "image_thumb": ""
+    },
+    {
+      "id": "can-ho-studio-cuu-long-ban-cong-p205",
+      "city": "hochiminh",
+      "room_code": "P205",
+      "district": "Tân Bình",
+      "address": "Cửu Long, Phường 2, Tân Bình",
+      "keypoint": "STUDIO, Ban công, Gần Sân bay, Free Xe",
+      "price": 6200000,
+      "desc": "🔑 Studio ban công riêng, Đường Cửu Long, Tân Bình - Free Xe!\n📍 Vị trí đắc địa tại trung tâm quận Tân Bình, căn hộ studio 35m2 này là lựa chọn lý tưởng cho người tìm kiếm sự tiện lợi và thoải mái.\n\n🚀 Chỉ cách Sân bay Tân Sơn Nhất 1 khoảng đi bộ ngắn, rất thuận tiện cho những ai thường xuyên di chuyển.\n\n🏠 Tận hưởng không gian sống riêng tư với ban công thoáng mát. Nội thất đầy đủ: máy lạnh, kệ bếp, tủ lạnh, bàn làm việc, giường nệm, tủ quần áo. Máy giặt chung tiện lợi.\n\n📍 Vị trí vàng kết nối:\n- Chùa Phổ Quang (0.7km) - Dành cho Phật tử tìm sự an yên.\n- Công viên Gia Định (0.8km) - Thích hợp cho gia đình và người yêu thể thao.\n- Bệnh viện Đa khoa Tâm Anh (0.9km) - Thuận tiện cho chuyên gia y tế.\n- THPT Phú Nhuận (1km) - Lựa chọn tốt cho phụ huynh và học sinh.\n\n🅿️ Đặc biệt, free đến 3 xe! Điện 3.8K/số, nước 100K/người, phí dịch vụ 200K/phòng.",
+      "pet": "Hỏi lại",
+      "status": "rented",
+      "type": "STUDIO",
+      "updated_at": "06/01/2026",
+      "promotion": "",
+      "lat": 108.109,
+      "lng": 1.066,
+      "video": "",
+      "image_detail": [
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID117998",
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID178342",
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID185045",
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID197490",
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID209282",
+        "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID224665"
+      ],
+      "image_collage": [
+        "P205-6-2TR-STUDIO-Collage-H_89724A3E-ID127743"
+      ],
+      "image_thumb": "P205-6-2TR-STUDIO-Khung-H_89724A3E-ID117998"
+    },
+    {
+      "id": "can-ho-1pn-hoang-van-thu-tach-bep-p301",
+      "city": "hochiminh",
+      "room_code": "P301",
+      "district": "Phú Nhuận",
+      "address": "Hoàng Văn Thụ, Phường 8, Quận Phú Nhuận",
+      "keypoint": "1PN, Khóa vân tay, Giờ giấc tự do, Tách bếp, Full nội thất, Free Xe, Nuôi Pet",
+      "price": 6000000,
+      "desc": "🏠 Tìm kiếm sự an toàn và tiện nghi tại căn hộ Phú Nhuận, ngay đường Hoàng Văn Thụ! An ninh tuyệt đối, lựa chọn hoàn hảo cho nữ độc thân và những ai yêu thích sự yên tĩnh.\n\n📍 Vị trí đắc địa: Chỉ 0.1km đến Công an Quận Phú Nhuận, an tâm tuyệt đối. Học viên Hàng Không VN cách 0.3km, lý tưởng cho sinh viên ngành bay và tiếp viên tương lai.\n\n🚀 Tiện ích vượt trội:\n🔑 Khóa vân tay an toàn, giờ giấc tự do.\n🏠 Full nội thất mới 100%, tách bếp riêng tư.\n🐕‍🦺 Cho phép nuôi pet, thoải mái tận hưởng cuộc sống.\n🛵 Free xe, không lo chi phí gửi xe.\n\n📍 Di chuyển dễ dàng: Bệnh viện Quận Phú Nhuận (0.4km), Trường Mầm non Sơn Ca 10 (0.5km), ĐH Kinh tế Tài chính (UEF) (0.5km). Kết nối nhanh chóng đến Tân Bình và các khu vực trung tâm khác của Phú Nhuận. Điện 4K, nước 100K/người, phí dịch vụ 200K/phòng.",
+      "pet": "Có",
+      "status": "rented",
+      "type": "1PN",
+      "updated_at": "06/01/2026",
+      "promotion": "",
+      "lat": 107.992,
+      "lng": 1.066,
+      "video": "",
+      "image_detail": [
+        "P301-6TR-1PN-Khung-H_942D9B32-ID141412",
+        "P301-6TR-1PN-Khung-H_942D9B32-ID376916",
+        "P301-6TR-1PN-Khung-H_942D9B32-ID490102",
+        "P301-6TR-1PN-Khung-H_942D9B32-ID576722",
+        "P301-6TR-1PN-Khung-H_942D9B32-ID601882",
+        "P301-6TR-1PN-Khung-H_942D9B32-ID656755"
+      ],
+      "image_collage": [
+        "P301-6TR-1PN-Collage-H_942D9B32-ID166491"
+      ],
+      "image_thumb": "P301-6TR-1PN-Khung-H_942D9B32-ID141412"
     }
   ]
 }
