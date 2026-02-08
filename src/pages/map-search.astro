@@ -19,10 +19,19 @@ try {
 // --- SEO CONFIG ---
 const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ Cho Thuê Trọ";
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
+const preconnectTags = [
+    // Kết nối trước với server ảnh bản đồ để tải Tiles nhanh hơn
+    { rel: 'preconnect', href: 'https://tile.openstreetmap.org', crossorigin: true },
+    { rel: 'preconnect', href: 'https://c.tile.openstreetmap.org', crossorigin: true },
+    { rel: 'preconnect', href: 'https://a.tile.openstreetmap.org', crossorigin: true },
+    { rel: 'preconnect', href: 'https://b.tile.openstreetmap.org', crossorigin: true },
+    // Preload ảnh Placeholder quan trọng nhất
+    { rel: 'preload', as: 'image', href: 'https://img.thochothuetro.com/map_detail_demo_1_11zon.webp', fetchpriority: 'high' }
+];
 ---
 
 <Layout title={pageTitle} description={pageDesc}>
-    <link slot="head" rel="preload" as="image" href="https://img.thochothuetro.com/map_placeholder_hcm.webp" fetchpriority="high" />
+    <link slot="head" rel="preload" as="image" href="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" fetchpriority="high" />
     
     <link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" />
     <noscript slot="head"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
@@ -30,7 +39,15 @@ const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực q
     <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
 
     <div class="map-layout-wrapper">
-        <img src="https://img.thochothuetro.com/map_placeholder_hcm.webp" alt="Map Placeholder" class="map-placeholder-lcp" fetchpriority="high">
+        <img 
+    src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
+    alt="Bản đồ phòng trọ" 
+    class="map-placeholder-lcp" 
+    fetchpriority="high"
+    decoding="sync" 
+    width="800" 
+    height="600"
+>
 
         <div id="full-map-view" class="map-viewport">
             <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; background: rgba(255,255,255,0.8); backdrop-filter: blur(2px);">
