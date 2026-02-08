@@ -321,34 +321,33 @@ const preconnectTags = [
     }
 
     // LOAD LEAFLET (ĐÃ SỬA LỖI TRÙNG LẶP)
+    // LOAD LEAFLET (TỐI ƯU HÓA: KHÔNG CHẶN RENDER)
     async function loadLeaflet() {
-        // 1. Nếu thư viện đã tải xong và dùng được rồi thì thoát luôn
         if (window.L) return;
 
-        // 2. Kiểm tra xem có thẻ script nào đang tải dở không (để tránh tải 2 lần do sự kiện chạy trùng)
+        // Kiểm tra nếu đang tải dở
         const existingScript = document.querySelector('script[src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"]');
-        
         if (existingScript) {
-            // Nếu đang tải dở, ta sẽ chờ nó xong (kiểm tra mỗi 100ms)
             return new Promise((resolve) => {
                 const checkInterval = setInterval(() => {
-                    if (window.L) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
+                    if (window.L) { clearInterval(checkInterval); resolve(); }
                 }, 100);
             });
         }
 
-        // 3. Nếu chưa tải và chưa có ai đang tải, thì mới tạo thẻ script mới
         return new Promise((resolve, reject) => {
+            // Tải CSS dạng bất đồng bộ (Async)
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            link.media = 'print'; // Mẹo: Đánh lừa trình duyệt đây là CSS in ấn để nó không ưu tiên
+            link.onload = () => { link.media = 'all'; }; // Tải xong mới bật lại thành CSS thường
             document.head.appendChild(link);
 
+            // Tải JS
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.async = true; // Thêm async
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);
@@ -631,7 +630,7 @@ const preconnectTags = [
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-    // PAGE SETUP
+      // PAGE SETUP (LAZY LOAD MAP)
     const runPageSetup = () => {
         let defaultDistrict = 'all';
         if (currentCityFilter === 'hochiminh') {
@@ -647,10 +646,31 @@ const preconnectTags = [
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
         try { filterAndRender(); } catch(e) {}
         
-        // Load map nhanh hơn chút (1.5s -> 0.5s) để người dùng ko đợi lâu
-        setTimeout(() => {
+        // --- CHIẾN THUẬT LAZY LOAD ---
+        // Không tải bản đồ ngay! Đợi trang hiển thị xong xuôi (LCP xong) mới tải.
+        
+        const loadMapNow = () => {
+            // Nếu đã tải rồi thì thôi
+            if (map) return; 
             initMapSafely();
-        }, 500);
+            // Xóa sự kiện để không gọi lại
+            document.removeEventListener('mousemove', loadMapNow);
+            document.removeEventListener('touchstart', loadMapNow);
+        };
+
+        // Cách 1: Nếu người dùng di chuột hoặc chạm vào màn hình -> Tải ngay
+        document.addEventListener('mousemove', loadMapNow, { once: true });
+        document.addEventListener('touchstart', loadMapNow, { once: true });
+
+        // Cách 2: Nếu người dùng không làm gì, tự động tải sau 2.5 giây (khi mạng đã rảnh)
+        setTimeout(() => {
+            // Sử dụng requestIdleCallback để trình duyệt tải khi "rảnh tay" nhất
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => loadMapNow());
+            } else {
+                loadMapNow();
+            }
+        }, 2500); 
     };
 
     document.addEventListener('astro:page-load', runPageSetup);
