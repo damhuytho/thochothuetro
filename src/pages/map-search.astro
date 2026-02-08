@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// --- 1. CHỈ LOAD DATA HCM MẶC ĐỊNH (SERVER-SIDE) ---
+// --- 1. DATA LOADING (SERVER-SIDE) ---
 let initialRooms = [];
 try {
     const hcmPath = path.join(process.cwd(), 'public', 'data_hochiminh.json');
@@ -16,49 +16,33 @@ try {
     console.error("Lỗi đọc data HCM:", error);
 }
 
-// --- [SEO CONFIG] ---
+// --- SEO CONFIG ---
 const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ Cho Thuê Trọ";
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://thochothuetro.com');
-
-const searchSchema = {
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": pageTitle,
-  "description": pageDesc,
-  "url": canonicalURL,
-  "provider": { "@type": "Person", "name": "Thọ Cho Thuê Trọ", "telephone": "0925 996 992" }
-};
 ---
-
-
 
 <Layout title={pageTitle} description={pageDesc}>
     <link slot="head" rel="preload" as="image" href="https://img.thochothuetro.com/map_placeholder_hcm.webp" fetchpriority="high" />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(searchSchema)} />
+    <link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
 
     <div class="map-layout-wrapper">
-        
-        <div id="full-map-view" class="map-viewport bg-white border-start position-relative">
+        <div id="full-map-view" class="map-viewport">
             <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100 bg-light" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000;">
                 <div class="text-center">
                     <div class="spinner-border text-warning mb-2" role="status"></div>
-                    <div class="small text-muted fw-bold" id="loading-text">Đang tải bản đồ...</div>
+                    <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
                 </div>
             </div>
         </div>
 
         <div class="map-sidebar bg-light d-flex flex-column">
             
-            <div class="city-tabs d-flex shadow-sm" style="z-index: 11; position: relative;">
-                <button class="btn-city-tab flex-fill active" id="tab-hochiminh" onclick="switchCity('hochiminh')">
-                    TP.Hồ Chí Minh
-                </button>
-                <button class="btn-city-tab flex-fill" id="tab-hanoi" onclick="switchCity('hanoi')">
-                    Hà Nội
-                </button>
+            <div class="city-tabs d-flex shadow-sm">
+                <button class="btn-city-tab flex-fill active" id="tab-hochiminh" onclick="switchCity('hochiminh')">TP.Hồ Chí Minh</button>
+                <button class="btn-city-tab flex-fill" id="tab-hanoi" onclick="switchCity('hanoi')">Hà Nội</button>
             </div>
             
             <div class="p-3 bg-white border-bottom shadow-sm" style="position: relative; z-index: 100;">
@@ -66,22 +50,15 @@ const searchSchema = {
                     <div class="col-6">
                         <label class="map-filter-label">KHU VỰC</label>
                         <div class="dropdown">
-                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small fw-bold" 
-                                    type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-map-district">
-                                Tất cả
-                            </button>
-                            <ul class="dropdown-menu shadow border-0" id="dd-menu-district">
-                                </ul>
+                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small fw-bold" type="button" data-bs-toggle="dropdown" id="btn-map-district">Tất cả</button>
+                            <ul class="dropdown-menu shadow border-0" id="dd-menu-district"></ul>
                             <input type="hidden" id="map-district" value="all">
                         </div>
                     </div>
                     <div class="col-6">
                         <label class="map-filter-label">SẮP XẾP</label>
                         <div class="dropdown">
-                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" 
-                                    type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-map-sort">
-                                Mặc định
-                            </button>
+                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" type="button" data-bs-toggle="dropdown" id="btn-map-sort">Mặc định</button>
                             <ul class="dropdown-menu shadow border-0">
                                 <li><a class="dropdown-item active" href="#" onclick="setMapFilter('map-sort', 'default', 'Mặc định', this)">Mặc định</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="setMapFilter('map-sort', 'price-asc', 'Giá thấp nhất', this)">Giá thấp nhất</a></li>
@@ -93,10 +70,7 @@ const searchSchema = {
                     <div class="col-6">
                         <label class="map-filter-label">LOẠI PHÒNG</label>
                         <div class="dropdown">
-                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" 
-                                    type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-map-type">
-                                Tất cả
-                            </button>
+                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" type="button" data-bs-toggle="dropdown" id="btn-map-type">Tất cả</button>
                             <ul class="dropdown-menu shadow border-0">
                                 <li><a class="dropdown-item active" href="#" onclick="setMapFilter('map-type', 'all', 'Tất cả', this)">Tất cả</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="setMapFilter('map-type', 'Studio', 'Studio', this)">Studio</a></li>
@@ -110,10 +84,7 @@ const searchSchema = {
                     <div class="col-6">
                         <label class="map-filter-label">MỨC GIÁ</label>
                         <div class="dropdown">
-                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" 
-                                    type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btn-map-price">
-                                Tất cả
-                            </button>
+                            <button class="btn btn-white w-100 d-flex justify-content-between align-items-center dropdown-toggle px-2 py-1 small" type="button" data-bs-toggle="dropdown" id="btn-map-price">Tất cả</button>
                             <ul class="dropdown-menu shadow border-0">
                                 <li><a class="dropdown-item active" href="#" onclick="setMapFilter('map-price', 'all', 'Tất cả', this)">Tất cả</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="setMapFilter('map-price', 'duoi-5', 'Dưới 5tr', this)">Dưới 5tr</a></li>
@@ -133,10 +104,8 @@ const searchSchema = {
                             <div class="col-6"><label class="custom-check-map"><input type="checkbox" class="amenity-cb" value="pet"><span class="checkmark-map"></span> <span class="small">Nuôi Pet</span></label></div>
                         </div>
                     </div>
-                    
                     <div class="col-12 mt-3 pt-2 border-top">
-                        <button class="btn btn-sm btn-light text-muted w-100 fw-bold border py-2 d-flex align-items-center justify-content-center hover-danger" 
-                                onclick="resetMapFilters()" style="border-radius: 6px;">
+                        <button class="btn btn-sm btn-light text-muted w-100 fw-bold border py-2 d-flex align-items-center justify-content-center hover-danger" onclick="resetMapFilters()" style="border-radius: 6px;">
                             <i class="fas fa-redo-alt me-2"></i> Đặt lại bộ lọc
                         </button>
                     </div>
@@ -165,62 +134,195 @@ const searchSchema = {
     </div>
 </Layout>
 
-<style>
-    :global(footer) { display: none !important; }
-    
-    .btn-city-tab {
-        border: none; padding: 12px 10px; background-color: #f8f9fa; color: #6c757d; font-weight: 600;
-        border-bottom: 2px solid #dee2e6; transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem;
+<style is:global>
+    /* ==========================================================================
+       CSS TOÀN CỤC CHO TRANG MAP-SEARCH
+       ========================================================================== */
+
+    :root {
+        --primary: #f1c40f;
+        --primary-dark: #f39c12;
+        --text-dark: #1a1a1a;
+        --gray-bg: #f5f7fb;
     }
-    .btn-city-tab:hover { background-color: #e9ecef; color: #495057; }
-    .btn-city-tab.active { background-color: #fff; color: #000; border-bottom: 2px solid #f1c40f; }
 
-    .hover-danger:hover { background-color: #fff5f5 !important; color: #dc3545 !important; border-color: #dc3545 !important; }
+    footer { display: none !important; }
 
-    .map-viewport {
+    /* 1. BỐ CỤC CHIA CỘT */
+    .map-layout-wrapper {
+        position: relative;
+        z-index: 1;
         background-color: #e5e3df;
         background-image: url('https://img.thochothuetro.com/map_placeholder_hcm.webp');
-        background-size: cover; background-position: center; position: relative; z-index: 1; 
+        background-size: cover;
+        background-position: center; 
+        width: 100%;
+        display: flex;
     }
+
+    /* Desktop (>= 992px) */
     @media (min-width: 992px) {
-        :global(body), :global(html) { height: 100vh; overflow: hidden !important; }
-        .map-layout-wrapper { display: flex; width: 100%; height: calc(100vh - 70px) !important; position: relative; }
-        .map-sidebar { width: 400px; flex-shrink: 0; height: 100% !important; border-right: 1px solid #dee2e6; overflow-y: auto !important; display: block !important; }
-        .map-viewport { flex-grow: 1; height: 100% !important; width: 100%; }
+        body, html { height: 100vh !important; overflow: hidden !important; }
+        .map-layout-wrapper { display: flex; width: 100%; height: calc(100vh - 70px) !important; flex-direction: row; }
+        
+        .map-sidebar { 
+            width: 400px;
+            flex-shrink: 0; 
+            height: 100% !important; 
+            border-right: 1px solid #dee2e6; 
+            overflow-y: auto !important; 
+            display: block !important; 
+            background: #fff; 
+            z-index: 20;
+            order: 2; 
+        }
+        
+        .map-viewport { 
+            flex-grow: 1;
+            height: 100% !important; 
+            width: 100%; 
+            position: relative; 
+            z-index: 1; 
+            order: 1;
+        }
+        
         .list-scroll-container { overflow: visible !important; padding-bottom: 50px; }
     }
     
+    /* Mobile (< 992px) */
     @media (max-width: 991px) {
-        :global(body), :global(html) { height: auto; overflow: visible !important; }
+        body, html { height: auto !important; overflow: visible !important; }
         .map-layout-wrapper { display: flex; flex-direction: column; height: auto !important; }
-        .map-sidebar { width: 100%; height: auto !important; overflow-y: visible !important; order: 2; }
-        .map-viewport { height: 50vh !important; min-height: 350px; width: 100%; order: 1; }
+        
+        .map-viewport { 
+            height: 50vh !important;
+            min-height: 350px; 
+            width: 100%; 
+            order: 1; 
+            position: sticky;
+            top: 60px; 
+            z-index: 10; 
+        }
+        
+        .map-sidebar { 
+            width: 100%;
+            height: auto !important; 
+            overflow-y: visible !important; 
+            order: 2; 
+            background: #fff;
+            z-index: 20; 
+        }
     }
+
+    /* 2. COMPONENTS */
+    .btn-city-tab { border: none; padding: 12px 10px; background-color: #f8f9fa; color: #6c757d; font-weight: 600; border-bottom: 2px solid #dee2e6; transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem; }
+    .btn-city-tab:hover { background-color: #e9ecef; color: #495057; }
+    .btn-city-tab.active { background-color: #fff; color: #000; border-bottom: 2px solid #f1c40f; }
 
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
     .btn-white { background-color: #fff !important; border: 1px solid #ddd !important; color: #333 !important; transition: all 0.2s; border-radius: 8px; }
-    .btn-white:hover, .btn-white:focus { border-color: #f1c40f !important; background-color: #fffcf5 !important; }
-    .dropdown-menu { font-size: 1rem; border-radius: 8px; margin-top: 5px !important; max-height: 450px; overflow-y: auto; }
+    .btn-white:hover { border-color: #f1c40f !important; background-color: #fffcf5 !important; }
+    
+    .dropdown-menu { font-size: 1rem; border-radius: 8px; margin-top: 5px !important; max-height: 450px; overflow-y: auto; z-index: 1050; }
     .dropdown-item { padding: 12px 20px !important; font-size: 1rem !important; font-weight: 500; border-bottom: 1px solid #f0f0f0; }
     .dropdown-item:last-child { border-bottom: none; }
-    .dropdown-item:active, .dropdown-item.active { background-color: #f1c40f; color: #000; font-weight: 600; }
+    .dropdown-item.active { background-color: #f1c40f; color: #000; font-weight: 600; }
+
+    .sticky-result-bar { position: sticky; top: 0; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #fff; }
+
     .custom-check-map { display: flex; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
     .custom-check-map input { display: none; }
     .checkmark-map { height: 18px !important; width: 18px !important; background-color: #fff; border: 1px solid #bbb; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .custom-check-map input:checked ~ .checkmark-map { background-color: #f1c40f; border-color: #f1c40f; }
     .custom-check-map input:checked ~ .checkmark-map:after { content: '\2713'; color: #1a1a1a; font-size: 12px; font-weight: 800; }
-    .sticky-result-bar { position: sticky; top: 0; z-index: 15; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .btn-popup-yellow { background-color: #f1c40f !important; color: #1a1a1a !important; font-weight: 700 !important; border: none; padding: 6px 0; width: 100%; border-radius: 50px; font-size: 0.85rem; text-align: center; display: block; text-decoration: none !important; margin-top: 8px; }
+
+    /* 3. LEAFLET POPUP STYLE (Giao diện thẻ thông tin) */
+    .leaflet-popup-content-wrapper { 
+        padding: 0 !important;
+        border-radius: 12px !important; 
+        overflow: hidden; 
+        border: none !important; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25) !important;
+    }
+    .leaflet-popup-content { 
+        margin: 0 !important; 
+        width: 260px !important; /* Fix cứng width để tránh bị Bootstrap bóp */
+    }
+    .leaflet-popup-tip { background: #fff !important; box-shadow: none !important; }
+    
+    /* Nút đóng (X) */
+    .leaflet-container a.leaflet-popup-close-button { 
+        top: 8px !important; right: 8px !important; 
+        color: #fff !important; background: rgba(0,0,0,0.4) !important; 
+        border-radius: 50%; width: 24px !important; height: 24px !important; 
+        display: flex !important; align-items: center; justify-content: center; 
+        font-size: 16px !important; border: 1px solid rgba(255,255,255,0.5) !important; 
+        text-decoration: none !important; transition: 0.2s; z-index: 1000;
+    }
+    .leaflet-container a.leaflet-popup-close-button:hover { background: #d9b205 !important; border-color: #d9b205 !important; }
+
+    /* Nội dung Popup */
+    .map-popup-card { display: flex; flex-direction: column; background: #fff; font-family: 'Be Vietnam Pro', sans-serif; }
+    
+    .map-popup-img-wrapper { position: relative; display: block; width: 100%; background-color: #eee; overflow: hidden; }
+    .map-popup-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .map-popup-card:hover .map-popup-img-wrapper img { transform: scale(1.08); }
+    
+    .map-popup-badge { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.75); color: #fff; font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .map-popup-info { padding: 12px; }
+    .map-popup-title { font-size: 13px !important; font-weight: 700 !important; color: #2c3e50; margin: 0 0 8px 0 !important; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .map-popup-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+    .map-popup-price { color: #d9b205; font-weight: 800; font-size: 15px; line-height: 1; margin-bottom: 4px; }
+    
+    .btn-popup-view { background-color: #f1c40f; color: #1a1a1a; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-decoration: none; box-shadow: 0 3px 6px rgba(241, 196, 15, 0.3); transition: transform 0.2s; display: inline-block; }
+    .btn-popup-view:active { transform: scale(0.95); }
+    
     .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
+
+    /* =========================================================================
+       [QUAN TRỌNG] FIX LỖI POPUP KHÔNG HIỂN THỊ (BOOTSTRAP CONFLICT FIX)
+       ========================================================================= */
+    
+    /* 1. Đưa Popup lên lớp cao nhất (cao hơn Header 1030) */
+    .leaflet-pane { z-index: 400; }
+    .leaflet-popup-pane { z-index: 2000 !important; } 
+    
+    /* 2. Fix lỗi ảnh trong Leaflet bị Bootstrap ép max-width */
+    .leaflet-container img.leaflet-image-layer,
+    .leaflet-container img.leaflet-marker-icon, 
+    .leaflet-container img.leaflet-overlay-pane { 
+        max-width: none !important; 
+    }
+    
+    /* 3. Đảm bảo Popup hiển thị đúng display */
+    .leaflet-popup { display: block !important; opacity: 1; }
+    .leaflet-fade-anim .leaflet-popup { transition: opacity 0.2s linear; }
+    .leaflet-fade-anim .leaflet-popup.leaflet-popup-fade-out { opacity: 0; }
+    /* Thêm đoạn này vào cuối file CSS hoặc thẻ style */
+
+#map-loading-spinner {
+    /* Cho phép click xuyên qua spinner xuống bản đồ */
+    pointer-events: none !important; 
+    
+    /* Đảm bảo hiệu ứng mượt mà */
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* Nếu bạn muốn kỹ hơn, thêm class này để ẩn triệt để */
+.spinner-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    z-index: -1 !important;
+}
 </style>
 
 <script is:inline define:vars={{ initialRooms }}>
     // --- 1. CONFIG & DATA ---
     const CONFIG = {
-        hanoi: { coords: [21.028511, 105.804817], zoom: 13, file: 'data_hanoi.json' },
-        hochiminh: { coords: [10.801646, 106.663158], zoom: 13, file: 'data_hochiminh.json' }
+        hanoi: { coords: [21.028511, 105.804817], zoom: 15, file: 'data_hanoi.json' },
+        hochiminh: { coords: [10.801646, 106.663158], zoom: 15, file: 'data_hochiminh.json' }
     };
-    
     let allRoomsData = initialRooms || [];
     let dataCache = { 'hochiminh': initialRooms, 'hanoi': null };
     let currentCityFilter = 'hochiminh';
@@ -238,27 +340,32 @@ const searchSchema = {
             .replace(/[đĐ]/g, 'd').replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
     }
 
-    function forceHideSpinner() {
-        const spinner = document.getElementById('map-loading-spinner');
-        if (spinner) {
-            spinner.style.opacity = '0';
-            setTimeout(() => { spinner.style.display = 'none'; }, 500);
-        }
+    // --- CẬP NHẬT HÀM NÀY TRONG SCRIPT ---
+function forceHideSpinner() {
+    const spinner = document.getElementById('map-loading-spinner');
+    if (spinner) {
+        // Thêm class ẩn
+        spinner.classList.add('spinner-hidden');
+        
+        // Vẫn giữ logic cũ để chắc chắn
+        spinner.style.opacity = '0';
+        spinner.style.pointerEvents = 'none'; // Dòng quan trọng nhất
+        
+        setTimeout(() => { 
+            spinner.style.display = 'none'; 
+        }, 500);
     }
+}
 
-    // --- 3. DYNAMIC LEAFLET LOADER (TỐI ƯU LCP) ---
-    // Chỉ tải thư viện khi cần, giúp trang load nhanh như gió
+    // --- 3. LOAD LEAFLET ---
     async function loadLeaflet() {
-        if (window.L) return; // Đã tải rồi thì thôi
-
+        if (window.L) return;
         return new Promise((resolve, reject) => {
-            // Tải CSS
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
             document.head.appendChild(link);
 
-            // Tải JS
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
             script.onload = resolve;
@@ -267,49 +374,44 @@ const searchSchema = {
         });
     }
 
-    // --- 4. MAP INITIALIZATION ---
+    // --- 4. KHỞI TẠO MAP ---
     async function initMapSafely() {
         try {
-            await loadLeaflet(); // Đợi tải thư viện xong
-
+            await loadLeaflet();
             const mapContainer = document.getElementById('full-map-view');
             if (!mapContainer) return;
 
-            // Reset nếu map đã có
             if (map) { map.remove(); map = null; }
 
-            // Khởi tạo Map
             const { coords, zoom } = CONFIG[currentCityFilter];
             map = L.map('full-map-view', {
                 zoomControl: false, 
                 fadeAnimation: true,
                 zoomAnimation: true
             }).setView(coords, zoom);
+            
+            // EXPOSE MAP ĐỂ DEBUG
+            window.map = map;
 
             L.control.zoom({ position: 'bottomright' }).addTo(map);
-
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                attribution: '&copy; OSM',
-                maxZoom: 19,
-                keepBuffer: 2 
+                attribution: '&copy; OSM', maxZoom: 19, keepBuffer: 2 
             }).addTo(map);
 
-            // Render Marker
             requestAnimationFrame(() => {
                 if (map) {
                     map.invalidateSize();
-                    renderMapMarkers();
-                    forceHideSpinner(); // Tắt loading khi map đã lên
+                    renderMapMarkers(); // VẼ MARKER & POPUP
+                    forceHideSpinner();
                 }
             });
-
         } catch (err) {
             console.error("Lỗi tải Map:", err);
             forceHideSpinner();
         }
     }
 
-    // --- 5. MARKER RENDERER (TỐI ƯU ICON) ---
+    // --- 5. VẼ MARKER & POPUP (FINAL VERSION) ---
     function renderMapMarkers() {
         if (!map || !window.L) return;
         if (markersLayer) map.removeLayer(markersLayer);
@@ -317,51 +419,63 @@ const searchSchema = {
         markersLayer = L.layerGroup().addTo(map);
 
         const iconHTML = `<div style="background:#f1c40f; width:30px; height:30px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:14px;"></i></div>`;
-        
         const brandIcon = L.divIcon({ 
             className: 'custom-map-marker-yellow', 
             html: iconHTML, 
-            iconSize: [30, 30], 
-            iconAnchor: [15, 15],
-            popupAnchor: [0, -15] 
+            iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -20]
         });
 
         currentFiltered.forEach(room => {
             if (room.lat && room.lng) {
                 const marker = L.marker([room.lat, room.lng], {icon: brandIcon}).addTo(markersLayer);
                 
-                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' tr' : (room.price / 1000) + 'k';
+                // Xử lý dữ liệu
+                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Tr' : (room.price / 1000) + 'k';
                 const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
                 const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
                 
-                // Lấy ảnh thumb (nếu có) hoặc ảnh đầu tiên
                 let thumb = '/logo.png';
                 if (room.image_detail && room.image_detail.length > 0) {
                      const t = room.image_detail.find(i => i.includes('_thumb'));
                      thumb = t ? t : room.image_detail[0];
                 }
                 if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
-                    thumb = `https://img.thochothuetro.com/${thumb}_thumb.webp`;
+                    thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
                 }
 
+                const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+
+                // HTML Popup Chuẩn
                 const popupContent = `
-                    <div style="width:160px; text-align:center;">
-                        <a href="${link}" style="text-decoration:none; color:inherit;">
-                            <img src="${thumb}" style="width:100%; height:90px; object-fit:cover; border-radius:6px; margin-bottom:5px; background:#eee;">
-                            <div style="font-weight:bold; font-size:13px; margin-bottom:2px;" class="text-truncate">${room.room_code}</div>
-                            <div style="color:#dc3545; font-weight:bold;">${priceText}/tháng</div>
+                    <div class="map-popup-card">
+                        <a href="${link}" class="map-popup-img-wrapper">
+                            <img src="${thumb}" alt="Phòng trọ" loading="lazy" onerror="this.src='/logo.png'">
+                            <span class="map-popup-badge">${room.type}</span>
                         </a>
+                        <div class="map-popup-info">
+                            <h3 class="map-popup-title" title="${cleanAddr}">${cleanAddr}</h3>
+                            <div class="map-popup-footer">
+                                <div>
+                                    <div class="map-popup-price">${priceText}/tháng</div>
+                                    <div class="small text-muted" style="font-size: 10px;">${room.room_code}</div>
+                                </div>
+                                <a href="${link}" class="btn-popup-view">
+                                    Xem ngay <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>`;
                 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent, {
+                    maxWidth: 260, minWidth: 250, closeButton: true, autoPan: true
+                });
             }
         });
     }
 
-    // --- 6. LOGIC LỌC & DANH SÁCH (FULL LOGIC CŨ CỦA BẠN) ---
+    // --- 6. LOGIC LỌC & RENDER LIST ---
     window.switchCity = async function(cityCode) {
         if (currentCityFilter === cityCode) return;
-        
         const spinner = document.getElementById('map-loading-spinner');
         if (spinner) { spinner.style.opacity = '1'; spinner.style.display = 'flex'; }
 
@@ -370,30 +484,25 @@ const searchSchema = {
                 const res = await fetch(`/${CONFIG[cityCode].file}`);
                 const json = await res.json();
                 dataCache[cityCode] = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
-            } catch (e) {
-                dataCache[cityCode] = [];
-            }
+            } catch (e) { dataCache[cityCode] = []; }
         }
 
         currentCityFilter = cityCode;
         allRoomsData = dataCache[cityCode];
-
         document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`tab-${cityCode}`).classList.add('active');
         
         const defaultDist = (cityCode === 'hochiminh' ? 'Phú Nhuận' : 'all');
         updateDistrictDropdown(defaultDist);
-
         const inputDist = document.getElementById('map-district');
         const btnDist = document.getElementById('btn-map-district');
         if (inputDist) inputDist.value = defaultDist;
         if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
-
+        
         if (map) {
             const { coords, zoom } = CONFIG[cityCode];
             map.setView(coords, zoom);
         }
-        
         filterAndRender();
     };
 
@@ -453,22 +562,18 @@ const searchSchema = {
             }
             return true;
         });
-
         filtered.sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             if (sortMode === 'price-asc') return a.price - b.price;
             if (sortMode === 'price-desc') return b.price - a.price;
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
-
         currentFiltered = filtered;
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
         
         visibleCount = 6;
         renderListDOM();
-        
-        // Vẽ lại Map Marker sau khi lọc
         if(map && window.L) requestAnimationFrame(() => renderMapMarkers());
     }
 
@@ -478,7 +583,6 @@ const searchSchema = {
         const loadMoreBtn = document.getElementById('map-load-more-container');
         const noResult = document.getElementById('map-no-result');
         const visibleItems = currentFiltered.slice(0, visibleCount);
-        
         grid.innerHTML = visibleItems.map((room) => renderCardHTML(room)).join('');
         
         if (loadMoreBtn) loadMoreBtn.style.display = (currentFiltered.length > visibleCount) ? 'block' : 'none';
@@ -501,8 +605,6 @@ const searchSchema = {
         const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
         const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
-        const keypoint = room.keypoint ? room.keypoint.split('|')[0] : '';
-        
         return `
         <div class="col-6 col-lg-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" 
@@ -533,7 +635,6 @@ const searchSchema = {
         }
         filterAndRender();
     };
-
     window.resetMapFilters = function() {
         document.getElementById('map-district').value = 'all';
         document.getElementById('map-type').value = 'all';
@@ -553,7 +654,6 @@ const searchSchema = {
 
     // --- 8. PAGE SETUP & LCP FIX ---
     const runPageSetup = () => {
-        // Setup mặc định
         let defaultDistrict = 'all';
         if (currentCityFilter === 'hochiminh') {
             defaultDistrict = 'Phú Nhuận';
@@ -567,16 +667,11 @@ const searchSchema = {
         
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
-        
         try { filterAndRender(); } catch(e) {}
         
-        // [CHIẾN THUẬT LCP QUAN TRỌNG]
-        // 1. Web hiện ra, hiện Spinner và Ảnh nền (LCP được tính lúc này -> Rất nhanh)
-        // 2. Đợi 1.5 giây để CPU rảnh rang & Google chấm điểm xong
-        // 3. Mới bắt đầu tải Map đè lên
         setTimeout(() => {
             initMapSafely();
-        }, 1500); 
+        }, 1500);
     };
 
     document.addEventListener('astro:page-load', runPageSetup);
