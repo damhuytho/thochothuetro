@@ -20,13 +20,16 @@ try {
 const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ Cho Thuê Trọ";
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 const preconnectTags = [
-    // Kết nối trước với server ảnh bản đồ để tải Tiles nhanh hơn
+    // Kết nối trước với server ảnh bản đồ
     { rel: 'preconnect', href: 'https://tile.openstreetmap.org', crossorigin: true },
     { rel: 'preconnect', href: 'https://c.tile.openstreetmap.org', crossorigin: true },
     { rel: 'preconnect', href: 'https://a.tile.openstreetmap.org', crossorigin: true },
     { rel: 'preconnect', href: 'https://b.tile.openstreetmap.org', crossorigin: true },
     // Preload ảnh Placeholder quan trọng nhất
-    { rel: 'preload', as: 'image', href: 'https://img.thochothuetro.com/map_detail_demo_1_11zon.webp', fetchpriority: 'high' }
+    { rel: 'preload', as: 'image', href: 'https://img.thochothuetro.com/map_detail_demo_1_11zon.webp', fetchpriority: 'high' },
+    
+    // [MỚI] Preload Font Awesome để icon hiện nhanh hơn, không chặn LCP
+    { rel: 'preload', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/webfonts/fa-solid-900.woff2', as: 'font', type: 'font/woff2', crossorigin: true }
 ];
 ---
 
@@ -153,6 +156,21 @@ const preconnectTags = [
 </Layout>
 
 <style is:inline>
+    * ==========================================================================
+       0. CRITICAL CSS (QUAN TRỌNG: Giữ layout không bị nhảy khi chờ Bootstrap)
+       ========================================================================== */
+    .row { display: flex; flex-wrap: wrap; margin-left: -8px; margin-right: -8px; }
+    .col-6 { flex: 0 0 auto; width: 50%; padding-left: 8px; padding-right: 8px; box-sizing: border-box; }
+    .col-12 { flex: 0 0 auto; width: 100%; padding-left: 8px; padding-right: 8px; box-sizing: border-box; }
+    .d-flex { display: flex !important; }
+    .flex-column { flex-direction: column !important; }
+    .justify-content-between { justify-content: space-between !important; }
+    .align-items-center { align-items: center !important; }
+    .w-100 { width: 100% !important; }
+    .g-3 { --bs-gutter-y: 1rem; --bs-gutter-x: 1rem; }
+    
+    /* Cố định chiều cao các nút dropdown để không bị xẹp */
+    .dropdown-toggle { height: 38px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; white-space: nowrap; }
     /* ==========================================================================
        CSS TOÀN CỤC & FIX LEAFLET POPUP
        ========================================================================== */
