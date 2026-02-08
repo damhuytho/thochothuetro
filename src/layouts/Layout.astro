@@ -3,7 +3,7 @@
 import { ViewTransitions } from 'astro:transitions';
 import fs from 'node:fs';
 import path from 'node:path';
-import '../styles/main.scss';
+
 // [ĐÃ SỬA] Đã xóa dòng import style.css tĩnh ở đây để tối ưu tốc độ
 import '@fontsource/be-vietnam-pro/400.css';
 import '@fontsource/be-vietnam-pro/700.css';
@@ -135,7 +135,8 @@ if (currentCity) {
     
     <slot name="head" />
 
-    <style is:global define:vars={{ isMapPage }}>
+    <style is:global lang="scss" define:vars={{ isMapPage }}>
+        @import "../styles/main.scss";
         /* --- CRITICAL CSS --- */
         :root {
             --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
