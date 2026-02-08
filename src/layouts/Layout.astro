@@ -3,7 +3,7 @@
 import { ViewTransitions } from 'astro:transitions';
 import fs from 'node:fs';
 import path from 'node:path';
-import "../styles/main.scss";
+
 
 // [ĐÃ SỬA] Đã xóa dòng import style.css tĩnh ở đây để tối ưu tốc độ
 import '@fontsource/be-vietnam-pro/400.css';
@@ -37,6 +37,7 @@ const isMapPage = currentPath.includes('/map-search');
 // [TỐI ƯU HÓA] Chỉ tải style.css (giao diện web thường) nếu KHÔNG phải trang Map
 // Giúp trang Map nhẹ hơn, không bị dính các style đè padding/margin thừa
 if (!isMapPage) {
+    import("../styles/main.scss");
     import('../styles/style.css');
 }
 
