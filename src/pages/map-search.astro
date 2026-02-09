@@ -495,30 +495,36 @@ const preconnectTags = [
         }
     }
 
-    // --- 2. HÀM TẢI THƯ VIỆN (LEAFLET + CLUSTER) ---
+    // --- 2. HÀM TẢI THƯ VIỆN (LEAFLET + CLUSTER) - PHIÊN BẢN LOCAL ---
     async function loadMapLibraries() {
         // Nếu đã có L (Leaflet) và MarkerCluster rồi thì thôi
         if (window.L && window.L.MarkerClusterGroup) return;
 
         return new Promise((resolve, reject) => {
-            // Tải CSS Leaflet
+            // 1. Tải CSS từ thư mục public/libs/leaflet (Tốc độ bàn thờ)
             const cssL = document.createElement('link');
-            cssL.rel = 'stylesheet'; cssL.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            cssL.rel = 'stylesheet'; 
+            cssL.href = '/libs/leaflet/leaflet.css';
             document.head.appendChild(cssL);
 
-            // Tải CSS Cluster
-            const cssC1 = document.createElement('link'); cssC1.rel = 'stylesheet'; cssC1.href = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css';
+            const cssC1 = document.createElement('link'); 
+            cssC1.rel = 'stylesheet'; 
+            cssC1.href = '/libs/leaflet/MarkerCluster.css';
             document.head.appendChild(cssC1);
-            const cssC2 = document.createElement('link'); cssC2.rel = 'stylesheet'; cssC2.href = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css';
+
+            const cssC2 = document.createElement('link'); 
+            cssC2.rel = 'stylesheet'; 
+            cssC2.href = '/libs/leaflet/MarkerCluster.Default.css';
             document.head.appendChild(cssC2);
 
-            // Tải JS Leaflet trước
+            // 2. Tải JS Leaflet trước
             const scriptL = document.createElement('script');
-            scriptL.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            scriptL.src = '/libs/leaflet/leaflet.js';
+            
             scriptL.onload = () => {
                 // Tải tiếp JS Cluster sau khi có Leaflet
                 const scriptC = document.createElement('script');
-                scriptC.src = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js';
+                scriptC.src = '/libs/leaflet/leaflet.markercluster.js';
                 scriptC.onload = resolve;
                 scriptC.onerror = reject;
                 document.head.appendChild(scriptC);
@@ -934,7 +940,7 @@ const preconnectTags = [
             } else {
                 loadMapNow();
             }
-        }, 3500);
+        }, 2500);
     };
 
     document.addEventListener('astro:page-load', runPageSetup);
