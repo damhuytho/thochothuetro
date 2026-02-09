@@ -135,7 +135,16 @@ if (currentCity) {
         /* Trỏ đúng vào file 900 trong thư mục public */
         src: url('/fonts/be-vietnam-pro-latin-900-normal.woff2') format('woff2');
     }
+    {isMapPage && (
+    <>
+        <link rel="stylesheet" href="/libs/leaflet/leaflet.css" />
+        <link rel="stylesheet" href="/libs/leaflet/MarkerCluster.css" />
+        <link rel="stylesheet" href="/libs/leaflet/MarkerCluster.Default.css" />
 
+        <script is:inline src="/libs/leaflet/leaflet.js"></script>
+        <script is:inline src="/libs/leaflet/leaflet.markercluster.js"></script>
+    </>
+    )}
     /* Class bắt buộc để icon hiển thị */
     .fa, .fas { font-family: "Font Awesome 6 Free"; font-weight: 900; }
     .fab { font-family: "Font Awesome 6 Brands"; font-weight: 400; }
