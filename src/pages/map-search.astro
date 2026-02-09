@@ -462,6 +462,16 @@ const preconnectTags = [
         'Tây Hồ': [21.0660, 105.8197], 
         'Thanh Xuân': [20.9936, 105.8066]
     };
+    // Thêm hàm này ngay bên dưới DISTRICT_CENTERS để dùng cho việc di chuyển map
+    function zoomToDistrict(dist) {
+        if (!map) return;
+        if (dist !== 'all' && DISTRICT_CENTERS[dist]) {
+            map.flyTo(DISTRICT_CENTERS[dist], 15, { animate: true, duration: 1.2 });
+        } else {
+            const cfg = CONFIG[currentCityFilter];
+            map.flyTo(cfg.coords, cfg.zoom, { animate: true, duration: 1.2 });
+        }
+    }
     
     // Khai báo biến dữ liệu (Đảm bảo dòng này không bị xóa)
     let allRoomsData = initialRooms || [];
@@ -731,6 +741,7 @@ const preconnectTags = [
         if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
 
         filterAndRender();
+        zoomToDistrict(defaultDist);
     };
 
     function updateDistrictDropdown(defaultDist = 'all') {
@@ -745,6 +756,7 @@ const preconnectTags = [
     }
 
     function filterAndRender() {
+        // 1. Lấy giá trị từ bộ lọc
         const district = document.getElementById('map-district')?.value || 'all';
         const type = document.getElementById('map-type')?.value || 'all';
         const price = document.getElementById('map-price')?.value || 'all';
@@ -755,13 +767,14 @@ const preconnectTags = [
         const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
         const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
 
+        // 2. Logic lọc dữ liệu
         let filtered = allRoomsData.filter(room => {
             const rCity = room.city ? room.city : 'hochiminh';
             if (rCity !== currentCityFilter) return false;
             if (district !== 'all' && room.district !== district) return false;
             if (type !== 'all' && room.type !== type) return false;
             
-            // Logic lọc giá
+            // Lọc giá
             if (price !== 'all') {
                 const p = room.price;
                 if (price === 'duoi-5' && p >= 5000000) return false;
@@ -769,7 +782,7 @@ const preconnectTags = [
                 if (price === 'over8' && p < 8000000) return false;
             }
             
-            // Logic lọc tiện ích
+            // Lọc tiện ích
             if (fAmenities.length > 0) {
                 const keypoints = (room.keypoint || "").toLowerCase();
                 const petAllowed = room.pet === true;
@@ -790,7 +803,7 @@ const preconnectTags = [
             return true;
         });
 
-        // Sắp xếp
+        // 3. Sắp xếp kết quả
         filtered.sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             if (sortMode === 'price-asc') return a.price - b.price;
@@ -798,29 +811,17 @@ const preconnectTags = [
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
 
+        // 4. Cập nhật giao diện
         currentFiltered = filtered;
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
         
         visibleCount = 6;
-        renderListDOM(); 
-        
-        // Vẽ lại Marker
+        renderListDOM();
+
+        // 5. [QUAN TRỌNG] Chỉ vẽ lại Marker, TUYỆT ĐỐI KHÔNG di chuyển Map (FlyTo) ở đây
         if(map) {
              requestAnimationFrame(() => renderMapMarkers());
-
-             // [MỚI] LOGIC TỰ ĐỘNG DI CHUYỂN BẢN ĐỒ VỀ QUẬN ĐƯỢC CHỌN
-             if (district !== 'all' && DISTRICT_CENTERS[district]) {
-                 // Dùng flyTo cho mượt, zoom 15 là vừa đẹp cấp quận
-                 map.flyTo(DISTRICT_CENTERS[district], 15, {
-                     animate: true,
-                     duration: 1.5 // Thời gian bay 1.5 giây
-                 });
-             } else if (district === 'all') {
-                 // Nếu chọn "Tất cả", trả về view toàn thành phố
-                 const { coords, zoom } = CONFIG[currentCityFilter];
-                 map.flyTo(coords, zoom, { animate: true, duration: 1.5 });
-             }
         }
     }
 
@@ -880,6 +881,9 @@ const preconnectTags = [
             el.classList.add('active');
         }
         filterAndRender();
+        if (inputId === 'map-district') {
+            zoomToDistrict(val);
+        }
     };
 
     window.resetMapFilters = function() {
