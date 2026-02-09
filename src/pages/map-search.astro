@@ -48,14 +48,17 @@ const preconnectTags = [
     height="600"
 >
 
-        <div id="full-map-view" class="map-viewport">
-            <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; background: rgba(255,255,255,0.8); backdrop-filter: blur(2px);">
-                <div class="text-center">
-                    <div class="spinner-border text-warning mb-2" role="status"></div>
-                    <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
-                </div>
-            </div>
+        <div id="full-map-view" class="map-viewport" style="position: relative;">
+    <div id="map" style="width: 100%; height: 100%; z-index: 1;"></div>
+    
+    <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" 
+         style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; background: rgba(255,255,255,0.8); backdrop-filter: blur(2px);">
+        <div class="text-center">
+            <div class="spinner-border text-warning mb-2" role="status"></div>
+            <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
         </div>
+    </div>
+</div>
 
         <div class="map-sidebar bg-light d-flex flex-column">
             <div class="city-tabs d-flex shadow-sm">
@@ -152,8 +155,8 @@ const preconnectTags = [
 </Layout>
 
 <style is:inline>
-    * ==========================================================================
-       0. CRITICAL CSS (QUAN TRỌNG: Giữ layout không bị nhảy khi chờ Bootstrap)
+    /* ==========================================================================
+       1. CẤU TRÚC LAYOUT & UTILITIES (GIỮ NGUYÊN ĐỂ KHÔNG VỠ KHUNG)
        ========================================================================== */
     .row { display: flex; flex-wrap: wrap; margin-left: -8px; margin-right: -8px; }
     .col-6 { flex: 0 0 auto; width: 50%; padding-left: 8px; padding-right: 8px; box-sizing: border-box; }
@@ -164,39 +167,29 @@ const preconnectTags = [
     .align-items-center { align-items: center !important; }
     .w-100 { width: 100% !important; }
     .g-3 { --bs-gutter-y: 1rem; --bs-gutter-x: 1rem; }
-    
-    /* Cố định chiều cao các nút dropdown để không bị xẹp */
+
+    /* Fix dropdown Bootstrap */
     .dropdown-toggle { height: 38px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; white-space: nowrap; }
+
     /* ==========================================================================
-       CSS TOÀN CỤC & FIX LEAFLET POPUP
+       2. BỐ CỤC TRANG (MAP LAYOUT - RESPONSIVE)
        ========================================================================== */
     :root {
         --primary: #f1c40f;
-        --primary-dark: #f39c12;
         --text-dark: #1a1a1a;
-        --gray-bg: #f5f7fb;
     }
-
     footer { display: none !important; }
 
-    /* [TỐI ƯU LCP] Ảnh placeholder thật nằm dưới Map */
+    /* Ảnh placeholder loading (LCP) */
     .map-placeholder-lcp {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-        z-index: 0; /* Nằm dưới cùng */
-        pointer-events: none;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: cover; z-index: 0; pointer-events: none;
     }
 
-    /* 1. BỐ CỤC CHIA CỘT */
+    /* Container chính */
     .map-layout-wrapper {
-        position: relative;
-        z-index: 1;
-        background-color: #e5e3df;
-        /* Đã xóa background-image ở đây để dùng thẻ img */
-        width: 100%;
-        display: flex;
+        position: relative; z-index: 1; background-color: #e5e3df;
+        width: 100%; display: flex;
     }
 
     /* Desktop (>= 992px) */
@@ -205,37 +198,67 @@ const preconnectTags = [
         .map-layout-wrapper { display: flex; width: 100%; height: calc(100vh - 70px) !important; flex-direction: row; }
         
         .map-sidebar { 
-            width: 400px;
-            flex-shrink: 0; height: 100% !important; 
+            width: 400px; flex-shrink: 0; height: 100% !important; 
             border-right: 1px solid #dee2e6; overflow-y: auto !important; 
             display: block !important; background: #fff; z-index: 20; order: 2; 
         }
-        
         .map-viewport { 
             flex-grow: 1; height: 100% !important; width: 100%; 
             position: relative; z-index: 1; order: 1;
         }
-        
         .list-scroll-container { overflow: visible !important; padding-bottom: 50px; }
     }
     
     /* Mobile (< 992px) */
     @media (max-width: 991px) {
-        body, html { height: auto !important; overflow: visible !important; }
-        .map-layout-wrapper { display: flex; flex-direction: column; height: auto !important; }
+        body, html { 
+            height: auto !important; 
+            overflow: visible !important; 
+        }
+
+        .map-layout-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            height: auto !important; 
+            /* Đảm bảo wrapper không đè lên header */
+            position: relative; 
+            z-index: 1;
+        }
         
+        /* FIX LỖI BẢN ĐỒ MOBILE */
         .map-viewport { 
-            height: 50vh !important; min-height: 350px; width: 100%; 
-            order: 1; position: sticky; top: 60px; z-index: 10; 
+            /* 1. Chiều cao cố định bằng pixel để tránh lỗi vh trên trình duyệt mobile */
+            height: 400px !important; 
+            width: 100%; 
+            
+            /* 2. Thứ tự hiển thị: Map nằm trên, danh sách nằm dưới */
+            order: 1; 
+            
+            /* 3. Sticky: Giữ bản đồ dính trên cùng khi cuộn danh sách */
+            position: sticky; 
+            top: 60px; /* Điều chỉnh số này bằng chiều cao Header của web bạn (thường là 60-70px) */
+            z-index: 100; /* Đủ cao để đè lên nội dung, nhưng thấp hơn menu dropdown */
+            
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Đổ bóng ngăn cách với danh sách bên dưới */
         }
         
         .map-sidebar { 
-            width: 100%; height: auto !important; 
-            overflow-y: visible !important; order: 2; background: #fff; z-index: 20; 
+            width: 100%; 
+            height: auto !important; 
+            overflow-y: visible !important; 
+            order: 2; 
+            background: #fff; 
+            z-index: 20; 
+            padding-bottom: 60px; /* Chừa chỗ cho footer nếu có */
         }
+
+        /* Ẩn nút zoom trên mobile cho đỡ che khuất */
+        .leaflet-control-zoom { display: none; }
     }
 
-    /* COMPONENTS */
+    /* ==========================================================================
+       3. GIAO DIỆN BỘ LỌC (FILTER COMPONENTS)
+       ========================================================================== */
     .btn-city-tab { border: none; padding: 12px 10px; background-color: #f8f9fa; color: #6c757d; font-weight: 600; border-bottom: 2px solid #dee2e6; transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem; }
     .btn-city-tab.active { background-color: #fff; color: #000; border-bottom: 2px solid #f1c40f; }
 
@@ -250,75 +273,190 @@ const preconnectTags = [
 
     .sticky-result-bar { position: sticky; top: 0; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #fff; }
 
+    /* Checkbox tùy chỉnh */
     .custom-check-map { display: flex; align-items: center; cursor: pointer; user-select: none; padding: 4px 0; }
     .custom-check-map input { display: none; }
     .checkmark-map { height: 18px !important; width: 18px !important; background-color: #fff; border: 1px solid #bbb; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .custom-check-map input:checked ~ .checkmark-map { background-color: #f1c40f; border-color: #f1c40f; }
     .custom-check-map input:checked ~ .checkmark-map:after { content: '\2713'; color: #1a1a1a; font-size: 12px; font-weight: 800; }
 
-    /* =========================================
-       POPUP STYLE (Đã tối ưu tỉ lệ 16:9 & Shadow)
-       ========================================= */
-    .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 12px !important; overflow: hidden; border: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.25) !important; }
-    .leaflet-popup-content { margin: 0 !important; width: 270px !important; } /* Tăng nhẹ width lên 270px */
-    .leaflet-popup-tip { background: #fff !important; box-shadow: none !important; }
-    
-    .leaflet-container a.leaflet-popup-close-button { top: 8px !important; right: 8px !important; color: #fff !important; background: rgba(0,0,0,0.4) !important; border-radius: 50%; width: 24px !important; height: 24px !important; display: flex !important; align-items: center; justify-content: center; font-size: 16px !important; border: 1px solid rgba(255,255,255,0.5) !important; text-decoration: none !important; transition: 0.2s; z-index: 1000; }
-    .leaflet-container a.leaflet-popup-close-button:hover { background: #d9b205 !important; border-color: #d9b205 !important; }
-
-    .map-popup-card { display: flex; flex-direction: column; background: #fff; font-family: 'Be Vietnam Pro', sans-serif; }
-    
-    /* KHUNG ẢNH CHUẨN 16:9 + HIỆU ỨNG CHIỀU SÂU */
-    .map-popup-img-wrapper { 
-        position: relative; display: block; width: 100%; 
-         /* Tỉ lệ chuẩn màn hình */
-        background-color: #e0e0e0; overflow: hidden; 
+    /* Loading Spinner & Cluster */
+    #map-loading-spinner { pointer-events: none !important; transition: opacity 0.3s ease; }
+    .spinner-hidden { opacity: 0; visibility: hidden; transition: all 0.5s; }
+    .my-cluster {
+        background-color: transparent !important; /* Xóa màu nền đen */
+        border: none !important; /* Xóa viền trắng vuông */
+        color: #222 !important; /* Chữ màu đen cho dễ đọc trên nền vàng */
+        font-family: 'Be Vietnam Pro', sans-serif;
     }
-    .map-popup-img-wrapper::after {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 35%); /* Bóng đổ bên dưới */
-        pointer-events: none; z-index: 2;
+    .my-cluster div {
+        color: #222 !important; 
+        font-weight: 800 !important;
     }
-    .map-popup-img-wrapper img { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.5s ease; position: relative; z-index: 1; }
-    .map-popup-card:hover .map-popup-img-wrapper img { transform: scale(1.08); }
-    
-    .map-popup-badge { position: absolute; bottom: 8px; left: 8px; background: #222; color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; z-index: 3; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-    
-    .map-popup-info { padding: 12px; }
-    .map-popup-title { font-size: 13px !important; font-weight: 700 !important; color: #2c3e50; margin: 0 0 6px 0 !important; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
-    .map-popup-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
-    .map-popup-price { color: #d9b205; font-weight: 800; font-size: 15px; line-height: 1; }
-    
-    .btn-popup-view { background-color: #f1c40f; color: #1a1a1a; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-decoration: none; box-shadow: 0 3px 6px rgba(241, 196, 15, 0.3); transition: transform 0.2s; display: inline-block; }
-    .btn-popup-view:active { transform: scale(0.95); }
-    
-    .custom-map-marker-yellow { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.3)); }
 
-    /* [QUAN TRỌNG] FIX HIỂN THỊ POPUP */
+    /* ==========================================================================
+       4. BẢN ĐỒ & MARKER (MODERN YELLOW STYLE)
+       ========================================================================== */
+    #map { font-family: 'Be Vietnam Pro', sans-serif; z-index: 1; }
+    
+    /* Fix lỗi hiển thị Leaflet */
     .leaflet-pane { z-index: 400; }
     .leaflet-popup-pane { z-index: 2000 !important; } 
     .leaflet-container img.leaflet-image-layer, .leaflet-container img.leaflet-marker-icon { max-width: none !important; }
+
+    /* Container cho Marker */
+    .custom-pin-container { background: transparent !important; border: none !important; }
+
+    /* A. Chấm tròn (Zoom xa) */
+    .custom-marker-dot {
+        background-color: #f1c40f; /* Vàng thương hiệu */
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        transition: transform 0.2s ease;
+    }
+    .custom-pin-container:hover .custom-marker-dot {
+        transform: scale(1.5); background-color: #d35400;
+    }
+
+    /* B. Nhãn giá (Zoom gần) */
+    .custom-marker-label {
+        background-color: #f1c40f; /* Nền Vàng */
+        color: #222; /* Chữ Đen */
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 800; font-size: 13px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        border: 2px solid white;
+        white-space: nowrap; text-align: center;
+        
+        position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+        display: none;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    /* Mũi tên dưới nhãn */
+    .custom-marker-label::after {
+        content: ''; position: absolute; bottom: -6px; left: 50%; margin-left: -6px;
+        border-width: 6px 6px 0; border-style: solid;
+        border-color: #f1c40f transparent transparent transparent;
+        filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));
+    }
+    /* Hover vào nhãn */
+    .custom-pin-container:hover .custom-marker-label {
+        background-color: #222; color: #f1c40f; border-color: #222;
+        z-index: 1000; transform: translateX(-50%) scale(1.15);
+    }
+    .custom-pin-container:hover .custom-marker-label::after { border-top-color: #222; }
+
+    /* Logic ẩn/hiện */
+    .view-detailed .custom-marker-dot { display: none; }
+    .view-detailed .custom-marker-label { display: block; animation: popIn 0.3s; }
+    @keyframes popIn { from { transform: translateX(-50%) scale(0.5); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+    /* ==========================================================================
+       5. POPUP CARD (THẺ THÔNG TIN KHI CLICK)
+       ========================================================================== */
+    .leaflet-popup-content-wrapper {
+        padding: 0 !important; border-radius: 12px !important; overflow: hidden !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+    }
+    .leaflet-popup-content { margin: 0 !important; width: 270px !important; }
     
-    /* [QUAN TRỌNG] CHO PHÉP CLICK XUYÊN QUA LOADING */
-    #map-loading-spinner { pointer-events: none !important; transition: opacity 0.3s ease; }
-    .spinner-hidden { opacity: 0 !important; visibility: hidden; }
+    /* Ẩn nút X mặc định của Leaflet để dùng style thẻ bài */
+    .leaflet-container a.leaflet-popup-close-button { display: none !important; }
+
+    .map-popup-card {
+        display: flex; flex-direction: column; text-decoration: none; color: inherit;
+        position: relative; font-family: 'Be Vietnam Pro', sans-serif;
+    }
+
+    .map-popup-img-wrapper {
+        position: relative; width: 100%; height: 160px;
+        background: #f0f0f0; overflow: hidden;
+    }
+    .map-popup-img-wrapper img {
+        width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;
+    }
+    .map-popup-card:hover .map-popup-img-wrapper img { transform: scale(1.1); }
+
+    /* BADGE LOẠI PHÒNG (ĐÃ FIX LỖI STRETCH/KÉO DÃN) */
+    .map-popup-badge {
+        position: absolute !important; top: 8px !important; left: 8px !important;
+        bottom: auto !important; right: auto !important;
+        width: auto !important; height: auto !important;
+        
+        background: rgba(0,0,0,0.8); color: #f1c40f;
+        font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+        text-transform: uppercase; width: fit-content;
+        z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .map-popup-info { padding: 12px; background: white; }
+    .map-popup-title {
+        font-size: 14px; font-weight: 700; color: #222; margin: 0 0 4px 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .map-popup-sub {
+        font-size: 11px; color: #666; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .map-popup-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-top: 8px; border-top: 1px solid #eee;
+    }
+    .map-popup-price { font-size: 15px; font-weight: 800; color: #d35400; }
+    
+    .map-popup-action {
+        color: #222; font-size: 11px; font-weight: 700; background: #f1c40f;
+        padding: 4px 12px; border-radius: 20px;
+        display: flex; align-items: center; gap: 3px; transition: all 0.2s;
+    }
+    .map-popup-card:hover .map-popup-action { background: #222; color: #f1c40f; }
 </style>
 
 <script is:inline define:vars={{ initialRooms }}>
+    // --- 1. KHAI BÁO BIẾN & CẤU HÌNH (SỬA LỖI TẠI ĐÂY) ---
+    
+    // Khai báo CONFIG (Cần dùng dấu = và const)
     const CONFIG = {
-        hanoi: { coords: [21.028511, 105.804817], zoom: 15, file: 'data_hanoi.json' },
-        hochiminh: { coords: [10.801646, 106.663158], zoom: 15, file: 'data_hochiminh.json' }
+        hanoi: { coords: [21.028511, 105.804817], zoom: 14, file: 'data_hanoi.json' },
+        hochiminh: { coords: [10.801646, 106.663158], zoom: 14, file: 'data_hochiminh.json' }
     };
+
+    // Khai báo TỌA ĐỘ QUẬN (Lỗi của bạn nằm ở đây, phải dùng const và dấu =)
+    const DISTRICT_CENTERS = {
+        'Phú Nhuận': [10.7991, 106.6802], 
+        'Tân Bình': [10.8015, 106.6572],
+        'Bình Thạnh': [10.8105, 106.7091], 
+        'Quận 1': [10.7769, 106.7009],
+        'Quận 3': [10.7783, 106.6800], 
+        'Quận 10': [10.7746, 106.6669],
+        'Quận 7': [10.7335, 106.7231], 
+        'Thủ Đức': [10.8494, 106.7537],
+        'Gò Vấp': [10.8386, 106.6652], 
+        'Đống Đa': [21.0187, 105.8286],
+        'Cầu Giấy': [21.0360, 105.7925], 
+        'Ba Đình': [21.0346, 105.8263],
+        'Hoàn Kiếm': [21.0285, 105.8542], 
+        'Hai Bà Trưng': [21.0090, 105.8549],
+        'Tây Hồ': [21.0660, 105.8197], 
+        'Thanh Xuân': [20.9936, 105.8066]
+    };
+    
+    // Khai báo biến dữ liệu (Đảm bảo dòng này không bị xóa)
     let allRoomsData = initialRooms || [];
     let dataCache = { 'hochiminh': initialRooms, 'hanoi': null };
     let currentCityFilter = 'hochiminh';
-    let map = null;
-    let markersLayer = null;
+    
+    // Biến toàn cục cho bản đồ
+    let map = null; 
+    let markersLayer = null; 
     let currentFiltered = [];
     let visibleCount = 6;
     const LOAD_STEP = 6;
 
-    // HELPER FUNCTIONS
+    // --- 1. CÁC HÀM HỖ TRỢ CƠ BẢN ---
     function toSlug(str) {
         if (!str) return '';
         return str.toString().toLowerCase()
@@ -334,99 +472,161 @@ const preconnectTags = [
         }
     }
 
-    // LOAD LEAFLET (ĐÃ SỬA LỖI TRÙNG LẶP)
-    // LOAD LEAFLET (TỐI ƯU HÓA: KHÔNG CHẶN RENDER)
-    async function loadLeaflet() {
-        if (window.L) return;
-
-        // Kiểm tra nếu đang tải dở
-        const existingScript = document.querySelector('script[src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"]');
-        if (existingScript) {
-            return new Promise((resolve) => {
-                const checkInterval = setInterval(() => {
-                    if (window.L) { clearInterval(checkInterval); resolve(); }
-                }, 100);
-            });
-        }
+    // --- 2. HÀM TẢI THƯ VIỆN (LEAFLET + CLUSTER) ---
+    async function loadMapLibraries() {
+        // Nếu đã có L (Leaflet) và MarkerCluster rồi thì thôi
+        if (window.L && window.L.MarkerClusterGroup) return;
 
         return new Promise((resolve, reject) => {
-            // Tải CSS dạng bất đồng bộ (Async)
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            link.media = 'print'; // Mẹo: Đánh lừa trình duyệt đây là CSS in ấn để nó không ưu tiên
-            link.onload = () => { link.media = 'all'; }; // Tải xong mới bật lại thành CSS thường
-            document.head.appendChild(link);
+            // Tải CSS Leaflet
+            const cssL = document.createElement('link');
+            cssL.rel = 'stylesheet'; cssL.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(cssL);
 
-            // Tải JS
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.async = true; // Thêm async
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
+            // Tải CSS Cluster
+            const cssC1 = document.createElement('link'); cssC1.rel = 'stylesheet'; cssC1.href = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css';
+            document.head.appendChild(cssC1);
+            const cssC2 = document.createElement('link'); cssC2.rel = 'stylesheet'; cssC2.href = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css';
+            document.head.appendChild(cssC2);
+
+            // Tải JS Leaflet trước
+            const scriptL = document.createElement('script');
+            scriptL.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            scriptL.onload = () => {
+                // Tải tiếp JS Cluster sau khi có Leaflet
+                const scriptC = document.createElement('script');
+                scriptC.src = 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js';
+                scriptC.onload = resolve;
+                scriptC.onerror = reject;
+                document.head.appendChild(scriptC);
+            };
+            scriptL.onerror = reject;
+            document.head.appendChild(scriptL);
         });
     }
 
-    // INIT MAP
+    // --- 3. HÀM KHỞI TẠO BẢN ĐỒ (Đã sửa tên cho khớp) ---
     async function initMapSafely() {
         try {
-            await loadLeaflet();
-            const mapContainer = document.getElementById('full-map-view');
-            if (!mapContainer) return;
-            if (map) { map.remove(); map = null; }
-
-            const { coords, zoom } = CONFIG[currentCityFilter];
-            map = L.map('full-map-view', {
-                zoomControl: false, fadeAnimation: true, zoomAnimation: true
-            }).setView(coords, zoom);
-            
-            window.map = map;
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                attribution: '&copy; OSM', maxZoom: 19, keepBuffer: 2 
-            }).addTo(map);
-            
-            // Xử lý sự kiện resize để fix lỗi map xám
-            const resizeObserver = new ResizeObserver(() => {
-                if(map) map.invalidateSize();
-            });
-            resizeObserver.observe(mapContainer);
-
-            requestAnimationFrame(() => {
-                if (map) {
-                    map.invalidateSize();
-                    renderMapMarkers();
-                    forceHideSpinner();
-                }
-            });
-        } catch (err) {
-            console.error("Lỗi tải Map:", err);
-            forceHideSpinner();
+            await loadMapLibraries(); // Đợi tải xong thư viện
+        } catch (e) {
+            console.error("Lỗi tải bản đồ", e);
+            return;
         }
-    }
 
-    function renderMapMarkers() {
-        if (!map || !window.L) return;
-        
-        // Xóa lớp marker cũ nếu có
-        if (markersLayer) map.removeLayer(markersLayer);
-        markersLayer = L.layerGroup().addTo(map);
+        if (map) return; // Nếu map đã có rồi thì không tạo lại
 
-        // Tạo icon marker
-        const iconHTML = `<div style="background:#f1c40f; width:30px; height:30px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:14px;"></i></div>`;
-        const brandIcon = L.divIcon({ 
-            className: 'custom-map-marker-yellow', 
-            html: iconHTML, 
-            iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -10]
+        // Khởi tạo map (dùng biến toàn cục map, KHÔNG dùng const map)
+        map = L.map('map', {
+            center: CONFIG.hochiminh.coords,
+            zoom: CONFIG.hochiminh.zoom,
+            zoomControl: false,
+            preferCanvas: true
         });
 
-        // Vẽ các marker mới
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Khởi tạo lớp MarkerClusterGroup
+        markersLayer = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            maxClusterRadius: 50, // Bán kính gom nhóm
+            disableClusteringAtZoom: 15, // Zoom 15 là tách ra hết
+            iconCreateFunction: function(cluster) {
+                // Tùy chỉnh icon của nhóm (số lượng)
+                return L.divIcon({ 
+                    html: '<div style="background-color:rgba(241, 196, 15, 0.9); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">' + cluster.getChildCount() + '</div>', 
+                    className: 'my-cluster', 
+                    iconSize: L.point(30, 30) 
+                });
+            }
+        });
+        
+        map.addLayer(markersLayer);
+
+        // XỬ LÝ SỰ KIỆN ZOOM THÔNG MINH (Ẩn/Hiện giá)
+        const toggleLabels = () => {
+            const currentZoom = map.getZoom();
+            const mapContainer = map.getContainer();
+            // Nếu zoom >= 14 thì hiện nhãn giá, nhỏ hơn thì hiện chấm
+            if (currentZoom >= 14) {
+                mapContainer.classList.add('view-detailed');
+            } else {
+                mapContainer.classList.remove('view-detailed');
+            }
+        };
+        map.on('zoomend', toggleLabels);
+        toggleLabels(); // Chạy ngay lần đầu
+
+        // Vẽ dữ liệu lần đầu
+        filterAndRender();
+    }
+
+    // --- 4. HÀM VẼ MARKER (ĐÃ NÂNG CẤP GIAO DIỆN) ---
+    function renderMapMarkers() {
+        if (!map || !markersLayer) return;
+        
+        // 1. Xóa marker cũ
+        markersLayer.clearLayers();
+
+        // [MỚI] Bảng theo dõi tọa độ để xử lý trùng lặp
+        // Cấu trúc: { "10.123-106.456": số_lượng_đã_vẽ }
+        const coordinateTracker = {};
+
+        // 2. Vẽ marker mới
         currentFiltered.forEach(room => {
             if (room.lat && room.lng) {
-                const marker = L.marker([room.lat, room.lng], {icon: brandIcon}).addTo(markersLayer);
                 
-                const priceText = room.price >= 1000000 ? (room.price / 1000000) + ' Tr' : (room.price / 1000) + 'k';
+                // --- BẮT ĐẦU ĐOẠN XỬ LÝ TÁCH MARKER ---
+                let finalLat = parseFloat(room.lat);
+                let finalLng = parseFloat(room.lng);
+                const coordKey = `${finalLat.toFixed(5)}-${finalLng.toFixed(5)}`;
+
+                // Nếu tọa độ này đã có người đứng rồi, thì ta dịch chuyển thằng sau đi chút xíu
+                if (coordinateTracker[coordKey]) {
+                    const count = coordinateTracker[coordKey];
+                    // Góc xoay: Mỗi thằng lệch nhau 1 góc để tạo thành hình tròn
+                    const angle = count * (Math.PI / 3); // 60 độ mỗi bước
+                    // Khoảng cách tách: Khoảng 0.00015 độ (tương đương 15-20m thực tế)
+                    const offset = 0.00015; 
+                    
+                    finalLat = finalLat + (Math.sin(angle) * offset);
+                    finalLng = finalLng + (Math.cos(angle) * offset);
+                    
+                    coordinateTracker[coordKey]++;
+                } else {
+                    // Nếu chưa trùng ai, đánh dấu là đã có 1 người
+                    coordinateTracker[coordKey] = 1;
+                }
+                // --- KẾT THÚC XỬ LÝ TÁCH MARKER ---
+
+                // Xử lý giá tiền
+                const priceNum = room.price;
+                const priceText = priceNum >= 1000000 
+                    ? (priceNum / 1000000).toFixed(1).replace('.0', '') + ' Tr' 
+                    : (priceNum / 1000) + 'k';
+                
+                // Tạo Icon
+                const customIcon = L.divIcon({
+                    className: 'custom-pin-container', 
+                    html: `
+                        <div class="custom-marker-dot"></div>
+                        <div class="custom-marker-label">
+                            <span>${priceText}</span>
+                        </div>
+                    `,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+
+                // LƯU Ý: Dùng finalLat, finalLng đã tính toán ở trên
+                const marker = L.marker([finalLat, finalLng], { icon: customIcon });
+
+                // Xử lý dữ liệu Popup
                 const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
                 const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
                 
@@ -436,42 +636,53 @@ const preconnectTags = [
                      thumb = t ? t : room.image_detail[0];
                 }
                 if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
-                    thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
+                     thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
                 }
-
+                
                 const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+                
+                // HTML Popup
                 const popupContent = `
-                    <div class="map-popup-card">
-                        <a href="${link}" class="map-popup-img-wrapper">
-                            <img src="${thumb}" alt="Phòng trọ" loading="lazy" onerror="this.src='/logo.png'">
-                            <span class="map-popup-badge">${room.type}</span>
-                        </a>
+                    <a href="${link}" class="map-popup-card">
+                        <div class="map-popup-img-wrapper">
+                            <img src="${thumb}" alt="Ảnh phòng" loading="lazy" onerror="this.src='/logo.png'">
+                            <span class="map-popup-badge">${room.type || 'Phòng trọ'}</span>
+                        </div>
                         <div class="map-popup-info">
                             <h3 class="map-popup-title" title="${cleanAddr}">${cleanAddr}</h3>
+                            <div class="map-popup-sub">
+                                <i class="fas fa-map-marker-alt"></i> ${room.district}
+                            </div>
                             <div class="map-popup-footer">
-                                <div class="map-popup-price">${priceText}/tháng</div>
-                                <a href="${link}" class="btn-popup-view">
-                                    Xem thêm<i class="fas fa-arrow-right ms-1"></i>
-                                </a>
+                                <div class="map-popup-price">${priceText}</div>
+                                <div class="map-popup-action">
+                                    Chi tiết <i class="fas fa-arrow-right"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
-                marker.bindPopup(popupContent, {
-                    maxWidth: 270, minWidth: 260, closeButton: true, autoPan: true
+                    </a>`;
+                
+                marker.bindPopup(popupContent, { 
+                    maxWidth: 270, minWidth: 270, closeButton: false, autoPan: true, offset: [0, -10]
                 });
+
+                marker.on('mouseover', function (e) { this.setZIndexOffset(1000); });
+                marker.on('mouseout', function (e) { this.setZIndexOffset(0); });
+
+                markersLayer.addLayer(marker);
             }
         });
 
-        // [QUAN TRỌNG] Dòng này sẽ tắt bảng "Đang tải bản đồ..." sau khi vẽ xong
         forceHideSpinner();
     }
 
-    // LOGIC SWITCH CITY & FILTER
+    // --- 5. LOGIC LỌC & CHUYỂN DỮ LIỆU (GIỮ NGUYÊN NHƯNG GỌN HƠN) ---
     window.switchCity = async function(cityCode) {
         if (currentCityFilter === cityCode) return;
+        
         const spinner = document.getElementById('map-loading-spinner');
         if (spinner) { 
-            spinner.style.display = 'flex'; 
+            spinner.style.display = 'flex';
             spinner.classList.remove('spinner-hidden');
             spinner.style.opacity = '1';
         }
@@ -486,15 +697,21 @@ const preconnectTags = [
 
         currentCityFilter = cityCode;
         allRoomsData = dataCache[cityCode];
+        
+        // Update Tabs
         document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`tab-${cityCode}`).classList.add('active');
         
+        // Update Dropdown District
         const defaultDist = (cityCode === 'hochiminh' ? 'Phú Nhuận' : 'all');
         updateDistrictDropdown(defaultDist);
+        
         const inputDist = document.getElementById('map-district');
         const btnDist = document.getElementById('btn-map-district');
         if (inputDist) inputDist.value = defaultDist;
         if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
+
+        // Move Map Camera
         if (map) {
             const { coords, zoom } = CONFIG[cityCode];
             map.setView(coords, zoom);
@@ -529,12 +746,16 @@ const preconnectTags = [
             if (rCity !== currentCityFilter) return false;
             if (district !== 'all' && room.district !== district) return false;
             if (type !== 'all' && room.type !== type) return false;
+            
+            // Logic lọc giá
             if (price !== 'all') {
                 const p = room.price;
                 if (price === 'duoi-5' && p >= 5000000) return false;
                 if (price === '5to8' && (p < 5000000 || p >= 8000000)) return false;
                 if (price === 'over8' && p < 8000000) return false;
             }
+            
+            // Logic lọc tiện ích
             if (fAmenities.length > 0) {
                 const keypoints = (room.keypoint || "").toLowerCase();
                 const petAllowed = room.pet === true;
@@ -555,18 +776,38 @@ const preconnectTags = [
             return true;
         });
 
+        // Sắp xếp
         filtered.sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             if (sortMode === 'price-asc') return a.price - b.price;
             if (sortMode === 'price-desc') return b.price - a.price;
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
+
         currentFiltered = filtered;
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
+        
         visibleCount = 6;
-        renderListDOM();
-        if(map && window.L) requestAnimationFrame(() => renderMapMarkers());
+        renderListDOM(); 
+        
+        // Vẽ lại Marker
+        if(map) {
+             requestAnimationFrame(() => renderMapMarkers());
+
+             // [MỚI] LOGIC TỰ ĐỘNG DI CHUYỂN BẢN ĐỒ VỀ QUẬN ĐƯỢC CHỌN
+             if (district !== 'all' && DISTRICT_CENTERS[district]) {
+                 // Dùng flyTo cho mượt, zoom 15 là vừa đẹp cấp quận
+                 map.flyTo(DISTRICT_CENTERS[district], 15, {
+                     animate: true,
+                     duration: 1.5 // Thời gian bay 1.5 giây
+                 });
+             } else if (district === 'all') {
+                 // Nếu chọn "Tất cả", trả về view toàn thành phố
+                 const { coords, zoom } = CONFIG[currentCityFilter];
+                 map.flyTo(coords, zoom, { animate: true, duration: 1.5 });
+             }
+        }
     }
 
     function renderListDOM() {
@@ -596,13 +837,13 @@ const preconnectTags = [
         const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
         const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
-
+        
         return `
         <div class="col-6 col-lg-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="window.location.href='${link}'" style="cursor: pointer;">
                 <div class="ratio ratio-4x3 bg-light position-relative">
                     <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy">
-                    ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
+                     ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
                     ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
                 </div>
                 <div class="card-body p-2 p-md-3 d-flex flex-column">
@@ -614,7 +855,7 @@ const preconnectTags = [
         </div>`;
     }
 
-    // EVENTS
+    // --- 6. EVENTS UI ---
     window.setMapFilter = function(inputId, val, label, el) {
         if(event) event.preventDefault();
         document.getElementById(inputId).value = val;
@@ -626,7 +867,7 @@ const preconnectTags = [
         }
         filterAndRender();
     };
-    
+
     window.resetMapFilters = function() {
         document.getElementById('map-district').value = 'all';
         document.getElementById('map-type').value = 'all';
@@ -644,7 +885,7 @@ const preconnectTags = [
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-      // PAGE SETUP (LAZY LOAD MAP)
+    // --- 7. KHỞI CHẠY TRANG (PAGE SETUP) ---
     const runPageSetup = () => {
         let defaultDistrict = 'all';
         if (currentCityFilter === 'hochiminh') {
@@ -658,35 +899,31 @@ const preconnectTags = [
         
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
+        
+        // Render List ngay lập tức (không đợi map)
         try { filterAndRender(); } catch(e) {}
         
-        // --- CHIẾN THUẬT LAZY LOAD ---
-        // Không tải bản đồ ngay! Đợi trang hiển thị xong xuôi (LCP xong) mới tải.
-        
+        // LOGIC LAZY LOAD MAP (Đợi người dùng tương tác mới tải map)
         const loadMapNow = () => {
-            // Nếu đã tải rồi thì thôi
-            if (map) return; 
+            if (map) return;
             initMapSafely();
-            // Xóa sự kiện để không gọi lại
             document.removeEventListener('mousemove', loadMapNow);
             document.removeEventListener('touchstart', loadMapNow);
         };
 
-        // Cách 1: Nếu người dùng di chuột hoặc chạm vào màn hình -> Tải ngay
+        // Cách 1: Tương tác thì tải ngay
         document.addEventListener('mousemove', loadMapNow, { once: true });
         document.addEventListener('touchstart', loadMapNow, { once: true });
 
-        // Cách 2: Nếu người dùng không làm gì, tự động tải sau 2.5 giây (khi mạng đã rảnh)
+        // Cách 2: Tự động tải sau 2.5s nếu không ai làm gì
         setTimeout(() => {
-            // Sử dụng requestIdleCallback để trình duyệt tải khi "rảnh tay" nhất
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(() => loadMapNow());
             } else {
                 loadMapNow();
             }
-        }, 2500); 
+        }, 2500);
     };
 
     document.addEventListener('astro:page-load', runPageSetup);
-    
 </script>
