@@ -4,18 +4,18 @@ import { ViewTransitions } from 'astro:transitions';
 import fs from 'node:fs';
 import path from 'node:path';
 
-
-// [ĐÃ SỬA] Đã xóa dòng import style.css tĩnh ở đây để tối ưu tốc độ
+// Import Font
 import '@fontsource/be-vietnam-pro/400.css';
 import '@fontsource/be-vietnam-pro/700.css';
 
+// Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
     title: string;
     description?: string;
     image?: string;
     preloadImage?: string;
     canonicalURL?: string;
-    currentCity?: string; // [MỚI] Thêm prop này để biết đang ở HN hay HCM
+    currentCity?: string;
 }
 
 const { 
@@ -24,7 +24,7 @@ const {
     image = "/logo.png",
     preloadImage,
     canonicalURL,
-    currentCity // [MỚI]
+    currentCity 
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
@@ -34,24 +34,25 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 // --- [LOGIC QUAN TRỌNG] Kiểm tra xem có phải trang bản đồ không ---
 const isMapPage = currentPath.includes('/map-search');
 
-// [TỐI ƯU HÓA] Chỉ tải style.css (giao diện web thường) nếu KHÔNG phải trang Map
-// Giúp trang Map nhẹ hơn, không bị dính các style đè padding/margin thừa
+// 1. Luôn tải Main SCSS (Bootstrap)
+import "../styles/main.scss";
+
+// 2. Tải style.css có điều kiện (Dùng await import để tránh lỗi Syntax)
 if (!isMapPage) {
-    import("../styles/main.scss");
-    import('../styles/style.css');
+    await import('../styles/style.css');
 }
 
-// --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA ---
-let menuDistricts = [];
+// --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA (ĐÃ FIX TYPESCRIPT) ---
+// Thêm : string[] để báo đây là danh sách các chuỗi ký tự
+let menuDistricts: string[] = []; 
 let citySlug = '';
 let cityName = '';
 
-// [MỚI] Thêm 2 biến này để lưu thông tin thành phố còn lại
 let otherCityName = '';
 let otherCitySlug = '';
 
-// Helper Slug (dùng nội bộ trong Layout)
-function createSlug(str) {
+// Thêm (str: any) để tránh lỗi "implicitly has an 'any' type"
+function createSlug(str: any) {
     if (!str) return '';
     return str.toString().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -64,23 +65,21 @@ function createSlug(str) {
 if (currentCity) {
     citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
     cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'Hồ Chí Minh';
-    // [MỚI] Tính toán thành phố còn lại
+    
     otherCityName = currentCity === 'hanoi' ? 'Hồ Chí Minh' : 'Hà Nội';
     otherCitySlug = currentCity === 'hanoi' ? 'ho-chi-minh' : 'ha-noi';
-    
+
     try {
-        // [SỬA ĐỔI]: Chọn file data đúng theo thành phố hiện tại
         const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
         const dataPath = path.join(process.cwd(), 'public', fileName);
         
-        // Kiểm tra file có tồn tại không trước khi đọc
         if (fs.existsSync(dataPath)) {
             const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-            // Lấy danh sách phòng (File này đã phân loại city rồi nên không cần filter city nữa)
-            const rooms = jsonData.rooms || [];
+            // Thêm : any[] để TypeScript không bắt bẻ biến rooms
+            const rooms: any[] = jsonData.rooms || [];
 
-            // Lấy danh sách quận duy nhất và sắp xếp A-Z
-            menuDistricts = [...new Set(rooms.map(r => r.district).filter(d => d))].sort();
+            // Logic lọc quận (đã an toàn với TypeScript)
+            menuDistricts = [...new Set(rooms.map((r: any) => r.district).filter((d: any) => d))].sort() as string[];
         }
     } catch (e) {
         console.error("Error loading menu data:", e);
@@ -100,7 +99,37 @@ if (currentCity) {
     <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="theme-color" content="#d9b205" />
     <meta name="generator" content={Astro.generator} />
+    <style is:inline>
+    /* 1. Font Solid (Icon đậm: home, phone, user...) */
+    @font-face {
+        font-family: 'Font Awesome 6 Free';
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url('/fonts/fa-solid-900.woff2') format('woff2');
+    }
+    /* 2. Font Brands (Logo: Facebook, Zalo, Tiktok...) */
+    @font-face {
+        font-family: 'Font Awesome 6 Brands';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/fa-brands-400.woff2') format('woff2');
+    }
 
+    /* Class bắt buộc để icon hiển thị */
+    .fa, .fas { font-family: "Font Awesome 6 Free"; font-weight: 900; }
+    .fab { font-family: "Font Awesome 6 Brands"; font-weight: 400; }
+    .fa, .fas, .fab { 
+        -moz-osx-font-smoothing: grayscale; 
+        -webkit-font-smoothing: antialiased; 
+        display: inline-block; 
+        font-style: normal; 
+        font-variant: normal; 
+        text-rendering: auto; 
+        line-height: 1; 
+    }
+</style>
     <link rel="preconnect" href="https://img.thochothuetro.com">
     
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -451,6 +480,7 @@ if (currentCity) {
         <slot />
     </main>
 
+{ !isMapPage && (
     <footer id="footer-contact" class="pt-5 pb-4">
         <div class="container">
             <div class="row g-4">
@@ -524,7 +554,9 @@ if (currentCity) {
             </div>
         </div>
     </footer>
+)}
 
+{ !isMapPage && (
     <div class="mobile-bottom-nav">
         <a href="/map-search" class={`nav-item-mobile ${currentPath.includes('map-search') ? 'active' : ''}`}>
             <i class="fas fa-map-marked-alt"></i>
@@ -541,7 +573,7 @@ if (currentCity) {
             <span>Zalo</span>
         </a>
     </div>
-    
+)}    
     <script>
         import "../scripts/bootstrap-custom.js";
     </script>
@@ -670,7 +702,6 @@ if (currentCity) {
             </div>
         </div>
     </div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
+
 </body>
 </html>
