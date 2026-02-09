@@ -37,12 +37,17 @@ const preconnectTags = [
     <Fragment slot="head">
         <link rel="preload" as="image" href="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" fetchpriority="high" />
         
-        <link rel="stylesheet" href="/libs/leaflet/leaflet.css" />
-        <link rel="stylesheet" href="/libs/leaflet/MarkerCluster.css" />
-        <link rel="stylesheet" href="/libs/leaflet/MarkerCluster.Default.css" />
+        <link rel="preload" href="/libs/leaflet/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/libs/leaflet/leaflet.css"></noscript>
+
+        <link rel="preload" href="/libs/leaflet/MarkerCluster.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/libs/leaflet/MarkerCluster.css"></noscript>
+
+        <link rel="preload" href="/libs/leaflet/MarkerCluster.Default.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/libs/leaflet/MarkerCluster.Default.css"></noscript>
         
-        <script is:inline src="/libs/leaflet/leaflet.js"></script>
-        <script is:inline src="/libs/leaflet/leaflet.markercluster.js"></script>
+        <script is:inline src="/libs/leaflet/leaflet.js" defer></script>
+        <script is:inline src="/libs/leaflet/leaflet.markercluster.js" defer></script>
     </Fragment>
     <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
 
