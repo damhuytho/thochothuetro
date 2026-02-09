@@ -227,19 +227,20 @@ const preconnectTags = [
         
         /* FIX LỖI BẢN ĐỒ MOBILE */
         .map-viewport { 
-            /* 1. Chiều cao cố định bằng pixel để tránh lỗi vh trên trình duyệt mobile */
-            height: 400px !important; 
+            height: 400px !important; /* Chiều cao cố định */
             width: 100%; 
+            order: 1; /* Đưa bản đồ lên đầu */
             
-            /* 2. Thứ tự hiển thị: Map nằm trên, danh sách nằm dưới */
-            order: 1; 
+            position: sticky; /* Dính bản đồ khi cuộn */
             
-            /* 3. Sticky: Giữ bản đồ dính trên cùng khi cuộn danh sách */
-            position: sticky; 
-            top: 60px; /* Điều chỉnh số này bằng chiều cao Header của web bạn (thường là 60-70px) */
-            z-index: 100; /* Đủ cao để đè lên nội dung, nhưng thấp hơn menu dropdown */
+            /* TĂNG SỐ NÀY LÊN (60px -> 80px) để không bị Header che */
+            top: 0px; 
             
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Đổ bóng ngăn cách với danh sách bên dưới */
+            /* Đảm bảo bản đồ nằm dưới Header (thường header là 1000+) nhưng trên nội dung khác */
+            z-index: 20; 
+            
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #ddd; /* Thêm đường kẻ dưới cho tách biệt */
         }
         
         .map-sidebar { 
