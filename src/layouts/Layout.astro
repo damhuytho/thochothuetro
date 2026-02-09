@@ -118,6 +118,14 @@ if (currentCity) {
         font-display: swap;
         src: url('/fonts/fa-brands-400.woff2') format('woff2');
     }
+    @font-face {
+        font-family: 'Be Vietnam Pro';
+        font-style: normal;
+        font-weight: 400 900; /* Dải weight bạn dùng */
+        font-display: swap; /* QUAN TRỌNG: Dòng này giúp điểm LCP tăng vọt */
+        /* Nếu bạn load font từ file Astro, hãy đảm bảo file nguồn cũng có dòng này */
+        src: local('Be Vietnam Pro'), local('BeVietnamPro-Regular');
+    }
 
     /* Class bắt buộc để icon hiển thị */
     .fa, .fas { font-family: "Font Awesome 6 Free"; font-weight: 900; }
