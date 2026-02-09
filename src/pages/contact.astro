@@ -96,7 +96,9 @@ const schemaLocalBusiness = {
                     </div>
 
                     <div class="mb-4 rounded overflow-hidden border shadow-sm position-relative" style="height: 200px;" id="contact-map">
-                         <div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning" role="status"></div></div>
+                         <div class="d-flex justify-content-center align-items-center h-100 bg-light">
+                             <div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i> Đang tải bản đồ...</div>
+                         </div>
                     </div>
 
                     <hr class="my-4 opacity-25">
@@ -104,7 +106,10 @@ const schemaLocalBusiness = {
                     <div class="text-center">
                         <p class="fw-bold mb-3 small text-uppercase text-muted">Quét mã Zalo để nhận báo giá</p>
                         <div class="d-inline-block border p-2 rounded bg-white shadow-sm mb-3 position-relative qr-wrapper">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/0925996992" alt="QR Zalo 0925996992" width="120" height="120">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/0925996992" 
+                                 alt="QR Zalo 0925996992" 
+                                 width="120" height="120"
+                                 loading="lazy" decoding="async">
                             <div class="qr-scan-line"></div>
                         </div>
                         <div class="d-grid gap-2">
@@ -129,7 +134,9 @@ const schemaLocalBusiness = {
                     <div class="ratio-form-wrapper rounded-3 border bg-light overflow-hidden">
                         <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfD83g8e95q39485743957/viewform?embedded=true" 
                                 width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0"
-                                class="w-100 h-100">Đang tải biểu mẫu...</iframe>
+                                class="w-100 h-100"
+                                loading="lazy"
+                                title="Biểu mẫu đăng ký">Đang tải biểu mẫu...</iframe>
                     </div>
                 </div>
             </div>
@@ -153,7 +160,8 @@ const schemaLocalBusiness = {
     /* 3. QR SCAN EFFECT */
     .qr-wrapper { position: relative; overflow: hidden; }
     .qr-scan-line {
-        position: absolute; width: 100%; height: 2px; background: #f1c40f; box-shadow: 0 0 4px #f1c40f;
+        position: absolute; width: 100%; height: 2px;
+        background: #f1c40f; box-shadow: 0 0 4px #f1c40f;
         top: 0; left: 0; animation: scan 2s infinite linear;
     }
     @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
@@ -162,10 +170,10 @@ const schemaLocalBusiness = {
     .ratio-form-wrapper {
         position: relative;
         width: 100%;
-        height: 850px; /* Chiều cao cố định đủ lớn cho form */
+        height: 850px; 
     }
     @media (max-width: 768px) {
-        .ratio-form-wrapper { height: 950px; /* Mobile cần dài hơn chút */ }
+        .ratio-form-wrapper { height: 950px; }
     }
     
     /* LEAFLET */
@@ -173,54 +181,70 @@ const schemaLocalBusiness = {
 </style>
 
 <script is:inline>
-    // LOAD MAP TỔNG QUAN (Tân Bình - Phú Nhuận)
+    // CHIẾN THUẬT LAZY LOAD MAP: CHỈ TẢI KHI CUỘN ĐẾN NƠI
     document.addEventListener('astro:page-load', () => {
         const mapContainer = document.getElementById('contact-map');
         if (!mapContainer) return;
 
-        // Tọa độ trung tâm giữa Tân Bình và Phú Nhuận (ngã 4 Phú Nhuận / Hoàng Văn Thụ)
-        const centerLat = 10.7992;
-        const centerLng = 106.6814;
+        // Hàm khởi tạo map (Code cũ của bạn, bọc trong hàm)
+        const loadLeafletMap = () => {
+            // Nếu đã tải rồi thì thôi
+            if (mapContainer.classList.contains('map-loaded')) return;
+            mapContainer.classList.add('map-loaded');
 
-        const initMap = () => {
-            if (typeof L === 'undefined') return;
-            
-            mapContainer.innerHTML = ''; // Xóa spinner
-            const map = L.map('contact-map', {
-                zoomControl: false, // Tắt zoom control cho gọn
-                scrollWheelZoom: false, // Tắt scroll chuột để không bị kẹt khi cuộn trang
-                dragging: !L.Browser.mobile // Tắt kéo thả trên mobile để dễ cuộn trang web
-            }).setView([centerLat, centerLng], 13);
+            const centerLat = 10.7992;
+            const centerLng = 106.6814;
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(map);
+            const executeMap = () => {
+                 mapContainer.innerHTML = ''; // Xóa placeholder
+                 const map = L.map('contact-map', {
+                     zoomControl: false, 
+                     scrollWheelZoom: false,
+                     dragging: !L.Browser.mobile 
+                 }).setView([centerLat, centerLng], 13);
+     
+                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                     attribution: '&copy; OSM'
+                 }).addTo(map);
+                 
+                 const iconHTML = '<div style="background:#f1c40f; width:30px; height:30px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:14px;"></i></div>';
+                 const brandIcon = L.divIcon({ 
+                     className: 'custom-map-marker-yellow', 
+                     html: iconHTML, 
+                     iconSize: [30, 30], iconAnchor: [15, 15]
+                 });
+     
+                 L.marker([10.801646, 106.663158], {icon: brandIcon}).addTo(map); // Tân Bình
+                 L.marker([10.793781, 106.684175], {icon: brandIcon}).addTo(map); // Phú Nhuận
+            };
 
-            // Icon Marker
-            const brandIcon = L.divIcon({ 
-                className: 'custom-map-marker-yellow', 
-                html: '<div style="background:#f1c40f; width:30px; height:30px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 5px rgba(0,0,0,0.3); color:#1a1a1a;"><i class="fas fa-home" style="font-size:14px;"></i></div>', 
-                iconSize: [30, 30], iconAnchor: [15, 30]
-            });
-
-            // Marker ảo tượng trưng khu vực
-            L.marker([10.801646, 106.663158], {icon: brandIcon}).addTo(map); // Tân Bình (Khu sân bay)
-            L.marker([10.793781, 106.684175], {icon: brandIcon}).addTo(map); // Phú Nhuận (Phan Xích Long)
+            // Tải thư viện động
+            if (typeof L === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.onload = () => {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(link);
+                    setTimeout(executeMap, 100);
+                };
+                document.head.appendChild(script);
+            } else {
+                executeMap();
+            }
         };
 
-        if (typeof L === 'undefined') {
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.onload = () => {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                document.head.appendChild(link);
-                setTimeout(initMap, 100);
-            };
-            document.head.appendChild(script);
-        } else {
-            initMap();
-        }
+        // Sử dụng IntersectionObserver để phát hiện khi user cuộn đến gần Map
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    loadLeafletMap();
+                    observer.disconnect(); // Chỉ cần tải 1 lần rồi thôi
+                }
+            });
+        }, { rootMargin: "200px" }); // Tải trước khi cuộn tới 200px
+
+        observer.observe(mapContainer);
     });
 </script>
