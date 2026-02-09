@@ -73,7 +73,16 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
     <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg">
          <picture>
              <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
-             <img src="https://img.thochothuetro.com/banner.webp" class="banner-bg-img" alt={`Phòng trọ ${cityName}`} width="1920" height="600">
+             <img 
+    src="https://img.thochothuetro.com/banner.webp" 
+    class="banner-bg-img" 
+    alt={`Phòng trọ ${cityName}`} 
+    width="1920" 
+    height="600"
+    fetchpriority="high" 
+    loading="eager"
+    decoding="sync"
+>
          </picture>
          <div class="banner-overlay"></div>
          <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
