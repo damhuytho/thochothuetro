@@ -261,7 +261,16 @@ const preconnectTags = [
        3. GIAO DIỆN BỘ LỌC (FILTER COMPONENTS)
        ========================================================================== */
     .btn-city-tab { border: none; padding: 12px 10px; background-color: #f8f9fa; color: #6c757d; font-weight: 600; border-bottom: 2px solid #dee2e6; transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem; }
-    .btn-city-tab.active { background-color: #fff; color: #000; border-bottom: 2px solid #f1c40f; }
+    .btn-city-tab.active { 
+        background-color: #f1c40f !important; /* Nền vàng thương hiệu */
+        color: #1a1a1a !important; /* Chữ đen đậm */
+        border-bottom: 2px solid #d35400 !important; /* Viền dưới màu cam đậm cho nổi bật */
+        
+    }
+    .btn-city-tab:not(.active):hover {
+        background-color: #fffcf5;
+        color: #d35400;
+    }
 
     .map-filter-label { font-weight: 700; font-size: 0.75rem !important; color: #555; margin-bottom: 4px; text-transform: uppercase; }
     .btn-white { background-color: #fff !important; border: 1px solid #ddd !important; color: #333 !important; transition: all 0.2s; border-radius: 8px; }
@@ -712,11 +721,6 @@ const preconnectTags = [
         if (inputDist) inputDist.value = defaultDist;
         if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
 
-        // Move Map Camera
-        if (map) {
-            const { coords, zoom } = CONFIG[cityCode];
-            map.setView(coords, zoom);
-        }
         filterAndRender();
     };
 
