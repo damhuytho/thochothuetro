@@ -46,6 +46,7 @@ const preconnectTags = [
     decoding="sync" 
     width="800" 
     height="600"
+    style="background-color: #e5e3df;"
 >
 
         <div id="full-map-view" class="map-viewport" style="position: relative;">
@@ -155,6 +156,13 @@ const preconnectTags = [
 </Layout>
 
 <style is:inline>
+    @font-face {
+        font-family: 'Font Awesome 6 Free';
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url('/fonts/fa-solid-900.woff2') format('woff2');
+    }
     /* ==========================================================================
        1. CẤU TRÚC LAYOUT & UTILITIES (GIỮ NGUYÊN ĐỂ KHÔNG VỠ KHUNG)
        ========================================================================== */
@@ -228,7 +236,7 @@ const preconnectTags = [
         /* FIX LỖI BẢN ĐỒ MOBILE */
         .map-viewport { 
             height: 60vh !important;
-            min-height: 500px; /* Chiều cao cố định */
+            min-height: 500px; 
             width: 100%; 
             order: 1; /* Đưa bản đồ lên đầu */
             
@@ -928,7 +936,7 @@ const preconnectTags = [
             } else {
                 loadMapNow();
             }
-        }, 2500);
+        }, 1200);
     };
 
     document.addEventListener('astro:page-load', runPageSetup);
