@@ -465,34 +465,24 @@ const preconnectTags = [
 </style>
 
 <script is:inline define:vars={{ initialRooms }}>
-    // --- 1. KHAI BÁO BIẾN & CẤU HÌNH (SỬA LỖI TẠI ĐÂY) ---
-    
-    // Khai báo CONFIG (Cần dùng dấu = và const)
+    // --- 1. KHAI BÁO BIẾN & CẤU HÌNH ---
     const CONFIG = {
         hanoi: { coords: [21.028511, 105.804817], zoom: 14, file: 'data_hanoi.json' },
         hochiminh: { coords: [10.801646, 106.663158], zoom: 14, file: 'data_hochiminh.json' }
     };
-
-    // Khai báo TỌA ĐỘ QUẬN (Lỗi của bạn nằm ở đây, phải dùng const và dấu =)
+    
+    // Tọa độ các quận để FlyTo
     const DISTRICT_CENTERS = {
-        'Phú Nhuận': [10.7991, 106.6802], 
-        'Tân Bình': [10.8015, 106.6572],
-        'Bình Thạnh': [10.8105, 106.7091], 
-        'Quận 1': [10.7769, 106.7009],
-        'Quận 3': [10.7783, 106.6800], 
-        'Quận 10': [10.7746, 106.6669],
-        'Quận 7': [10.7335, 106.7231], 
-        'Thủ Đức': [10.8494, 106.7537],
-        'Gò Vấp': [10.8386, 106.6652], 
-        'Đống Đa': [21.0187, 105.8286],
-        'Cầu Giấy': [21.0360, 105.7925], 
-        'Ba Đình': [21.0346, 105.8263],
-        'Hoàn Kiếm': [21.0285, 105.8542], 
-        'Hai Bà Trưng': [21.0090, 105.8549],
-        'Tây Hồ': [21.0660, 105.8197], 
-        'Thanh Xuân': [20.9936, 105.8066]
+        'Phú Nhuận': [10.7991, 106.6802], 'Tân Bình': [10.8015, 106.6572],
+        'Bình Thạnh': [10.8105, 106.7091], 'Quận 1': [10.7769, 106.7009],
+        'Quận 3': [10.7783, 106.6800], 'Quận 10': [10.7746, 106.6669],
+        'Quận 7': [10.7335, 106.7231], 'Thủ Đức': [10.8494, 106.7537],
+        'Gò Vấp': [10.8386, 106.6652], 'Đống Đa': [21.0187, 105.8286],
+        'Cầu Giấy': [21.0360, 105.7925], 'Ba Đình': [21.0346, 105.8263],
+        'Hoàn Kiếm': [21.0285, 105.8542], 'Hai Bà Trưng': [21.0090, 105.8549],
+        'Tây Hồ': [21.0660, 105.8197], 'Thanh Xuân': [20.9936, 105.8066]
     };
-    // Thêm hàm này ngay bên dưới DISTRICT_CENTERS để dùng cho việc di chuyển map
+
     function zoomToDistrict(dist) {
         if (!map) return;
         if (dist !== 'all' && DISTRICT_CENTERS[dist]) {
@@ -503,19 +493,18 @@ const preconnectTags = [
         }
     }
     
-    // Khai báo biến dữ liệu (Đảm bảo dòng này không bị xóa)
+    // Biến toàn cục
     let allRoomsData = initialRooms || [];
     let dataCache = { 'hochiminh': initialRooms, 'hanoi': null };
     let currentCityFilter = 'hochiminh';
-    
-    // Biến toàn cục cho bản đồ
     let map = null; 
-    let markersLayer = null; 
+    let markersLayer = null;
     let currentFiltered = [];
     let visibleCount = 6;
     const LOAD_STEP = 6;
+    let mapObserver = null; // [MỚI] Biến theo dõi kích thước map
 
-    // --- 1. CÁC HÀM HỖ TRỢ CƠ BẢN ---
+    // --- 2. CÁC HÀM HỖ TRỢ ---
     function toSlug(str) {
         if (!str) return '';
         return str.toString().toLowerCase()
@@ -531,11 +520,34 @@ const preconnectTags = [
         }
     }
 
-   
-
-    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN TỐI ƯU HOÀN CHỈNH) ---
+    // --- 3. KHỞI TẠO MAP (BẢN FIX LỖI VIEW TRANSITION) ---
+    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN FIX LỖI MẤT CSS KHI CHUYỂN TRANG) ---
     function initMapSafely() {
-        // Kiểm tra xem Leaflet đã tải xong chưa
+        // 1. [FIX QUAN TRỌNG] Kiểm tra và nạp lại CSS nếu bị Astro xóa mất
+        // Đây là "thuốc đặc trị" giúp bản đồ không bị vỡ giao diện khi quay lại trang
+        
+        // A. Kiểm tra CSS Leaflet (Cốt lõi)
+        if (!document.querySelector('link[href*="leaflet.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/libs/leaflet/leaflet.css'; // Đường dẫn file local của bạn
+            document.head.appendChild(link);
+        }
+
+        // B. Kiểm tra CSS MarkerCluster (Gom nhóm - Rất quan trọng cho trang Search)
+        if (!document.querySelector('link[href*="MarkerCluster.css"]')) {
+            const link1 = document.createElement('link');
+            link1.rel = 'stylesheet';
+            link1.href = '/libs/leaflet/MarkerCluster.css';
+            document.head.appendChild(link1);
+
+            const link2 = document.createElement('link');
+            link2.rel = 'stylesheet';
+            link2.href = '/libs/leaflet/MarkerCluster.Default.css';
+            document.head.appendChild(link2);
+        }
+
+        // 2. Kiểm tra xem thư viện JS đã tải xong chưa
         if (!window.L || !window.L.MarkerClusterGroup) {
             setTimeout(initMapSafely, 100);
             return;
@@ -544,7 +556,7 @@ const preconnectTags = [
         if (map) return; // Đã có map thì thôi
 
         try {
-            // 1. Khởi tạo map
+            // 3. Khởi tạo map
             map = L.map('map', {
                 center: CONFIG.hochiminh.coords,
                 zoom: CONFIG.hochiminh.zoom,
@@ -552,25 +564,25 @@ const preconnectTags = [
                 preferCanvas: true
             });
             
-            // 2. [THUỐC ĐẶC TRỊ] ResizeObserver
-            // Tự động chỉnh lại bản đồ khi khung thay đổi kích thước (do xoay màn hình, ẩn hiện thanh URL...)
+            // 4. [THUỐC ĐẶC TRỊ 2] ResizeObserver
+            // Giúp map tự động vẽ lại khi khung thay đổi kích thước
             const mapDiv = document.getElementById('map');
             const resizeObserver = new ResizeObserver(() => {
                 map.invalidateSize();
             });
             resizeObserver.observe(mapDiv);
 
-            // 3. Thêm nút Zoom
+            // 5. Thêm nút Zoom
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // 4. Layer Bản đồ (CartoDB Voyager) - Nhớ có crossOrigin: true
+            // 6. Layer Bản đồ (CartoDB Voyager) - Nhớ có crossOrigin: true
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 20,
                 crossOrigin: true // Quan trọng để SW cache được
             }).addTo(map);
 
-            // 5. Cấu hình Marker Cluster (Gom nhóm)
+            // 7. Cấu hình Marker Cluster (Gom nhóm)
             markersLayer = L.markerClusterGroup({
                 showCoverageOnHover: false,
                 maxClusterRadius: 50,
@@ -585,7 +597,7 @@ const preconnectTags = [
             });
             map.addLayer(markersLayer);
 
-            // 6. Sự kiện Zoom để ẩn/hiện giá
+            // 8. Sự kiện Zoom để ẩn/hiện giá
             const toggleLabels = () => {
                 const currentZoom = map.getZoom();
                 const mapContainer = map.getContainer();
@@ -595,78 +607,53 @@ const preconnectTags = [
             map.on('zoomend', toggleLabels);
             toggleLabels();
 
-            // 7. Vẽ marker ngay lập tức
+            // 9. Vẽ marker ngay lập tức
             filterAndRender();
-
-            // Vẫn giữ lại setTimeout này để đảm bảo an toàn cho lần load đầu tiên
-            setTimeout(() => { map.invalidateSize(); }, 200);
 
         } catch (e) {
             console.error("Map init error:", e);
         }
     }
 
-    // --- 4. HÀM VẼ MARKER (ĐÃ NÂNG CẤP GIAO DIỆN) ---
+    // --- 4. CÁC HÀM RENDER & LOGIC KHÁC (GIỮ NGUYÊN) ---
     function renderMapMarkers() {
         if (!map || !markersLayer) return;
-        
-        // 1. Xóa marker cũ
         markersLayer.clearLayers();
-
-        // [MỚI] Bảng theo dõi tọa độ để xử lý trùng lặp
-        // Cấu trúc: { "10.123-106.456": số_lượng_đã_vẽ }
         const coordinateTracker = {};
 
-        // 2. Vẽ marker mới
         currentFiltered.forEach(room => {
             if (room.lat && room.lng) {
-                
-                // --- BẮT ĐẦU ĐOẠN XỬ LÝ TÁCH MARKER ---
                 let finalLat = parseFloat(room.lat);
                 let finalLng = parseFloat(room.lng);
                 const coordKey = `${finalLat.toFixed(5)}-${finalLng.toFixed(5)}`;
 
-                // Nếu tọa độ này đã có người đứng rồi, thì ta dịch chuyển thằng sau đi chút xíu
                 if (coordinateTracker[coordKey]) {
                     const count = coordinateTracker[coordKey];
-                    // Góc xoay: Mỗi thằng lệch nhau 1 góc để tạo thành hình tròn
-                    const angle = count * (Math.PI / 3); // 60 độ mỗi bước
-                    // Khoảng cách tách: Khoảng 0.00015 độ (tương đương 15-20m thực tế)
+                    const angle = count * (Math.PI / 3); 
                     const offset = 0.00015; 
-                    
                     finalLat = finalLat + (Math.sin(angle) * offset);
                     finalLng = finalLng + (Math.cos(angle) * offset);
-                    
                     coordinateTracker[coordKey]++;
                 } else {
-                    // Nếu chưa trùng ai, đánh dấu là đã có 1 người
                     coordinateTracker[coordKey] = 1;
                 }
-                // --- KẾT THÚC XỬ LÝ TÁCH MARKER ---
 
-                // Xử lý giá tiền
                 const priceNum = room.price;
                 const priceText = priceNum >= 1000000 
                     ? (priceNum / 1000000).toFixed(1).replace('.0', '') + ' Tr' 
                     : (priceNum / 1000) + 'k';
-                
-                // Tạo Icon
+
                 const customIcon = L.divIcon({
                     className: 'custom-pin-container', 
                     html: `
                         <div class="custom-marker-dot"></div>
-                        <div class="custom-marker-label">
-                            <span>${priceText}</span>
-                        </div>
+                        <div class="custom-marker-label"><span>${priceText}</span></div>
                     `,
                     iconSize: [40, 40],
                     iconAnchor: [20, 20]
                 });
 
-                // LƯU Ý: Dùng finalLat, finalLng đã tính toán ở trên
                 const marker = L.marker([finalLat, finalLng], { icon: customIcon });
-
-                // Xử lý dữ liệu Popup
                 const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
                 const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
                 
@@ -678,10 +665,8 @@ const preconnectTags = [
                 if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
                      thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
                 }
-                
                 const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
-                
-                // HTML Popup
+
                 const popupContent = `
                     <a href="${link}" class="map-popup-card">
                         <div class="map-popup-img-wrapper">
@@ -690,43 +675,31 @@ const preconnectTags = [
                         </div>
                         <div class="map-popup-info">
                             <h3 class="map-popup-title" title="${cleanAddr}">${cleanAddr}</h3>
-                            <div class="map-popup-sub">
-                                <i class="fas fa-map-marker-alt"></i> ${room.district}
-                            </div>
+                            <div class="map-popup-sub"><i class="fas fa-map-marker-alt"></i> ${room.district}</div>
                             <div class="map-popup-footer">
                                 <div class="map-popup-price">${priceText}</div>
-                                <div class="map-popup-action">
-                                    Chi tiết <i class="fas fa-arrow-right"></i>
-                                </div>
+                                <div class="map-popup-action">Chi tiết <i class="fas fa-arrow-right"></i></div>
                             </div>
                         </div>
                     </a>`;
                 
-                marker.bindPopup(popupContent, { 
-                    maxWidth: 270, minWidth: 270, closeButton: false, autoPan: true, offset: [0, -10]
-                });
-
+                marker.bindPopup(popupContent, { maxWidth: 270, minWidth: 270, closeButton: false, autoPan: true, offset: [0, -10] });
                 marker.on('mouseover', function (e) { this.setZIndexOffset(1000); });
                 marker.on('mouseout', function (e) { this.setZIndexOffset(0); });
-
                 markersLayer.addLayer(marker);
             }
         });
-
         forceHideSpinner();
     }
 
-    // --- 5. LOGIC LỌC & CHUYỂN DỮ LIỆU (GIỮ NGUYÊN NHƯNG GỌN HƠN) ---
     window.switchCity = async function(cityCode) {
         if (currentCityFilter === cityCode) return;
-        
         const spinner = document.getElementById('map-loading-spinner');
         if (spinner) { 
             spinner.style.display = 'flex';
             spinner.classList.remove('spinner-hidden');
             spinner.style.opacity = '1';
         }
-
         if (!dataCache[cityCode]) {
             try {
                 const res = await fetch(`/${CONFIG[cityCode].file}`);
@@ -734,15 +707,11 @@ const preconnectTags = [
                 dataCache[cityCode] = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
             } catch (e) { dataCache[cityCode] = []; }
         }
-
         currentCityFilter = cityCode;
         allRoomsData = dataCache[cityCode];
         
-        // Update Tabs
         document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`tab-${cityCode}`).classList.add('active');
-        
-        // Update Dropdown District
         const defaultDist = (cityCode === 'hochiminh' ? 'Phú Nhuận' : 'all');
         updateDistrictDropdown(defaultDist);
         
@@ -767,7 +736,6 @@ const preconnectTags = [
     }
 
     function filterAndRender() {
-        // 1. Lấy giá trị từ bộ lọc
         const district = document.getElementById('map-district')?.value || 'all';
         const type = document.getElementById('map-type')?.value || 'all';
         const price = document.getElementById('map-price')?.value || 'all';
@@ -778,22 +746,17 @@ const preconnectTags = [
         const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
         const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
 
-        // 2. Logic lọc dữ liệu
         let filtered = allRoomsData.filter(room => {
             const rCity = room.city ? room.city : 'hochiminh';
             if (rCity !== currentCityFilter) return false;
             if (district !== 'all' && room.district !== district) return false;
             if (type !== 'all' && room.type !== type) return false;
-            
-            // Lọc giá
             if (price !== 'all') {
                 const p = room.price;
                 if (price === 'duoi-5' && p >= 5000000) return false;
                 if (price === '5to8' && (p < 5000000 || p >= 8000000)) return false;
                 if (price === 'over8' && p < 8000000) return false;
             }
-            
-            // Lọc tiện ích
             if (fAmenities.length > 0) {
                 const keypoints = (room.keypoint || "").toLowerCase();
                 const petAllowed = room.pet === true;
@@ -814,7 +777,6 @@ const preconnectTags = [
             return true;
         });
 
-        // 3. Sắp xếp kết quả
         filtered.sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             if (sortMode === 'price-asc') return a.price - b.price;
@@ -822,18 +784,13 @@ const preconnectTags = [
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
 
-        // 4. Cập nhật giao diện
         currentFiltered = filtered;
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
         
         visibleCount = 6;
         renderListDOM();
-
-        // 5. [QUAN TRỌNG] Chỉ vẽ lại Marker, TUYỆT ĐỐI KHÔNG di chuyển Map (FlyTo) ở đây
-        if(map) {
-             requestAnimationFrame(() => renderMapMarkers());
-        }
+        if(map) { requestAnimationFrame(() => renderMapMarkers()); }
     }
 
     function renderListDOM() {
@@ -864,12 +821,13 @@ const preconnectTags = [
         const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
         
+        // [FIX CLS] Thêm width/height cho ảnh để giữ layout
         return `
         <div class="col-6 col-lg-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="window.location.href='${link}'" style="cursor: pointer;">
                 <div class="ratio ratio-4x3 bg-light position-relative">
-                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy" width="400" height="300">
-                     ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
+                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy" width="400" height="300" decoding="async">
+                    ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
                     ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
                 </div>
                 <div class="card-body p-2 p-md-3 d-flex flex-column">
@@ -881,7 +839,6 @@ const preconnectTags = [
         </div>`;
     }
 
-    // --- 6. EVENTS UI ---
     window.setMapFilter = function(inputId, val, label, el) {
         if(event) event.preventDefault();
         document.getElementById(inputId).value = val;
@@ -892,9 +849,7 @@ const preconnectTags = [
             el.classList.add('active');
         }
         filterAndRender();
-        if (inputId === 'map-district') {
-            zoomToDistrict(val);
-        }
+        if (inputId === 'map-district') zoomToDistrict(val);
     };
 
     window.resetMapFilters = function() {
@@ -914,8 +869,11 @@ const preconnectTags = [
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-    // --- 7. KHỞI CHẠY TRANG (PAGE SETUP) ---
+    // --- 5. SETUP & CLEANUP (QUAN TRỌNG) ---
     const runPageSetup = () => {
+        // [FIX LỖI] Reset biến map về null khi vào trang để đảm bảo sạch sẽ
+        map = null; 
+        
         let defaultDistrict = 'all';
         if (currentCityFilter === 'hochiminh') {
             defaultDistrict = 'Phú Nhuận';
@@ -929,11 +887,22 @@ const preconnectTags = [
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
         
-        // Render List ngay lập tức (không đợi map)
         try { filterAndRender(); } catch(e) {}
-        
         initMapSafely();
     };
 
+    // Chạy khi vào trang (bao gồm cả chuyển trang từ Home sang)
     document.addEventListener('astro:page-load', runPageSetup);
+    
+    // [FIX LỖI] Dọn dẹp khi rời trang
+    document.addEventListener('astro:before-swap', () => {
+        if (map) {
+            map.remove();
+            map = null;
+        }
+        if (mapObserver) {
+            mapObserver.disconnect();
+            mapObserver = null;
+        }
+    });
 </script>

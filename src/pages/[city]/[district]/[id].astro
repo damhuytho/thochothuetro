@@ -522,6 +522,7 @@ const relatedRooms = allRooms.filter(r =>
 </style>
 
 <script is:inline>
+    let map = null;
     // --- 1. Gallery Switcher (Giữ nguyên) ---
     function changeImage(el) {
         const webSrc = el.getAttribute('data-web');
@@ -543,11 +544,18 @@ const relatedRooms = allRooms.filter(r =>
 
         const loadLeafletLibrary = () => {
             return new Promise((resolve, reject) => {
-                if (window.L) return resolve();
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                document.head.appendChild(link);
+                // 1. Kiểm tra xem đã có CSS chưa (QUAN TRỌNG: Fix lỗi mất CSS khi chuyển trang)
+                const isCssLoaded = document.querySelector('link[href*="leaflet.css"]');
+                if (!isCssLoaded) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(link);
+                }
+
+                // 2. Kiểm tra JS
+                if (window.L) return resolve(); // Nếu JS có rồi thì xong luôn
+
                 const script = document.createElement('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
                 script.onload = () => resolve();
@@ -571,9 +579,14 @@ const relatedRooms = allRooms.filter(r =>
     function initMap(lat, lng, text) {
         const mapDiv = document.getElementById('real-map');
         if (mapDiv && mapDiv._leaflet_id) return; 
+        // Nếu map cũ còn sót lại (do chưa cleanup kịp), xóa ngay
+        if (map) {
+        map.remove();
+        map = null;
+        }
 
         try {
-            const map = L.map('real-map', {
+                map = L.map('real-map', {
                 center: [lat, lng],
                 zoom: 16,
                 scrollWheelZoom: false, 
@@ -638,6 +651,12 @@ const relatedRooms = allRooms.filter(r =>
             const id = facade.getAttribute('data-id');
             facade.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&loop=1" class="w-100 h-100 border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             facade.classList.remove('video-facade');
+        }
+    });
+    document.addEventListener('astro:before-swap', () => {
+        if (map) {
+            map.remove();
+            map = null;
         }
     });
 </script>
