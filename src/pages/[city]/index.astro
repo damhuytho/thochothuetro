@@ -284,7 +284,7 @@ document.addEventListener('astro:page-load', () => {
         active.sort(byImage);
         rented.sort(byImage);
         
-        const rentedCapped = rented.slice(0, 6);
+        const rentedCapped = rented.slice(0, 9);
         return [...active, ...rentedCapped];
     }
 

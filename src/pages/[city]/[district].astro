@@ -108,7 +108,7 @@ activeRooms.sort((a, b) => {
 });
 
 // Giới hạn Rented hiển thị 6 căn
-const limitedRentedRooms = rentedRooms.slice(0, 6);
+const limitedRentedRooms = rentedRooms.slice(0, 9);
 const initialDisplayRooms = [...activeRooms, ...limitedRentedRooms];
 
 // --- SEO CONFIG ---
@@ -485,7 +485,7 @@ const schemaFAQ = {
         sortFn(activeItems);
         sortFn(rentedItems);
         // Ở trang district, chỉ hiển thị max 6 căn đã thuê nếu không có filter đặc biệt
-        if (rentedItems.length > 6) rentedItems = rentedItems.slice(0, 6);
+        if (rentedItems.length > 9) rentedItems = rentedItems.slice(0, 9);
         
         const finalSortedList = [...activeItems, ...rentedItems];
 

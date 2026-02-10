@@ -45,8 +45,8 @@ export async function getStaticPaths() {
       console.error("Lỗi đọc data json:", e);
   }
 
-  // Gộp danh sách phòng ACTIVE
-  const activeRooms = [...roomsHN, ...roomsHCM].filter(r => r.status === 'active');
+  // [FIX] Cho phép cả 'active' và 'rented' để tạo trang chi tiết
+const activeRooms = [...roomsHN, ...roomsHCM].filter(r => r.status === 'active' || r.status === 'rented');
   
   const makeSlug = (str) => {
       if (!str) return '';
@@ -197,10 +197,20 @@ const schemaFAQ = {
   ]
 };
 
-// Tìm phòng liên quan (Cùng quận, giá chênh lệch không quá 1.5tr)
-const relatedRooms = allRooms.filter(r => 
+// [SỬA] Tìm phòng liên quan (Có giới hạn Rented)
+let candidateRooms = allRooms.filter(r => 
     r.district === room.district && r.id !== room.id && Math.abs(r.price - room.price) <= 1500000
-).sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0)).slice(0, 6);
+);
+
+// Tách ra Active và Rented
+const activeRelated = candidateRooms.filter(r => r.status === 'active');
+// Chỉ lấy tối đa 9 căn Rented làm ứng viên
+const rentedRelated = candidateRooms.filter(r => r.status === 'rented').slice(0, 9);
+
+// Gộp lại, sắp xếp theo số lượng ảnh, và cắt lấy 6 căn hiển thị cuối cùng
+const relatedRooms = [...activeRelated, ...rentedRelated]
+    .sort((a, b) => (b.image_detail?.length || 0) - (a.image_detail?.length || 0))
+    .slice(0, 6);
 ---
 
 <Layout title={pageTitle} currentCity={currentCityCode} description={pageDesc} image={mainImageWeb} canonicalURL={canonicalURL}>
@@ -245,6 +255,18 @@ const relatedRooms = allRooms.filter(r =>
     <div class="container pb-5 detail-container-standard">
         <div class="row g-4">
             <div class="col-lg-8">
+                {/* [MỚI] Cảnh báo Phòng Đã Thuê */}
+    {room.status === 'rented' && (
+        <div class="alert alert-secondary d-flex align-items-center mb-4 shadow-sm border-0" role="alert">
+            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; flex-shrink: 0;">
+                <i class="fas fa-history"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0 text-dark">Phòng này đã được cho thuê</h6>
+                <p class="mb-0 small text-muted">Vui lòng tham khảo các phòng tương tự bên dưới.</p>
+            </div>
+        </div>
+    )}
                 
                 <div class="mb-4 bg-white rounded-3 overflow-hidden border shadow-sm">
                     {imagesWeb.length > 0 ? (
@@ -301,7 +323,10 @@ const relatedRooms = allRooms.filter(r =>
 
                 <div class="mb-4 bg-white p-4 rounded-3 border shadow-sm">
                      <div class="d-flex align-items-baseline mb-2 flex-wrap gap-2">
-                         <h2 class="fw-bold text-danger m-0" style="font-size: 1.8rem;">{formatPrice(room.price)}</h2>
+                         {/* [SỬA] Nếu đã thuê thì gạch ngang giá và đổi màu xám */}
+    <h2 class={`fw-bold m-0 ${room.status === 'rented' ? 'text-secondary text-decoration-line-through' : 'text-danger'}`} style="font-size: 1.8rem;">
+        {formatPrice(room.price)}
+    </h2>
                          <span class="text-muted small fst-italic">/tháng (Thương lượng)</span>
                     </div>
                     

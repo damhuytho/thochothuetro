@@ -793,7 +793,18 @@ const preconnectTags = [
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
 
-        currentFiltered = filtered;
+        // --- [MỚI] GIỚI HẠN TỐI ĐA 9 CĂN ĐÃ THUÊ (RENTED) ---
+        const activeRooms = filtered.filter(r => r.status === 'active');
+        let rentedRooms = filtered.filter(r => r.status === 'rented');
+
+        // Nếu quá 9 căn đã thuê, cắt bớt chỉ lấy 9 căn đầu
+        if (rentedRooms.length > 9) {
+            rentedRooms = rentedRooms.slice(0, 9);
+        }
+
+        // Gộp lại: Active lên đầu, Rented (tối đa 9) nằm dưới
+        currentFiltered = [...activeRooms, ...rentedRooms];
+        // -----------------------------------------------------
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
         
