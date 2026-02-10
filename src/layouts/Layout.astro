@@ -135,6 +135,14 @@ if (currentCity) {
         /* Trỏ đúng vào file 900 trong thư mục public */
         src: url('/fonts/be-vietnam-pro-v12-latin_vietnamese-700.woff2') format('woff2');
     }
+    /* THÊM ĐOẠN NÀY: Font 300 (Mảnh) */
+    @font-face {
+        font-family: 'Be Vietnam Pro';
+        font-style: normal;
+        font-weight: 300;
+        font-display: swap;
+        src: url('/fonts/be-vietnam-pro-v12-latin_vietnamese-300.woff2') format('woff2');
+    }
     {isMapPage && (
     <>
         <link rel="stylesheet" href="/libs/leaflet/leaflet.css" />

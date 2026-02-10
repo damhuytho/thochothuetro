@@ -315,13 +315,13 @@ const relatedRooms = allRooms.filter(r =>
                     
                     <hr class="text-muted opacity-25 my-3" />
                     
-                    <h3 class="h6 fw-bold text-uppercase text-secondary mb-3">Tiện ích nổi bật</h3>
+                    <h3 class="h6 fw-bold text-uppercase text-dark mb-3">Tiện ích nổi bật</h3>
                      <div class="row g-2">
                          {keypointsList.map((k) => (
                              <div class="col-6 col-sm-4">
-                                  <div class="d-flex align-items-start text-secondary small">
-                                     <i class="fas fa-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
-                                     <span style="line-height: 1.4;">{k}</span>
+                                  <div class="d-flex align-items-start text-dark small"> 
+                                    <i class="fas fa-check-circle text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span class="fw-bold" style="line-height: 1.4;">{k}</span>
                                   </div>
                              </div>
                         ))}
@@ -423,7 +423,9 @@ const relatedRooms = allRooms.filter(r =>
                         <div id="real-map" class="w-100 h-100 d-none"></div>
                     </div>
                 </div>
-
+                <div class="d-block d-lg-none mb-4">
+                    <CommitmentSidebar />
+                </div>
                 <div class="mt-5">
                     <h3 class="h5 fw-bold border-bottom border-warning pb-2 mb-4 text-uppercase">Phòng tương tự</h3>
                     <div class="row g-2 g-md-3">
@@ -519,6 +521,7 @@ const relatedRooms = allRooms.filter(r =>
     
     /* Others - Media Queries */
     .gallery-main-frame { aspect-ratio: 4/3; width: 100%; }
+    
 </style>
 
 <script is:inline>

@@ -10,14 +10,30 @@
 }
 
 body {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-weight: 300;
+    color: #4a4a4a;
     background: var(--gray-bg);
     color: var(--text-dark);
     padding-bottom: 70px; /* Chừa chỗ cho Mobile Nav */
+    line-height: 1.6; 
+}
+/* 4. [QUAN TRỌNG] Phải định nghĩa lại các thẻ in đậm */
+/* Vì body đã set 300, nên phải nhắc trình duyệt: thẻ b, strong, heading vẫn phải đậm */
+b, strong, h1, h2, h3, h4, h5, h6, .fw-bold {
+    font-weight: 700;
+    color: #1a1a1a; /* Tiêu đề thì cho đậm màu hơn */
 }
 
 a { text-decoration: none; }
-ul { padding-left: 0; list-style: none; }
+
+/* [SỬA LỖI 3] Chỉ reset ul cho các thành phần nội dung, KHÔNG reset toàn bộ (tránh lỗi Map) */
+.content-text ul, .sidebar-wrapper ul, .footer ul { 
+    padding-left: 0; list-style: none; 
+}
 
 /* =========================================
    6. HEADER & BREADCRUMB
@@ -129,11 +145,6 @@ ul { padding-left: 0; list-style: none; }
    FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN (ĐÃ SỬA LỖI)
    ========================================================= */
 
-/* 1. Đảm bảo hàng (row) luôn kéo giãn (STRETCH) để Sidebar cao bằng Content */
-.container .row {
-    align-items: stretch !important; /* QUAN TRỌNG: Sửa từ flex-start thành stretch */
-}
-
 /* 2. Cấu trúc bao ngoài Sidebar */
 .col-lg-3 {
     height: auto; 
@@ -157,6 +168,7 @@ ul { padding-left: 0; list-style: none; }
     .sidebar-sticky-inner {
         position: static !important;
     }
+    body { padding-bottom: 70px !important; }
 }
 /* =========================================
    NEW HEADER STYLE (Dùng chung cho cả 3 trang)
