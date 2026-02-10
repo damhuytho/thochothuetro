@@ -868,7 +868,7 @@ const preconnectTags = [
         <div class="col-6 col-lg-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="window.location.href='${link}'" style="cursor: pointer;">
                 <div class="ratio ratio-4x3 bg-light position-relative">
-                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy" width="400" height="300" decoding="async">
+                    <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy">
                      ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
                     ${!isRented && room.promotion ? `<div class="position-absolute top-0 end-0 m-2 z-2"><span class="bg-warning text-dark px-2 py-1 small fw-bold rounded shadow-sm d-flex align-items-center badge-promo"><i class="fas fa-gift me-1"></i> Ưu đãi</span></div>` : ''}
                 </div>
