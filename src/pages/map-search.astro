@@ -511,10 +511,9 @@ const preconnectTags = [
 
    
 
-    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP ---
-    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (ĐÃ FIX LỖI THIẾU DẤU PHẨY) ---
+    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN TỐI ƯU HOÀN CHỈNH) ---
     function initMapSafely() {
-        // Kiểm tra xem Leaflet (từ Layout) đã sẵn sàng chưa
+        // Kiểm tra xem Leaflet đã tải xong chưa
         if (!window.L || !window.L.MarkerClusterGroup) {
             setTimeout(initMapSafely, 100);
             return;
@@ -523,7 +522,7 @@ const preconnectTags = [
         if (map) return; // Đã có map thì thôi
 
         try {
-            // Khởi tạo map
+            // 1. Khởi tạo map
             map = L.map('map', {
                 center: CONFIG.hochiminh.coords,
                 zoom: CONFIG.hochiminh.zoom,
@@ -531,16 +530,25 @@ const preconnectTags = [
                 preferCanvas: true
             });
             
-            // Thêm nút Zoom ở góc dưới phải
+            // 2. [THUỐC ĐẶC TRỊ] ResizeObserver
+            // Tự động chỉnh lại bản đồ khi khung thay đổi kích thước (do xoay màn hình, ẩn hiện thanh URL...)
+            const mapDiv = document.getElementById('map');
+            const resizeObserver = new ResizeObserver(() => {
+                map.invalidateSize();
+            });
+            resizeObserver.observe(mapDiv);
+
+            // 3. Thêm nút Zoom
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // [FIX LỖI CÚ PHÁP TẠI ĐÂY]
+            // 4. Layer Bản đồ (CartoDB Voyager) - Nhớ có crossOrigin: true
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 20,         // <--- Đã thêm dấu phẩy ở đây
-                crossOrigin: true    // <--- Dòng này mới chạy được
+                maxZoom: 20,
+                crossOrigin: true // Quan trọng để SW cache được
             }).addTo(map);
 
+            // 5. Cấu hình Marker Cluster (Gom nhóm)
             markersLayer = L.markerClusterGroup({
                 showCoverageOnHover: false,
                 maxClusterRadius: 50,
@@ -555,7 +563,7 @@ const preconnectTags = [
             });
             map.addLayer(markersLayer);
 
-            // Sự kiện Zoom để ẩn hiện giá
+            // 6. Sự kiện Zoom để ẩn/hiện giá
             const toggleLabels = () => {
                 const currentZoom = map.getZoom();
                 const mapContainer = map.getContainer();
@@ -565,12 +573,11 @@ const preconnectTags = [
             map.on('zoomend', toggleLabels);
             toggleLabels();
 
-            // Vẽ marker ngay lập tức
+            // 7. Vẽ marker ngay lập tức
             filterAndRender();
 
-            // Chống lỗi xám bản đồ (Map Container Resize)
+            // Vẫn giữ lại setTimeout này để đảm bảo an toàn cho lần load đầu tiên
             setTimeout(() => { map.invalidateSize(); }, 200);
-            setTimeout(() => { map.invalidateSize(); }, 1000);
 
         } catch (e) {
             console.error("Map init error:", e);

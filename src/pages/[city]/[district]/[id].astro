@@ -522,12 +522,12 @@ const relatedRooms = allRooms.filter(r =>
 </style>
 
 <script is:inline>
-    // --- 1. Gallery Switcher Logic (Giữ nguyên) ---
+    // --- 1. Gallery Switcher (Giữ nguyên) ---
     function changeImage(el) {
         const webSrc = el.getAttribute('data-web');
         const mobileSrc = el.getAttribute('data-mobile');
         const mainImg = document.getElementById('main-image');
-        const source = mainImg.previousElementSibling; // Thẻ <source> bên trong <picture>
+        const source = mainImg.previousElementSibling;
         
         if(source && mobileSrc) source.srcset = mobileSrc;
         if(webSrc) mainImg.src = webSrc;
@@ -536,23 +536,18 @@ const relatedRooms = allRooms.filter(r =>
         el.classList.add('active');
     }
 
-    // --- 2. Map Logic (ĐÃ SỬA LỖI HIỂN THỊ) ---
+    // --- 2. Map Logic (PHIÊN BẢN FIX CỨNG "RESIZE OBSERVER") ---
     window.loadMap = function(placeholder, lat, lng, text) {
-        // Hiện loading quay tròn
+        // Hiện loading
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
 
-        // Hàm tải thư viện Leaflet (Lazy load)
         const loadLeafletLibrary = () => {
             return new Promise((resolve, reject) => {
-                if (window.L) return resolve(); // Nếu đã tải rồi thì thôi
-
-                // Tải CSS
+                if (window.L) return resolve();
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
                 link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
                 document.head.appendChild(link);
-
-                // Tải JS
                 const script = document.createElement('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
                 script.onload = () => resolve();
@@ -562,105 +557,81 @@ const relatedRooms = allRooms.filter(r =>
         };
 
         loadLeafletLibrary().then(() => {
-            // [QUAN TRỌNG] Xử lý hiển thị DOM để tránh lỗi bản đồ xám
+            // Ẩn placeholder, hiện map
             placeholder.classList.add('d-none');
             const realMapDiv = document.getElementById('real-map');
-            
-            // Hiện div bản đồ lên
             realMapDiv.classList.remove('d-none');
             realMapDiv.style.display = 'block';
 
-            // [MẤU CHỐT] Ép trình duyệt tính toán lại Layout ngay lập tức (Force Reflow)
-            void realMapDiv.offsetWidth; 
-
-            // Đợi một chút rồi mới khởi tạo Map
-            setTimeout(() => {
-                initMap(lat, lng, text);
-            }, 100);
+            // Khởi tạo map
+            initMap(lat, lng, text);
         });
     };
 
     function initMap(lat, lng, text) {
         const mapDiv = document.getElementById('real-map');
-        if (mapDiv && mapDiv._leaflet_id) return; // Đã tạo rồi thì không tạo lại
+        if (mapDiv && mapDiv._leaflet_id) return; 
 
         try {
-            // 1. Khởi tạo Map
             const map = L.map('real-map', {
                 center: [lat, lng],
                 zoom: 16,
-                scrollWheelZoom: false, // Tắt cuộn chuột
-                zoomControl: false      // Tắt nút zoom mặc định (để thêm nút mới ở góc khác)
+                scrollWheelZoom: false, 
+                zoomControl: false
             });
 
-            // 2. [GIAO DIỆN ĐẸP] Dùng CartoDB Voyager (giống trang Map Search)
-            // Thêm crossOrigin: true để Service Worker cache được
+            // [FIX 1] Dùng ResizeObserver: Tự động sửa lỗi map xám bất kể khi nào div thay đổi
+            const resizeObserver = new ResizeObserver(() => {
+                map.invalidateSize();
+            });
+            resizeObserver.observe(mapDiv);
+
+            // [FIX 2] Sự kiện tương tác: Khi khách chạm vào map, ép vẽ lại lần nữa cho chắc
+            map.on('mousedown touchstart', function() {
+                map.invalidateSize();
+            });
+
+            // Layer CartoDB
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                attribution: '© OpenStreetMap © CARTO',
                 maxZoom: 20,
                 crossOrigin: true 
             }).addTo(map);
 
-            // 3. [MARKER ĐẸP] Icon màu vàng thương hiệu
+            // Icon & Marker
             const icon = L.divIcon({
                 className: 'custom-pin',
                 html: `
-                    <div style="
-                        background-color: #f1c40f; 
-                        width: 40px; height: 40px; 
-                        border-radius: 50%; 
-                        border: 3px solid white; 
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                        display: flex; align-items: center; justify-content: center;
-                        color: #1a1a1a;
-                    ">
+                    <div style="background-color: #f1c40f; width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: #1a1a1a;">
                         <i class="fas fa-home" style="font-size: 18px;"></i>
                     </div>
-                    <div style="
-                        width: 0; height: 0; 
-                        border-left: 8px solid transparent;
-                        border-right: 8px solid transparent;
-                        border-top: 10px solid #f1c40f;
-                        position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-                        filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));
-                    "></div>
+                    <div style="width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #f1c40f; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
                 `,
                 iconSize: [40, 50],
-                iconAnchor: [20, 50], // Mũi nhọn trỏ đúng vị trí
+                iconAnchor: [20, 50],
                 popupAnchor: [0, -55]
             });
 
-            // 4. Nội dung Popup (Có nút chỉ đường)
             const popupContent = `
                 <div class="text-center" style="min-width: 180px;">
-                    <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">
-                        ${text}
-                    </div>
-                    <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" 
-                       target="_blank" 
-                       style="display: inline-block; background: #f1c40f; color: #1a1a1a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-decoration: none; margin-top: 5px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">${text}</div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" style="display: inline-block; background: #f1c40f; color: #1a1a1a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-decoration: none; margin-top: 5px;">
                        <i class="fas fa-location-arrow me-1"></i> Chỉ đường
                     </a>
-                </div>
-            `;
+                </div>`;
 
             L.marker([lat, lng], {icon: icon}).addTo(map)
                 .bindPopup(popupContent)
                 .openPopup();
 
-            // 5. Thêm nút Zoom ở góc dưới phải
             L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-            // 6. [FIX LỖI XÁM] InvalidateSize lần nữa cho chắc
-            setTimeout(() => { map.invalidateSize(); }, 200);
-            setTimeout(() => { map.invalidateSize(); }, 1000);
 
         } catch (e) {
             console.error("Lỗi Map:", e);
         }
     }
 
-    // --- 3. Video Lazy Loader Logic ---
+    // --- 3. Video Logic ---
     document.addEventListener('click', function(e) {
         const facade = e.target.closest('.video-facade');
         if (facade) {
