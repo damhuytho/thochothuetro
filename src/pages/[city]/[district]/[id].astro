@@ -538,21 +538,17 @@ const relatedRooms = allRooms.filter(r =>
 
     // --- 2. Map Logic (ĐÃ SỬA LỖI HIỂN THỊ) ---
     window.loadMap = function(placeholder, lat, lng, text) {
-        // Hiện loading quay tròn
+        // 1. Hiển thị spinner
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
-        
-        // Hàm tải thư viện Leaflet (Lazy load)
+
+        // 2. Tải thư viện Leaflet
         const loadLeafletLibrary = () => {
             return new Promise((resolve, reject) => {
-                if (window.L) return resolve(); // Nếu đã tải rồi thì thôi
-
-                // Tải CSS
+                if (window.L) return resolve();
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
                 link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
                 document.head.appendChild(link);
-
-                // Tải JS
                 const script = document.createElement('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
                 script.onload = () => resolve();
@@ -562,17 +558,22 @@ const relatedRooms = allRooms.filter(r =>
         };
 
         loadLeafletLibrary().then(() => {
-            // [QUAN TRỌNG] Phải hiện khung bản đồ trước khi khởi tạo Leaflet
-            // để tránh lỗi bản đồ bị xám (Lỗi số 2 trong ảnh của bạn)
+            // 3. [FIX QUAN TRỌNG] Xử lý hiển thị DOM
             placeholder.classList.add('d-none');
             const realMapDiv = document.getElementById('real-map');
+            
+            // Xóa class d-none và gán display block
             realMapDiv.classList.remove('d-none');
             realMapDiv.style.display = 'block';
+            
+            // [MẤU CHỐT] Ép trình duyệt tính toán lại Layout ngay lập tức (Force Reflow)
+            // Dòng này buộc trình duyệt phải biết chiều cao thật của div trước khi vẽ map
+            void realMapDiv.offsetWidth; 
 
-            // Đợi 100ms để trình duyệt vẽ xong khung div rồi mới vẽ map
-            setTimeout(() => {
+            // 4. Khởi tạo map sau một khoảng trễ nhỏ để an toàn tuyệt đối
+            requestAnimationFrame(() => {
                 initMap(lat, lng, text);
-            }, 100);
+            });
         });
     };
 
@@ -594,6 +595,7 @@ const relatedRooms = allRooms.filter(r =>
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 20
+                crossOrigin: true
             }).addTo(map);
 
             // 4. Tạo Icon màu Vàng thương hiệu (Đã căn chỉnh tâm chuẩn xác)
@@ -650,7 +652,8 @@ const relatedRooms = allRooms.filter(r =>
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
             // 8. Fix lỗi hiển thị map khi mới load (invalidateSize)
-            setTimeout(() => { map.invalidateSize(); }, 200);
+            setTimeout(() => { map.invalidateSize(); }, 100);
+            setTimeout(() => { map.invalidateSize(); }, 500);
 
         } catch (e) {
             console.error("Lỗi khởi tạo Map:", e);

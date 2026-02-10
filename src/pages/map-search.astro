@@ -536,6 +536,7 @@ const preconnectTags = [
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 20
+                crossOrigin: true
             }).addTo(map);
 
             markersLayer = L.markerClusterGroup({
@@ -564,6 +565,8 @@ const preconnectTags = [
 
             // Vẽ marker ngay lập tức
             filterAndRender();
+            setTimeout(() => { map.invalidateSize(); }, 200);
+            setTimeout(() => { map.invalidateSize(); }, 1000);
 
         } catch (e) {
             console.error("Map init error:", e);
