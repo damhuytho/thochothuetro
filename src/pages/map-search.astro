@@ -512,10 +512,10 @@ const preconnectTags = [
    
 
     // --- [SỬA LẠI] HÀM KHỞI TẠO MAP ---
+    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (ĐÃ FIX LỖI THIẾU DẤU PHẨY) ---
     function initMapSafely() {
         // Kiểm tra xem Leaflet (từ Layout) đã sẵn sàng chưa
         if (!window.L || !window.L.MarkerClusterGroup) {
-            // Chưa xong thì đợi 100ms rồi kiểm tra lại
             setTimeout(initMapSafely, 100);
             return;
         }
@@ -530,13 +530,15 @@ const preconnectTags = [
                 zoomControl: false,
                 preferCanvas: true
             });
-
+            
+            // Thêm nút Zoom ở góc dưới phải
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+            // [FIX LỖI CÚ PHÁP TẠI ĐÂY]
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 20
-                crossOrigin: true
+                maxZoom: 20,         // <--- Đã thêm dấu phẩy ở đây
+                crossOrigin: true    // <--- Dòng này mới chạy được
             }).addTo(map);
 
             markersLayer = L.markerClusterGroup({
@@ -565,6 +567,8 @@ const preconnectTags = [
 
             // Vẽ marker ngay lập tức
             filterAndRender();
+
+            // Chống lỗi xám bản đồ (Map Container Resize)
             setTimeout(() => { map.invalidateSize(); }, 200);
             setTimeout(() => { map.invalidateSize(); }, 1000);
 

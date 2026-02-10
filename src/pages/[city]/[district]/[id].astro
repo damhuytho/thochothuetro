@@ -527,7 +527,7 @@ const relatedRooms = allRooms.filter(r =>
         const webSrc = el.getAttribute('data-web');
         const mobileSrc = el.getAttribute('data-mobile');
         const mainImg = document.getElementById('main-image');
-        const source = mainImg.previousElementSibling;
+        const source = mainImg.previousElementSibling; // Thẻ <source> bên trong <picture>
         
         if(source && mobileSrc) source.srcset = mobileSrc;
         if(webSrc) mainImg.src = webSrc;
@@ -538,17 +538,21 @@ const relatedRooms = allRooms.filter(r =>
 
     // --- 2. Map Logic (ĐÃ SỬA LỖI HIỂN THỊ) ---
     window.loadMap = function(placeholder, lat, lng, text) {
-        // 1. Hiển thị spinner
+        // Hiện loading quay tròn
         placeholder.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100 bg-light"><div class="spinner-border text-warning"></div></div>';
 
-        // 2. Tải thư viện Leaflet
+        // Hàm tải thư viện Leaflet (Lazy load)
         const loadLeafletLibrary = () => {
             return new Promise((resolve, reject) => {
-                if (window.L) return resolve();
+                if (window.L) return resolve(); // Nếu đã tải rồi thì thôi
+
+                // Tải CSS
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
                 link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
                 document.head.appendChild(link);
+
+                // Tải JS
                 const script = document.createElement('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
                 script.onload = () => resolve();
@@ -558,50 +562,48 @@ const relatedRooms = allRooms.filter(r =>
         };
 
         loadLeafletLibrary().then(() => {
-            // 3. [FIX QUAN TRỌNG] Xử lý hiển thị DOM
+            // [QUAN TRỌNG] Xử lý hiển thị DOM để tránh lỗi bản đồ xám
             placeholder.classList.add('d-none');
             const realMapDiv = document.getElementById('real-map');
             
-            // Xóa class d-none và gán display block
+            // Hiện div bản đồ lên
             realMapDiv.classList.remove('d-none');
             realMapDiv.style.display = 'block';
-            
+
             // [MẤU CHỐT] Ép trình duyệt tính toán lại Layout ngay lập tức (Force Reflow)
-            // Dòng này buộc trình duyệt phải biết chiều cao thật của div trước khi vẽ map
             void realMapDiv.offsetWidth; 
 
-            // 4. Khởi tạo map sau một khoảng trễ nhỏ để an toàn tuyệt đối
-            requestAnimationFrame(() => {
+            // Đợi một chút rồi mới khởi tạo Map
+            setTimeout(() => {
                 initMap(lat, lng, text);
-            });
+            }, 100);
         });
     };
 
     function initMap(lat, lng, text) {
-        // 1. Kiểm tra nếu map đã tạo rồi thì thôi
         const mapDiv = document.getElementById('real-map');
-        if (mapDiv && mapDiv._leaflet_id) return; 
+        if (mapDiv && mapDiv._leaflet_id) return; // Đã tạo rồi thì không tạo lại
 
         try {
-            // 2. Khởi tạo Map
+            // 1. Khởi tạo Map
             const map = L.map('real-map', {
                 center: [lat, lng],
                 zoom: 16,
-                scrollWheelZoom: false, // Tắt cuộn chuột để đỡ bị rối khi khách lướt web
-                zoomControl: false      // Tạm ẩn nút zoom cho gọn (hoặc để true nếu thích)
+                scrollWheelZoom: false, // Tắt cuộn chuột
+                zoomControl: false      // Tắt nút zoom mặc định (để thêm nút mới ở góc khác)
             });
 
-            // 3. [QUAN TRỌNG] Thay đổi giao diện sang CartoDB Voyager (Giống trang Map Search)
+            // 2. [GIAO DIỆN ĐẸP] Dùng CartoDB Voyager (giống trang Map Search)
+            // Thêm crossOrigin: true để Service Worker cache được
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 20
-                crossOrigin: true
+                maxZoom: 20,
+                crossOrigin: true 
             }).addTo(map);
 
-            // 4. Tạo Icon màu Vàng thương hiệu (Đã căn chỉnh tâm chuẩn xác)
+            // 3. [MARKER ĐẸP] Icon màu vàng thương hiệu
             const icon = L.divIcon({
                 className: 'custom-pin',
-                // HTML tạo hình tròn vàng có viền trắng và bóng đổ
                 html: `
                     <div style="
                         background-color: #f1c40f; 
@@ -623,18 +625,18 @@ const relatedRooms = allRooms.filter(r =>
                         filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));
                     "></div>
                 `,
-                iconSize: [40, 50],   // Kích thước tổng thể
-                iconAnchor: [20, 50], // Mũi nhọn nằm chính xác ở toạ độ [lat, lng]
-                popupAnchor: [0, -55] // Popup hiện lên trên đầu icon
+                iconSize: [40, 50],
+                iconAnchor: [20, 50], // Mũi nhọn trỏ đúng vị trí
+                popupAnchor: [0, -55]
             });
 
-            // 5. Nội dung Popup (Thẻ thông tin khi bấm vào)
+            // 4. Nội dung Popup (Có nút chỉ đường)
             const popupContent = `
                 <div class="text-center" style="min-width: 180px;">
                     <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">
                         ${text}
                     </div>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" 
+                    <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" 
                        target="_blank" 
                        style="display: inline-block; background: #f1c40f; color: #1a1a1a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-decoration: none; margin-top: 5px;">
                        <i class="fas fa-location-arrow me-1"></i> Chỉ đường
@@ -642,21 +644,19 @@ const relatedRooms = allRooms.filter(r =>
                 </div>
             `;
 
-            // 6. Vẽ Marker và mở Popup
-            L.marker([lat, lng], {icon: icon})
-                .addTo(map)
+            L.marker([lat, lng], {icon: icon}).addTo(map)
                 .bindPopup(popupContent)
                 .openPopup();
 
-            // 7. Thêm nút Zoom góc dưới phải cho thuận tay
+            // 5. Thêm nút Zoom ở góc dưới phải
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // 8. Fix lỗi hiển thị map khi mới load (invalidateSize)
-            setTimeout(() => { map.invalidateSize(); }, 100);
-            setTimeout(() => { map.invalidateSize(); }, 500);
+            // 6. [FIX LỖI XÁM] InvalidateSize lần nữa cho chắc
+            setTimeout(() => { map.invalidateSize(); }, 200);
+            setTimeout(() => { map.invalidateSize(); }, 1000);
 
         } catch (e) {
-            console.error("Lỗi khởi tạo Map:", e);
+            console.error("Lỗi Map:", e);
         }
     }
 
