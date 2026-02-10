@@ -1,50 +1,208 @@
 ---
-const pathname = Astro.url.pathname;
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Nhận biến từ Layout truyền sang
+const { currentCity } = Astro.props;
+
+// --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA (ĐÃ FIX TYPESCRIPT) ---
+// Thêm : string[] để báo đây là danh sách các chuỗi ký tự
+let menuDistricts: string[] = []; 
+let citySlug = '';
+let cityName = '';
+
+let otherCityName = '';
+let otherCitySlug = '';
+
+// Thêm (str: any) để tránh lỗi "implicitly has an 'any' type"
+function createSlug(str: any) {
+    if (!str) return '';
+    return str.toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+}
+
+if (currentCity) {
+    citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+    cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'Hồ Chí Minh';
+    
+    otherCityName = currentCity === 'hanoi' ? 'Hồ Chí Minh' : 'Hà Nội';
+    otherCitySlug = currentCity === 'hanoi' ? 'ho-chi-minh' : 'ha-noi';
+
+    try {
+        const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
+        const dataPath = path.join(process.cwd(), 'public', fileName);
+        
+        if (fs.existsSync(dataPath)) {
+            const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+            // Thêm : any[] để TypeScript không bắt bẻ biến rooms
+            const rooms: any[] = jsonData.rooms || [];
+
+            // Logic lọc quận (đã an toàn với TypeScript)
+            menuDistricts = [...new Set(rooms.map((r: any) => r.district).filter((d: any) => d))].sort() as string[];
+        }
+    } catch (e) {
+        console.error("Error loading menu data:", e);
+        menuDistricts = [];
+    }
+}
 ---
-<nav class="navbar navbar-expand-lg border-bottom bg-white shadow-sm" style="z-index: 1030; min-height: 76px;">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2 lh-1 me-auto me-lg-4" href="/">
-            <img src="/logo.png" alt="Logo Thọ Cho Thuê Trọ" class="logo-img" width="50" height="50" style="object-fit: contain;">
-            <div class="d-flex flex-column">
-                <span class="text-uppercase brand-name">THỌ CHO THUÊ TRỌ</span>
-                <span class="brand-slogan">Hệ thống phòng trọ tiện nghi</span>
+<nav class="navbar navbar-expand-lg fixed-top app-header">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" width="45" height="45" class="app-logo">
+                <div class="d-flex flex-column">
+                    <span class="brand-text fw-bold text-dark lh-1">THỌ CHO THUÊ TRỌ</span>
+                    <span class="brand-slogan text-muted d-none d-sm-block">Hệ thống phòng trọ tiện nghi</span>
+                </div>
+            </a>
+
+            <button class="navbar-toggler border-0 p-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end d-none d-lg-flex" id="desktopMenu">
+                <ul class="navbar-nav align-items-center gap-3">
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
+    </li>
+    
+    {/* [ĐÃ SỬA] LOGIC HIỂN THỊ 2 THÀNH PHỐ TRÊN DESKTOP */}
+    {currentCity && menuDistricts.length > 0 ? (
+        <>
+            {/* 1. Dropdown của Thành phố hiện tại (Đã xóa nút Đổi thành phố bên trong) */}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle fw-bold px-3 py-2 rounded-pill active text-warning" href="#" role="button" data-bs-toggle="dropdown">
+                    Khu vực {cityName}
+                </a>
+                <ul class="dropdown-menu shadow border-0 rounded-3">
+                    {menuDistricts.map(dist => (
+                        <li>
+                            <a class="dropdown-item" href={`/${citySlug}/${createSlug(dist)}`}>
+                                Quận {dist}
+                            </a>
+                        </li>
+                    ))}
+                    {/* Đã xóa nút "Đổi Thành Phố" ở đây theo yêu cầu */}
+                </ul>
+            </li>
+
+            {/* 2. Link khoe ra Thành phố còn lại */}
+            <li class="nav-item">
+                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
+                    {otherCityName}
+                </a>
+            </li>
+        </>
+    ) : (
+            /* Nếu ở trang chủ (chưa chọn city), hiện cả 2 bình thường */
+            <>
+            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">Hồ Chí Minh</a></li>
+            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
+            </>
+    )}
+
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">Liên hệ</a>
+    </li>
+    <li class="nav-item ms-2">
+        <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold px-4 py-2 shadow-sm btn-header-cta d-flex align-items-center gap-2">
+            <i class="fas fa-phone-alt animate-ring"></i> 
+            <span>0925 996 992</span>
+        </a>
+    </li>
+</ul>
             </div>
-        </a>
+        </div>
+    </nav>
 
-        <a href="tel:0925996992" class="btn btn-outline-dark btn-sm rounded-pill d-lg-none fw-bold d-flex align-items-center gap-1 ms-2" style="border: 1px solid #1a1a1a;">
-            <i class="fas fa-headset"></i> Liên hệ
-        </a>
 
-        <button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
+        <div class="offcanvas-header border-bottom border-light">
+            <div class="d-flex align-items-center gap-2">
+                <img src="/logo.png" width="40" height="40" alt="Logo">
+                <h5 class="offcanvas-title fw-bold" id="appMenuLabel">Menu</h5>
+            </div>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                <li class="nav-item">
+                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">
+                        <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
+                    </a>
+                </li>
 
-        <div class="collapse navbar-collapse" id="navbarContent">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold gap-lg-3 align-items-lg-center">
-                <li class="nav-item"><a class={`nav-link ${pathname === '/' ? 'active' : ''}`} href="/">Trang chủ</a></li>
-                <li class="nav-item"><a class={`nav-link ${pathname.includes('tan-binh') ? 'active' : ''}`} href="/tan-binh">Quận Tân Bình</a></li>
-                <li class="nav-item"><a class={`nav-link ${pathname.includes('phu-nhuan') ? 'active' : ''}`} href="/phu-nhuan">Quận Phú Nhuận</a></li>
+                {/* [MỚI] MENU MOBILE ĐỘNG */}
+                {currentCity && menuDistricts.length > 0 ? (
+                    <>
+                        <li class="nav-item px-3 py-2 text-muted small fw-bold text-uppercase border-bottom mb-2">
+            Khu vực {cityName}
+        </li>
+                        {menuDistricts.map(dist => (
+            <li class="nav-item">
+                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${citySlug}/${createSlug(dist)}`}>
+                    <i class="fas fa-map-marker-alt me-2 d-lg-none text-warning"></i>Quận {dist}
+                </a>
+            </li>
+        ))}
+                        <li class="nav-item mt-2 pt-2 border-top">
+            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
+                <i class="fas fa-city me-2 d-lg-none text-primary"></i>
+                Khu vực {otherCityName}
+            </a>
+        </li>
+                    </>
+                ) : (
+                    <>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">
+                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Hồ Chí Minh
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">
+                                <i class="fas fa-landmark me-2 d-lg-none text-warning"></i>Hà Nội
+                            </a>
+                        </li>
+                    </>
+                )}
+
+                <li class="nav-item d-none d-lg-block">
+                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
+                </li>
                 
-                <li class="nav-item"><a class={`nav-link ${pathname === '/map-search' ? 'active' : ''}`} href="/map-search"><i class="fas fa-map-marked-alt me-1" style="color: #DFA33D;"></i>Bản đồ</a></li>
-                <li class="nav-item d-none d-lg-block"><a class={`nav-link ${pathname === '/contact' ? 'active' : ''}`} href="/contact">Liên hệ</a></li>
-                
-                <li class="nav-item d-none d-lg-block ms-lg-3">
-                    <a href="tel:0925996992" class="text-decoration-none text-dark fw-bold fs-5 d-flex align-items-center bg-light px-3 py-2 rounded-pill border">
-                        <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px;">
-                            <i class="fas fa-phone-alt" style="font-size: 0.8rem;"></i>
-                        </div>
-                        0925 996 992
+                <li class="nav-item">
+                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
+                        <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ
+                    </a>
+                </li>
+
+                <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
+                    <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-header-cta">
+                        <i class="fas fa-phone-alt animate-ring"></i> 
+                        <span>0925 996 992</span>
                     </a>
                 </li>
             </ul>
+
+            <div class="d-lg-none mt-auto pt-4 border-top">
+                <p class="small text-muted mb-2 text-center">Kết nối với chúng tôi</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="https://zalo.me/0925996992" class="social-icon-mobile"><i class="fas fa-comment-dots"></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=61584268626330" class="social-icon-mobile"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.tiktok.com/@thochothuetroo" class="social-icon-mobile"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
         </div>
     </div>
-</nav>
-
-<style>
-    .brand-name { color: #DFA33D; font-weight: 800; font-size: 1rem; line-height: 1.2; }
-    .brand-slogan { font-size: 0.7rem; color: #6c757d; font-weight: normal; text-transform: none; }
-    .nav-link { color: #333; transition: color 0.2s; }
-    .nav-link:hover, .nav-link.active { color: #DFA33D; }
-    @media (max-width: 576px) { .brand-name { font-size: 1.1rem; } .logo-img { width: 40px; height: 40px; } }
-</style>

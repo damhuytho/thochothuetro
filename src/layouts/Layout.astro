@@ -1,9 +1,8 @@
 ---
 // Import trực tiếp từ node_modules 
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 import { ViewTransitions } from 'astro:transitions';
-import fs from 'node:fs';
-import path from 'node:path';
-
 
 // Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
@@ -39,50 +38,7 @@ if (!isMapPage) {
     await import('../styles/style.css');
 }
 
-// --- [MỚI] LOGIC LẤY MENU ĐỘNG TỪ DATA (ĐÃ FIX TYPESCRIPT) ---
-// Thêm : string[] để báo đây là danh sách các chuỗi ký tự
-let menuDistricts: string[] = []; 
-let citySlug = '';
-let cityName = '';
 
-let otherCityName = '';
-let otherCitySlug = '';
-
-// Thêm (str: any) để tránh lỗi "implicitly has an 'any' type"
-function createSlug(str: any) {
-    if (!str) return '';
-    return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-}
-
-if (currentCity) {
-    citySlug = currentCity === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
-    cityName = currentCity === 'hanoi' ? 'Hà Nội' : 'Hồ Chí Minh';
-    
-    otherCityName = currentCity === 'hanoi' ? 'Hồ Chí Minh' : 'Hà Nội';
-    otherCitySlug = currentCity === 'hanoi' ? 'ho-chi-minh' : 'ha-noi';
-
-    try {
-        const fileName = currentCity === 'hanoi' ? 'data_hanoi.json' : 'data_hochiminh.json';
-        const dataPath = path.join(process.cwd(), 'public', fileName);
-        
-        if (fs.existsSync(dataPath)) {
-            const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-            // Thêm : any[] để TypeScript không bắt bẻ biến rooms
-            const rooms: any[] = jsonData.rooms || [];
-
-            // Logic lọc quận (đã an toàn với TypeScript)
-            menuDistricts = [...new Set(rooms.map((r: any) => r.district).filter((d: any) => d))].sort() as string[];
-        }
-    } catch (e) {
-        console.error("Error loading menu data:", e);
-        menuDistricts = [];
-    }
-}
 ---
 
 <!DOCTYPE html>
@@ -475,159 +431,14 @@ if (currentCity) {
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg fixed-top app-header">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/logo.png" alt="Thọ Cho Thuê Trọ" width="45" height="45" class="app-logo">
-                <div class="d-flex flex-column">
-                    <span class="brand-text fw-bold text-dark lh-1">THỌ CHO THUÊ TRỌ</span>
-                    <span class="brand-slogan text-muted d-none d-sm-block">Hệ thống phòng trọ tiện nghi</span>
-                </div>
-            </a>
-
-            <button class="navbar-toggler border-0 p-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
-                <div class="hamburger-icon">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end d-none d-lg-flex" id="desktopMenu">
-                <ul class="navbar-nav align-items-center gap-3">
-    <li class="nav-item">
-        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">Trang chủ</a>
-    </li>
+    <Header currentCity={currentCity} />
     
-    {/* [ĐÃ SỬA] LOGIC HIỂN THỊ 2 THÀNH PHỐ TRÊN DESKTOP */}
-    {currentCity && menuDistricts.length > 0 ? (
-        <>
-            {/* 1. Dropdown của Thành phố hiện tại (Đã xóa nút Đổi thành phố bên trong) */}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle fw-bold px-3 py-2 rounded-pill active text-warning" href="#" role="button" data-bs-toggle="dropdown">
-                    Khu vực {cityName}
-                </a>
-                <ul class="dropdown-menu shadow border-0 rounded-3">
-                    {menuDistricts.map(dist => (
-                        <li>
-                            <a class="dropdown-item" href={`/${citySlug}/${createSlug(dist)}`}>
-                                Quận {dist}
-                            </a>
-                        </li>
-                    ))}
-                    {/* Đã xóa nút "Đổi Thành Phố" ở đây theo yêu cầu */}
-                </ul>
-            </li>
-
-            {/* 2. Link khoe ra Thành phố còn lại */}
-            <li class="nav-item">
-                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
-                    {otherCityName}
-                </a>
-            </li>
-        </>
-    ) : (
-            /* Nếu ở trang chủ (chưa chọn city), hiện cả 2 bình thường */
-            <>
-            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">Hồ Chí Minh</a></li>
-            <li class="nav-item"><a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">Hà Nội</a></li>
-            </>
-    )}
-
-    <li class="nav-item">
-        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">Liên hệ</a>
-    </li>
-    <li class="nav-item ms-2">
-        <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold px-4 py-2 shadow-sm btn-header-cta d-flex align-items-center gap-2">
-            <i class="fas fa-phone-alt animate-ring"></i> 
-            <span>0925 996 992</span>
-        </a>
-    </li>
-</ul>
-            </div>
-        </div>
-    </nav>
-
     <main>
         <slot />
     </main>
 
 { !isMapPage && (
-    <footer id="footer-contact" class="pt-5 pb-4">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-5">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <img src="/logo.png" alt="Thọ Cho Thuê Trọ Logo" class="footer-logo" width="60" height="60" loading="lazy">
-                        <div>
-                            <h5 class="mb-1 text-warning">THỌ CHO THUÊ TRỌ</h5>
-                            <span class="badge bg-light text-dark fw-bold">Hệ thống phòng trọ tiện nghi</span>
-                        </div>
-                    </div>
-                    
-                    <p class="text-light text-warning mb-4" style="line-height: 1.6; opacity: 0.9;">
-                        Chúng tôi cam kết mang đến không gian sống an ninh, sạch sẽ và tiện nghi tại Tân Bình & Phú Nhuận.
-                        Hình ảnh thực tế 100%, giá cả minh bạch, hỗ trợ xem phòng hoàn toàn miễn phí.
-                    </p>
-
-                    <div class="d-flex" role="navigation" aria-label="Social media links">
-                        <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" rel="noopener noreferrer" class="social-link" title="Theo dõi trên Facebook" aria-label="Facebook">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        
-                        <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" rel="noopener noreferrer" class="social-link" title="Xem video trên TikTok" aria-label="TikTok">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
-                        
-                        <a href="https://www.youtube.com/@thochothuetro" target="_blank" rel="noopener noreferrer" class="social-link" title="Đăng ký kênh YouTube" aria-label="YouTube">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                        
-                        <a href="https://zalo.me/0925996992" target="_blank" rel="noopener noreferrer" class="social-link" title="Chat Zalo ngay" aria-label="Zalo">
-                            <i class="fas fa-comment-dots"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-lg-3 ps-lg-5">
-                    <h6 class="mb-4 text-white border-bottom border-secondary d-inline-block pb-1">KHU VỰC</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="/tan-binh"><i class="fas fa-angle-right me-2 text-warning small"></i>Phòng trọ Tân Bình</a></li>
-                        <li class="mb-2"><a href="/phu-nhuan"><i class="fas fa-angle-right me-2 text-warning small"></i>Phòng trọ Phú Nhuận</a></li>
-                        <li class="mb-2"><a href="/map-search"><i class="fas fa-angle-right me-2 text-warning small"></i>Tìm trên bản đồ</a></li>
-                        <li class="mb-2"><a href="/"><i class="fas fa-angle-right me-2 text-warning small"></i>Tất cả phòng</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-6 col-lg-4">
-                    <h6 class="mb-4 text-white border-bottom border-secondary d-inline-block pb-1">LIÊN HỆ</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-3 d-flex">
-                            <i class="fas fa-map-marker-alt text-warning mt-1 me-3"></i>
-                            <span class="text-white">Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.Hồ Chí Minh</span>
-                        </li>
-                        <li class="mb-3 d-flex">
-                            <i class="fas fa-phone-alt text-warning mt-1 me-3"></i>
-                            <div>
-                                <a href="tel:0925996992" class="d-block text-white fw-bold">0925 996 992</a>
-                                <span class="small text-white-50">(Zalo / Call / SMS)</span>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="border-top border-secondary mt-5 pt-4 text-center">
-                <p class="small text-white-50 mb-0">
-                    &copy; {new Date().getFullYear()} <strong>Thọ Cho Thuê Trọ</strong>.
-                    All rights reserved. <br class="d-lg-none">
-                    Designed for your comfort.
-                </p>
-            </div>
-        </div>
-    </footer>
+    <Footer /> 
 )}
 
 { !isMapPage && (
@@ -696,86 +507,7 @@ if (currentCity) {
         }
     </script>
 
-    <div class="offcanvas offcanvas-end app-offcanvas" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
-        <div class="offcanvas-header border-bottom border-light">
-            <div class="d-flex align-items-center gap-2">
-                <img src="/logo.png" width="40" height="40" alt="Logo">
-                <h5 class="offcanvas-title fw-bold" id="appMenuLabel">Menu</h5>
-            </div>
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        
-        <div class="offcanvas-body">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-                <li class="nav-item">
-                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/">
-                        <i class="fas fa-home me-2 d-lg-none text-warning"></i>Trang chủ
-                    </a>
-                </li>
-
-                {/* [MỚI] MENU MOBILE ĐỘNG */}
-                {currentCity && menuDistricts.length > 0 ? (
-                    <>
-                        <li class="nav-item px-3 py-2 text-muted small fw-bold text-uppercase border-bottom mb-2">
-            Khu vực {cityName}
-        </li>
-                        {menuDistricts.map(dist => (
-            <li class="nav-item">
-                <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${citySlug}/${createSlug(dist)}`}>
-                    <i class="fas fa-map-marker-alt me-2 d-lg-none text-warning"></i>Quận {dist}
-                </a>
-            </li>
-        ))}
-                        <li class="nav-item mt-2 pt-2 border-top">
-            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href={`/${otherCitySlug}`}>
-                <i class="fas fa-city me-2 d-lg-none text-primary"></i>
-                Khu vực {otherCityName}
-            </a>
-        </li>
-                    </>
-                ) : (
-                    <>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ho-chi-minh">
-                                <i class="fas fa-building me-2 d-lg-none text-warning"></i>Hồ Chí Minh
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/ha-noi">
-                                <i class="fas fa-landmark me-2 d-lg-none text-warning"></i>Hà Nội
-                            </a>
-                        </li>
-                    </>
-                )}
-
-                <li class="nav-item d-none d-lg-block">
-                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/map-search">Bản đồ</a>
-                </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link fw-bold px-3 py-2 rounded-pill" href="/contact">
-                        <i class="fas fa-envelope me-2 d-lg-none text-warning"></i>Liên hệ
-                    </a>
-                </li>
-
-                <li class="nav-item mt-3 mt-lg-0 ms-lg-2">
-                    <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-header-cta">
-                        <i class="fas fa-phone-alt animate-ring"></i> 
-                        <span>0925 996 992</span>
-                    </a>
-                </li>
-            </ul>
-
-            <div class="d-lg-none mt-auto pt-4 border-top">
-                <p class="small text-muted mb-2 text-center">Kết nối với chúng tôi</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="https://zalo.me/0925996992" class="social-icon-mobile"><i class="fas fa-comment-dots"></i></a>
-                    <a href="https://www.facebook.com/profile.php?id=61584268626330" class="social-icon-mobile"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://www.tiktok.com/@thochothuetroo" class="social-icon-mobile"><i class="fab fa-tiktok"></i></a>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
 </body>
 </html>
