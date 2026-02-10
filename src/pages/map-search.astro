@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
+import CardRoom from '../components/CardRoom.astro';
 
 // --- 1. DATA LOADING (SERVER-SIDE) ---
 let initialRooms = [];
@@ -21,10 +22,9 @@ const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 const preconnectTags = [
     // Kết nối trước với server ảnh bản đồ
-    { rel: 'preconnect', href: 'https://tile.openstreetmap.org', crossorigin: true },
-    { rel: 'preconnect', href: 'https://c.tile.openstreetmap.org', crossorigin: true },
-    { rel: 'preconnect', href: 'https://a.tile.openstreetmap.org', crossorigin: true },
-    { rel: 'preconnect', href: 'https://b.tile.openstreetmap.org', crossorigin: true },
+    { rel: 'preconnect', href: 'https://a.basemaps.cartocdn.com', crossorigin: true },
+    { rel: 'preconnect', href: 'https://b.basemaps.cartocdn.com', crossorigin: true },
+    { rel: 'preconnect', href: 'https://c.basemaps.cartocdn.com', crossorigin: true },
     // Preload ảnh Placeholder quan trọng nhất
     { rel: 'preload', as: 'image', href: 'https://img.thochothuetro.com/map_detail_demo_1_11zon.webp', fetchpriority: 'high' },
     
@@ -156,16 +156,13 @@ const preconnectTags = [
 
             <div class="flex-grow-1 p-2 p-md-3 list-scroll-container" id="map-list-container">
                 <div class="row g-2" id="map-grid">
-                {Array.from({ length: 6 }).map(() => (
-                    <div class="col-6 col-lg-6 skeleton-item">
-                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
-                            <div class="ratio ratio-4x3 bg-secondary bg-opacity-10 animate-pulse"></div>
-                            <div class="card-body p-2">
-                                <div class="bg-secondary bg-opacity-10 rounded animate-pulse mb-2" style="height: 20px; width: 80%;"></div>
-                                <div class="bg-secondary bg-opacity-10 rounded animate-pulse mb-2" style="height: 16px; width: 40%;"></div>
-                                <div class="bg-secondary bg-opacity-10 rounded animate-pulse" style="height: 24px; width: 60%;"></div>
-                            </div>
-                        </div>
+                {/* [FIX LCP] Render sẵn 6 phòng từ Server để Google thấy ảnh ngay lập tức */}
+                {initialRooms.slice(0, 6).map((room, index) => (
+                    <div class="col-6 col-lg-6">
+                        <CardRoom 
+                            room={room} 
+                            priority={index < 2} /* Ưu tiên tải 2 ảnh đầu tiên */
+                        />
                     </div>
                 ))}
                 </div>
