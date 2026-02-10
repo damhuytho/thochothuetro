@@ -577,44 +577,83 @@ const relatedRooms = allRooms.filter(r =>
     };
 
     function initMap(lat, lng, text) {
+        // 1. Kiểm tra nếu map đã tạo rồi thì thôi
         const mapDiv = document.getElementById('real-map');
-        if (mapDiv._leaflet_id) return; // Đã tạo rồi thì không tạo lại
+        if (mapDiv && mapDiv._leaflet_id) return; 
 
         try {
-            const map = L.map('real-map').setView([lat, lng], 16);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-                attribution: '&copy; OSM',
-                maxZoom: 19
-            }).addTo(map);
-
-            // [SỬA LỖI 3] Căn giữa Icon: iconAnchor [17, 17] là tâm hình tròn
-            const icon = L.divIcon({
-                className: 'custom-pin',
-                html: '<div style="background:#d9b205;width:34px;height:34px;border-radius:50%;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;"><i class="fas fa-home" style="color:#000;font-size:16px;"></i></div>',
-                iconSize: [34, 34],
-                iconAnchor: [17, 17], // Tâm điểm là giữa hình (34/2 = 17)
-                popupAnchor: [0, -20] // Popup hiện lên trên một chút
+            // 2. Khởi tạo Map
+            const map = L.map('real-map', {
+                center: [lat, lng],
+                zoom: 16,
+                scrollWheelZoom: false, // Tắt cuộn chuột để đỡ bị rối khi khách lướt web
+                zoomControl: false      // Tạm ẩn nút zoom cho gọn (hoặc để true nếu thích)
             });
 
-            // [SỬA LỖI 1] Popup bị ép dòng: Thêm min-width và white-space
-            const popupContent = `
-                <div class="text-center p-2" style="min-width: 200px; white-space: nowrap;">
-                    <b style="font-size: 14px;">${text}</b>
-                </div>`;
+            // 3. [QUAN TRỌNG] Thay đổi giao diện sang CartoDB Voyager (Giống trang Map Search)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                maxZoom: 20
+            }).addTo(map);
 
-            L.marker([lat, lng], {icon: icon}).addTo(map)
+            // 4. Tạo Icon màu Vàng thương hiệu (Đã căn chỉnh tâm chuẩn xác)
+            const icon = L.divIcon({
+                className: 'custom-pin',
+                // HTML tạo hình tròn vàng có viền trắng và bóng đổ
+                html: `
+                    <div style="
+                        background-color: #f1c40f; 
+                        width: 40px; height: 40px; 
+                        border-radius: 50%; 
+                        border: 3px solid white; 
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                        display: flex; align-items: center; justify-content: center;
+                        color: #1a1a1a;
+                    ">
+                        <i class="fas fa-home" style="font-size: 18px;"></i>
+                    </div>
+                    <div style="
+                        width: 0; height: 0; 
+                        border-left: 8px solid transparent;
+                        border-right: 8px solid transparent;
+                        border-top: 10px solid #f1c40f;
+                        position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+                        filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));
+                    "></div>
+                `,
+                iconSize: [40, 50],   // Kích thước tổng thể
+                iconAnchor: [20, 50], // Mũi nhọn nằm chính xác ở toạ độ [lat, lng]
+                popupAnchor: [0, -55] // Popup hiện lên trên đầu icon
+            });
+
+            // 5. Nội dung Popup (Thẻ thông tin khi bấm vào)
+            const popupContent = `
+                <div class="text-center" style="min-width: 180px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">
+                        ${text}
+                    </div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" 
+                       target="_blank" 
+                       style="display: inline-block; background: #f1c40f; color: #1a1a1a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-decoration: none; margin-top: 5px;">
+                       <i class="fas fa-location-arrow me-1"></i> Chỉ đường
+                    </a>
+                </div>
+            `;
+
+            // 6. Vẽ Marker và mở Popup
+            L.marker([lat, lng], {icon: icon})
+                .addTo(map)
                 .bindPopup(popupContent)
                 .openPopup();
-            
-            // [SỬA LỖI 2] Fix bản đồ bị xám (invalidateSize)
-            // Gọi lệnh này để Leaflet tính toán lại kích thước khung chứa
-            setTimeout(() => { 
-                map.invalidateSize(); 
-            }, 300);
+
+            // 7. Thêm nút Zoom góc dưới phải cho thuận tay
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            // 8. Fix lỗi hiển thị map khi mới load (invalidateSize)
+            setTimeout(() => { map.invalidateSize(); }, 200);
 
         } catch (e) {
-            console.error("Lỗi Map:", e);
+            console.error("Lỗi khởi tạo Map:", e);
         }
     }
 
