@@ -431,11 +431,23 @@ const preconnectTags = [
 
     .map-popup-info { padding: 12px; background: white; }
     .map-popup-title {
-        font-size: 14px; font-weight: 700; color: #222; margin: 0 0 4px 0;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        font-size: 15px;      /* Tăng nhẹ lên 15px cho dễ đọc */
+        font-weight: 700;     /* Dùng 700 là chuẩn nhất cho tiêu đề */
+        color: #222;
+        margin: 0 0 4px 0;
+        
+        /* Cấu hình 2 dòng */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+        line-height: 1.4;
     }
     .map-popup-sub {
         font-size: 11px; color: #666; margin-bottom: 8px;
+        /* [FIX LỖI TIẾNG VIỆT] */
+        line-height: 1.4;       /* Tăng nhẹ dòng phụ */
         display: flex; align-items: center; gap: 4px;
     }
     .map-popup-footer {
