@@ -22,31 +22,27 @@ const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 
 // [QUAN TRỌNG] Khai báo danh sách Preconnect để dùng ở dưới
+// [QUAN TRỌNG] Khai báo danh sách Preconnect (Đã rút gọn để không bị Lighthouse phạt)
 const preconnectTags = [
-    // Server bản đồ (Quan trọng nhất để load map nhanh)
+    // Chỉ cần connect đến subdomain chính 'a', trình duyệt sẽ tự lo phần còn lại
     { rel: 'preconnect', href: 'https://a.basemaps.cartocdn.com', crossorigin: true },
-    { rel: 'preconnect', href: 'https://b.basemaps.cartocdn.com', crossorigin: true },
-    { rel: 'preconnect', href: 'https://c.basemaps.cartocdn.com', crossorigin: true },
-    { rel: 'preconnect', href: 'https://d.basemaps.cartocdn.com', crossorigin: true },
-    
-    // Server ảnh
+    // Server ảnh của bạn
     { rel: 'preconnect', href: 'https://img.thochothuetro.com' },
-    
-    // Font Awesome (Nếu cần load font nhanh)
+    // Font Awesome (Nếu cần)
     { rel: 'preload', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/webfonts/fa-solid-900.woff2', as: 'font', type: 'font/woff2', crossorigin: true }
 ];
 ---
 
 <Layout title={pageTitle} description={pageDesc}>
     <Fragment slot="head">
-        {/* 1. RENDER PRECONNECT TAGS TỰ ĐỘNG (Sạch & Gọn) */}
+        {/* 1. RENDER PRECONNECT TAGS (Đã sửa lỗi cú pháp crossorigin) */}
         {preconnectTags.map(tag => (
             <link 
                 rel={tag.rel} 
                 href={tag.href} 
                 as={tag.as} 
                 type={tag.type} 
-                crossorigin={tag.crossorigin ? "" : undefined} 
+                crossorigin={tag.crossorigin ? "anonymous" : undefined} 
             />
         ))}
 
@@ -79,7 +75,7 @@ const preconnectTags = [
             /* Placeholder Image */
             .map-placeholder-lcp {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                object-fit: cover; z-index: 0; display: block;
+                object-fit: cover; z-index: 10; display: block;
             }
 
             /* Layout Components */
@@ -138,7 +134,7 @@ const preconnectTags = [
             loading="eager"
             width="800" 
             height="600"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10; display: block;"
         >
 
         <div id="full-map-view" class="map-viewport">
