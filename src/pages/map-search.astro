@@ -475,13 +475,14 @@ const preconnectTags = [
 </style>
 
 <script is:inline define:vars={{ initialRooms }}>
-    // --- 1. KHAI BÁO BIẾN & CẤU HÌNH ---
+    // =============================================================
+    // 1. CẤU HÌNH & KHAI BÁO BIẾN
+    // =============================================================
     const CONFIG = {
         hanoi: { coords: [21.028511, 105.804817], zoom: 14, file: 'data_hanoi.json' },
         hochiminh: { coords: [10.801646, 106.663158], zoom: 14, file: 'data_hochiminh.json' }
     };
-    
-    // Tọa độ các quận để FlyTo
+
     const DISTRICT_CENTERS = {
         'Phú Nhuận': [10.7991, 106.6802], 'Tân Bình': [10.8015, 106.6572],
         'Bình Thạnh': [10.8105, 106.7091], 'Quận 1': [10.7769, 106.7009],
@@ -493,28 +494,26 @@ const preconnectTags = [
         'Tây Hồ': [21.0660, 105.8197], 'Thanh Xuân': [20.9936, 105.8066]
     };
 
-    function zoomToDistrict(dist) {
-        if (!map) return;
-        if (dist !== 'all' && DISTRICT_CENTERS[dist]) {
-            map.flyTo(DISTRICT_CENTERS[dist], 15, { animate: true, duration: 1.2 });
-        } else {
-            const cfg = CONFIG[currentCityFilter];
-            map.flyTo(cfg.coords, cfg.zoom, { animate: true, duration: 1.2 });
-        }
-    }
-    
-    // Biến toàn cục
     let allRoomsData = initialRooms || [];
     let dataCache = { 'hochiminh': initialRooms, 'hanoi': null };
     let currentCityFilter = 'hochiminh';
-    let map = null; 
+    let map = null;
     let markersLayer = null;
     let currentFiltered = [];
     let visibleCount = 6;
     const LOAD_STEP = 6;
-    let mapObserver = null; // [MỚI] Biến theo dõi kích thước map
+    let mapObserver = null;
 
-    // --- 2. CÁC HÀM HỖ TRỢ ---
+    // =============================================================
+    // 2. CÁC HÀM XỬ LÝ TEXT & HỖ TRỢ
+    // =============================================================
+    
+    // Hàm chuẩn hóa tiếng Việt (Chìa khóa để sửa lỗi tìm kiếm)
+    function normalizeText(str) {
+        if (!str || typeof str !== 'string') return '';
+        return str.toLowerCase().normalize('NFC');
+    }
+
     function toSlug(str) {
         if (!str) return '';
         return str.toString().toLowerCase()
@@ -530,41 +529,32 @@ const preconnectTags = [
         }
     }
 
-    // --- 3. KHỞI TẠO MAP (BẢN FIX LỖI VIEW TRANSITION) ---
-    // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN FIX LỖI MẤT CSS KHI CHUYỂN TRANG) ---
+    // =============================================================
+    // 3. LOGIC BẢN ĐỒ (INIT MAP)
+    // =============================================================
     function initMapSafely() {
-        // --- 1. Nạp CSS (Giữ nguyên logic bảo vệ giao diện) ---
+        // A. Nạp CSS (Giữ nguyên)
         if (!document.querySelector('link[href*="leaflet.css"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/libs/leaflet/leaflet.css';
-            document.head.appendChild(link);
+            const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/libs/leaflet/leaflet.css'; document.head.appendChild(link);
         }
-
         if (!document.querySelector('link[href*="MarkerCluster.css"]')) {
-            const link1 = document.createElement('link');
-            link1.rel = 'stylesheet';
-            link1.href = '/libs/leaflet/MarkerCluster.css';
-            document.head.appendChild(link1);
-
-            const link2 = document.createElement('link');
-            link2.rel = 'stylesheet';
-            link2.href = '/libs/leaflet/MarkerCluster.Default.css';
-            document.head.appendChild(link2);
+            const l1 = document.createElement('link'); l1.rel = 'stylesheet'; l1.href = '/libs/leaflet/MarkerCluster.css'; document.head.appendChild(l1);
+            const l2 = document.createElement('link'); l2.rel = 'stylesheet'; l2.href = '/libs/leaflet/MarkerCluster.Default.css'; document.head.appendChild(l2);
         }
 
-        // --- 2. Kiểm tra thư viện (Cơ chế chờ an toàn) ---
-        // Nếu Leaflet chưa tải xong -> Chờ 100ms rồi kiểm tra lại
+        // B. Chờ thư viện load xong
         if (!window.L || !window.L.MarkerClusterGroup) {
             setTimeout(initMapSafely, 100);
             return;
         }
 
-        if (map) return; // Nếu map đã có rồi thì không làm gì cả
+        // C. Kiểm tra container
+        const mapDiv = document.getElementById('map');
+        if (!mapDiv) return;
+        if (map) return; // Map đã có rồi thì thôi
 
         try {
-            // --- 3. Khởi tạo Map ---
-            // [MỚI] Kiểm tra xem có vị trí cũ đã lưu không?
+            // D. Khôi phục vị trí Map (nếu có lịch sử)
             let initCenter = CONFIG.hochiminh.coords;
             let initZoom = CONFIG.hochiminh.zoom;
             
@@ -575,9 +565,13 @@ const preconnectTags = [
                     initCenter = state.center;
                     initZoom = state.zoom;
                 }
+            } else {
+                // Nếu không có lịch sử, dùng config theo thành phố hiện tại
+                initCenter = CONFIG[currentCityFilter].coords;
+                initZoom = CONFIG[currentCityFilter].zoom;
             }
 
-            // Khởi tạo Map với vị trí đã nhớ
+            // E. Tạo Map
             map = L.map('map', {
                 center: initCenter,
                 zoom: initZoom,
@@ -585,65 +579,36 @@ const preconnectTags = [
                 preferCanvas: true
             });
 
-            // [MỚI] Lưu lại vị trí mỗi khi khách kéo hoặc zoom bản đồ
+            // Lưu vị trí khi kéo map
             map.on('moveend', () => {
-                const state = {
-                    center: map.getCenter(),
-                    zoom: map.getZoom()
-                };
+                const state = { center: map.getCenter(), zoom: map.getZoom() };
                 sessionStorage.setItem('map_state', JSON.stringify(state));
             });
 
-            // --- 4. Xử lý hiển thị (QUAN TRỌNG CHO LCP) ---
-            // Ngay khi map được tạo, tìm ảnh placeholder và làm mờ nó đi
-            const placeholder = document.querySelector('.map-placeholder-lcp');
-            if (placeholder) {
-                // Thêm hiệu ứng mờ dần trong 0.5 giây
-                placeholder.style.transition = 'opacity 0.5s ease';
-                
-                // Đợi 1 frame nhỏ để trình duyệt nhận diện transition
-                requestAnimationFrame(() => {
-                    placeholder.style.opacity = '0'; // Bắt đầu làm mờ
-                    
-                    // Sau 0.5s (khi đã mờ hẳn) thì ẩn hoàn toàn
-                    setTimeout(() => {
-                        placeholder.style.display = 'none';
-                        placeholder.style.zIndex = '-1'; // Đưa xuống đáy cho chắc chắn
-                    }, 500);
-                });
-            }
-
-            // --- 5. Các chức năng phụ trợ (Resize, Zoom, Tile) ---
-            const mapDiv = document.getElementById('map');
-            const resizeObserver = new ResizeObserver(() => {
-                map.invalidateSize();
-            });
-            resizeObserver.observe(mapDiv);
-
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-
+            // Tile Layer
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
-                maxZoom: 20,
-                crossOrigin: true
+                maxZoom: 20, crossOrigin: true
             }).addTo(map);
 
-            // --- 6. Marker Cluster (Gom nhóm) ---
+            // Marker Cluster
             markersLayer = L.markerClusterGroup({
-                showCoverageOnHover: false,
-                maxClusterRadius: 50,
-                disableClusteringAtZoom: 15,
+                showCoverageOnHover: false, maxClusterRadius: 50, disableClusteringAtZoom: 15,
                 iconCreateFunction: function(cluster) {
                     return L.divIcon({ 
                         html: '<div style="background-color:rgba(241, 196, 15, 0.9); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">' + cluster.getChildCount() + '</div>', 
-                        className: 'my-cluster', 
-                        iconSize: L.point(30, 30) 
+                        className: 'my-cluster', iconSize: L.point(30, 30) 
                     });
                 }
             });
             map.addLayer(markersLayer);
 
-            // --- 7. Sự kiện Zoom (Ẩn hiện giá tiền) ---
+            // Zoom Control & Resize Observer
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            const resizeObserver = new ResizeObserver(() => { map.invalidateSize(); });
+            resizeObserver.observe(mapDiv);
+
+            // Zoom Events (Ẩn/Hiện giá tiền)
             const toggleLabels = () => {
                 const currentZoom = map.getZoom();
                 const mapContainer = map.getContainer();
@@ -653,147 +618,84 @@ const preconnectTags = [
             map.on('zoomend', toggleLabels);
             toggleLabels();
 
-            // --- 8. Vẽ dữ liệu lên bản đồ ---
+            // F. Vẽ dữ liệu & Xử lý ảnh LCP (Placeholder)
             filterAndRender();
+            
+            map.whenReady(() => {
+                const placeholder = document.querySelector('.map-placeholder-lcp');
+                if (placeholder) {
+                    placeholder.style.transition = 'opacity 0.5s ease';
+                    requestAnimationFrame(() => {
+                        placeholder.style.opacity = '0';
+                        setTimeout(() => { 
+                            placeholder.style.display = 'none'; 
+                            placeholder.style.zIndex = '-1';
+                        }, 500);
+                    });
+                }
+            });
 
         } catch (e) {
             console.error("Map init error:", e);
         }
     }
 
-    // --- 4. CÁC HÀM RENDER & LOGIC KHÁC (GIỮ NGUYÊN) ---
-    function renderMapMarkers() {
-        if (!map || !markersLayer) return;
-        markersLayer.clearLayers();
-        const coordinateTracker = {};
-
-        currentFiltered.forEach(room => {
-            if (room.lat && room.lng) {
-                let finalLat = parseFloat(room.lat);
-                let finalLng = parseFloat(room.lng);
-                const coordKey = `${finalLat.toFixed(5)}-${finalLng.toFixed(5)}`;
-
-                if (coordinateTracker[coordKey]) {
-                    const count = coordinateTracker[coordKey];
-                    const angle = count * (Math.PI / 3); 
-                    const offset = 0.00015; 
-                    finalLat = finalLat + (Math.sin(angle) * offset);
-                    finalLng = finalLng + (Math.cos(angle) * offset);
-                    coordinateTracker[coordKey]++;
-                } else {
-                    coordinateTracker[coordKey] = 1;
-                }
-
-                const priceNum = room.price;
-                const priceText = priceNum >= 1000000 
-                    ? (priceNum / 1000000).toFixed(1).replace('.0', '') + ' Tr' 
-                    : (priceNum / 1000) + 'k';
-
-                const customIcon = L.divIcon({
-                    className: 'custom-pin-container', 
-                    html: `
-                        <div class="custom-marker-dot"></div>
-                        <div class="custom-marker-label"><span>${priceText}</span></div>
-                    `,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20]
-                });
-
-                const marker = L.marker([finalLat, finalLng], { icon: customIcon });
-                const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
-                const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
-                
-                let thumb = '/logo.png';
-                if (room.image_detail && room.image_detail.length > 0) {
-                     const t = room.image_detail.find(i => i.includes('_thumb'));
-                     thumb = t ? t : room.image_detail[0];
-                }
-                if (!thumb.startsWith('http') && !thumb.startsWith('/')) {
-                     thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
-                }
-                const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
-
-                const popupContent = `
-                    <a href="${link}" class="map-popup-card">
-                        <div class="map-popup-img-wrapper">
-                            <img src="${thumb}" alt="Ảnh phòng" loading="lazy" onerror="this.src='/logo.png'">
-                            <span class="map-popup-badge">${room.type || 'Phòng trọ'}</span>
-                        </div>
-                        <div class="map-popup-info">
-                            <h3 class="map-popup-title" title="${cleanAddr}">${cleanAddr}</h3>
-                            <div class="map-popup-sub"><i class="fas fa-map-marker-alt"></i> ${room.district}</div>
-                            <div class="map-popup-footer">
-                                <div class="map-popup-price">${priceText}</div>
-                                <div class="map-popup-action">Chi tiết <i class="fas fa-arrow-right"></i></div>
-                            </div>
-                        </div>
-                    </a>`;
-                
-                marker.bindPopup(popupContent, { maxWidth: 270, minWidth: 270, closeButton: false, autoPan: true, offset: [0, -10] });
-                marker.on('mouseover', function (e) { this.setZIndexOffset(1000); });
-                marker.on('mouseout', function (e) { this.setZIndexOffset(0); });
-                markersLayer.addLayer(marker);
-            }
-        });
-        forceHideSpinner();
+    function zoomToDistrict(dist) {
+        if (!map) return;
+        if (dist !== 'all' && DISTRICT_CENTERS[dist]) {
+            map.flyTo(DISTRICT_CENTERS[dist], 15, { animate: true, duration: 1.2 });
+        } else {
+            const cfg = CONFIG[currentCityFilter];
+            map.flyTo(cfg.coords, cfg.zoom, { animate: true, duration: 1.2 });
+        }
     }
 
-    window.switchCity = async function(cityCode) {
-        visibleCount = 6;
-        if (currentCityFilter === cityCode) return;
-        const spinner = document.getElementById('map-loading-spinner');
-        if (spinner) { 
-            spinner.style.display = 'flex';
-            spinner.classList.remove('spinner-hidden');
-            spinner.style.opacity = '1';
-        }
-        if (!dataCache[cityCode]) {
-            try {
-                const res = await fetch(`/${CONFIG[cityCode].file}`);
-                const json = await res.json();
-                dataCache[cityCode] = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
-            } catch (e) { dataCache[cityCode] = []; }
-        }
-        currentCityFilter = cityCode;
-        allRoomsData = dataCache[cityCode];
-        
-        document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`tab-${cityCode}`).classList.add('active');
-        const defaultDist = (cityCode === 'hochiminh' ? 'Phú Nhuận' : 'all');
-        updateDistrictDropdown(defaultDist);
-        
-        const inputDist = document.getElementById('map-district');
-        const btnDist = document.getElementById('btn-map-district');
-        if (inputDist) inputDist.value = defaultDist;
-        if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
-
-        filterAndRender();
-        zoomToDistrict(defaultDist);
-    };
-
-    function updateDistrictDropdown(defaultDist = 'all') {
-        const ddMenuDistrict = document.getElementById('dd-menu-district');
-        if (!ddMenuDistrict) return;
-        const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
-        let html = `<li><a class="dropdown-item ${defaultDist === 'all' ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', 'all', 'Tất cả', this)">Tất cả</a></li>`;
-        districts.forEach(d => {
-            html += `<li><a class="dropdown-item ${d === defaultDist ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a></li>`;
-        });
-        ddMenuDistrict.innerHTML = html;
-    }
-
+    // =============================================================
+    // 4. LOGIC LỌC VÀ RENDER (ĐÃ SỬA CHUẨN KEYPOINT)
+    // =============================================================
     function filterAndRender() {
+        // --- 1. Lấy giá trị bộ lọc ---
         const district = document.getElementById('map-district')?.value || 'all';
         const type = document.getElementById('map-type')?.value || 'all';
         const price = document.getElementById('map-price')?.value || 'all';
         const sortMode = document.getElementById('map-sort')?.value || 'default';
-        const fAmenities = Array.from(document.querySelectorAll('.amenity-cb:checked')).map(cb => cb.value.toLowerCase());
         
-        const specialGroup = ['ban công', 'cửa sổ'];
-        const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-        const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+        // Lấy danh sách tiện ích đã chọn
+        const checkedBoxes = document.querySelectorAll('.amenity-cb:checked');
+        const selectedAmenities = Array.from(checkedBoxes).map(cb => normalizeText(cb.value));
 
+        // Phân chia tiện ích thành 2 nhóm
+        // Nhóm 1: Nhóm "Độ thoáng" (Dùng logic HOẶC)
+        const orGroup = ['ban công', 'cửa sổ'];
+        const selectedOr = selectedAmenities.filter(a => orGroup.includes(a));
+        
+        // Nhóm 2: Nhóm "Tiện nghi bắt buộc" (Dùng logic VÀ)
+        const selectedAnd = selectedAmenities.filter(a => !orGroup.includes(a));
+
+        // --- Hàm hỗ trợ chuẩn hóa ---
+        function normalizeText(str) {
+            return (str || '').toLowerCase().normalize('NFC');
+        }
+
+        // --- Hàm kiểm tra 1 tiện ích bất kỳ ---
+        function checkAmenity(room, criteria) {
+            const keypointStr = normalizeText(room.keypoint);
+            const petStr = normalizeText(room.pet);
+
+            if (criteria === 'pet') {
+                return keypointStr.includes('pet') || 
+                       keypointStr.includes('thú cưng') || 
+                       petStr.includes('cho phép') || 
+                       petStr.includes('ok') || 
+                       petStr.includes('hỏi lại') || 
+                       petStr.includes('thương lượng');
+            }
+            return keypointStr.includes(criteria);
+        }
+
+        // --- 2. Lọc dữ liệu ---
         let filtered = allRoomsData.filter(room => {
+            // A. Lọc cơ bản (Thành phố, Quận, Loại, Giá)
             const rCity = room.city ? room.city : 'hochiminh';
             if (rCity !== currentCityFilter) return false;
             if (district !== 'all' && room.district !== district) return false;
@@ -804,55 +706,49 @@ const preconnectTags = [
                 if (price === '5to8' && (p < 5000000 || p >= 8000000)) return false;
                 if (price === 'over8' && p < 8000000) return false;
             }
-            if (fAmenities.length > 0) {
-                const keypoints = (room.keypoint || "").toLowerCase();
-                const petAllowed = room.pet === true;
-                let matches = true;
-                for (let ami of selectedNormal) {
-                    if (ami === 'pet' || ami === 'nuôi pet') {
-                        if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) { matches = false; break; }
-                    } else if (!keypoints.includes(ami)) { matches = false; break; }
-                }
-                if (matches && selectedSpecial.length > 0) {
-                    let hasAtLeastOne = false;
-                    if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                    if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                    if (!hasAtLeastOne) matches = false;
-                }
-                if (!matches) return false;
+
+            // B. Lọc Tiện ích (Logic Hybrid)
+            
+            // 1. Kiểm tra nhóm "VÀ" (Pet, Thang máy, Máy giặt...)
+            // Nếu khách chọn Pet, phòng BẮT BUỘC phải có Pet
+            if (selectedAnd.length > 0) {
+                const matchAllMandatory = selectedAnd.every(ami => checkAmenity(room, ami));
+                if (!matchAllMandatory) return false;
             }
+
+            // 2. Kiểm tra nhóm "HOẶC" (Ban công, Cửa sổ)
+            // Nếu khách chọn cả Ban công và Cửa sổ -> Phòng có 1 trong 2 là ĐƯỢC
+            if (selectedOr.length > 0) {
+                const matchAnyView = selectedOr.some(ami => checkAmenity(room, ami));
+                if (!matchAnyView) return false;
+            }
+
             return true;
         });
-
+        
+        // --- 3. Sắp xếp ---
         filtered.sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             if (sortMode === 'price-asc') return a.price - b.price;
             if (sortMode === 'price-desc') return b.price - a.price;
             return ((b.image_detail?.length || 0) - (a.image_detail?.length || 0));
         });
-
-        // --- [MỚI] GIỚI HẠN TỐI ĐA 9 CĂN ĐÃ THUÊ (RENTED) ---
+        
+        // --- 4. Phân trang & Render ---
         const activeRooms = filtered.filter(r => r.status === 'active');
         let rentedRooms = filtered.filter(r => r.status === 'rented');
-
-        // Nếu quá 9 căn đã thuê, cắt bớt chỉ lấy 9 căn đầu
-        if (rentedRooms.length > 9) {
-            rentedRooms = rentedRooms.slice(0, 9);
-        }
-
-        // Gộp lại: Active lên đầu, Rented (tối đa 9) nằm dưới
+        if (rentedRooms.length > 9) rentedRooms = rentedRooms.slice(0, 9);
         currentFiltered = [...activeRooms, ...rentedRooms];
-        // -----------------------------------------------------
+
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
-        
         
         renderListDOM();
         if(map) { requestAnimationFrame(() => renderMapMarkers()); }
 
-        // [MỚI] Lưu đầy đủ: Thành phố, Quận, Giá...
+        // --- 5. Lưu bộ lọc ---
         sessionStorage.setItem('map_filters', JSON.stringify({
-            city: currentCityFilter, // Quan trọng: Nhớ thành phố đang xem
+            city: currentCityFilter,
             district: district,
             type: type,
             price: price,
@@ -887,8 +783,7 @@ const preconnectTags = [
         const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
         const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
         const isRented = room.status === 'rented';
-        
-        // [FIX CLS] Thêm width/height cho ảnh để giữ layout
+
         return `
         <div class="col-6 col-lg-6"> 
             <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="saveClickState(); window.location.href='${link}'" style="cursor: pointer;">
@@ -899,20 +794,116 @@ const preconnectTags = [
                 </div>
                 <div class="card-body p-2 p-md-3 d-flex flex-column">
                     <h6 class="fw-bold text-dark mb-1 mb-md-2 room-title text-truncate-3" style="font-size: 0.95rem;">${cardTitle}</h6>
-                    <div class="mb-1 mb-md-2">
-    <span class="badge bg-light text-secondary border room-code" 
-          style="font-size: 11px; letter-spacing: 0.5px;">
-        ${room.room_code}
-    </span>
-</div>
+                    <div class="mb-1 mb-md-2"><span class="badge bg-light text-secondary border room-code" style="font-size: 11px; letter-spacing: 0.5px;">${room.room_code}</span></div>
                     <div class="mb-1 mb-md-2"><span class="fw-bold room-price ${isRented ? 'text-secondary text-decoration-line-through' : 'text-danger'}" style="font-size: 1rem;">${priceText}/tháng</span></div>
                 </div>
-            </div>
+             </div>
         </div>`;
     }
 
-    window.setMapFilter = function(inputId, val, label, el) {
+    function renderMapMarkers() {
+        if (!map || !markersLayer) return;
+        markersLayer.clearLayers();
+        const coordinateTracker = {};
+
+        currentFiltered.forEach(room => {
+            if (room.lat && room.lng) {
+                let finalLat = parseFloat(room.lat);
+                let finalLng = parseFloat(room.lng);
+                const coordKey = `${finalLat.toFixed(5)}-${finalLng.toFixed(5)}`;
+
+                if (coordinateTracker[coordKey]) {
+                    const count = coordinateTracker[coordKey];
+                    const angle = count * (Math.PI / 3); 
+                    const offset = 0.00015; 
+                    finalLat = finalLat + (Math.sin(angle) * offset);
+                    finalLng = finalLng + (Math.cos(angle) * offset);
+                    coordinateTracker[coordKey]++;
+                } else {
+                    coordinateTracker[coordKey] = 1;
+                }
+
+                const priceNum = room.price;
+                const priceText = priceNum >= 1000000 ? (priceNum / 1000000).toFixed(1).replace('.0', '') + ' Tr' : (priceNum / 1000) + 'k';
+
+                const customIcon = L.divIcon({
+                    className: 'custom-pin-container', 
+                    html: `<div class="custom-marker-dot"></div><div class="custom-marker-label"><span>${priceText}</span></div>`,
+                    iconSize: [40, 40], iconAnchor: [20, 20]
+                });
+                const marker = L.marker([finalLat, finalLng], { icon: customIcon });
+                const citySlug = room.city === 'hanoi' ? 'ha-noi' : 'ho-chi-minh';
+                const link = `/${citySlug}/${toSlug(room.district)}/${room.id}`;
+                
+                let thumb = '/logo.png';
+                if (room.image_detail && room.image_detail.length > 0) {
+                     const t = room.image_detail.find(i => i.includes('_thumb'));
+                     thumb = t ? t : room.image_detail[0];
+                }
+                if (!thumb.startsWith('http') && !thumb.startsWith('/')) thumb = `https://img.thochothuetro.com/${thumb}_medium.webp`;
+
+                const cleanAddr = (room.address || "").replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, '');
+                const popupContent = `
+                    <a href="${link}" class="map-popup-card">
+                        <div class="map-popup-img-wrapper">
+                            <img src="${thumb}" alt="Ảnh phòng" loading="lazy" onerror="this.src='/logo.png'">
+                            <span class="map-popup-badge">${room.type || 'Phòng trọ'}</span>
+                        </div>
+                        <div class="map-popup-info">
+                            <h3 class="map-popup-title" title="${cleanAddr}">${cleanAddr}</h3>
+                            <div class="map-popup-sub"><i class="fas fa-map-marker-alt"></i> ${room.district}</div>
+                            <div class="map-popup-footer">
+                                <div class="map-popup-price">${priceText}</div>
+                                <div class="map-popup-action">Chi tiết <i class="fas fa-arrow-right"></i></div>
+                            </div>
+                        </div>
+                    </a>`;
+                marker.bindPopup(popupContent, { maxWidth: 270, minWidth: 270, closeButton: false, autoPan: true, offset: [0, -10] });
+                marker.on('mouseover', function (e) { this.setZIndexOffset(1000); });
+                marker.on('mouseout', function (e) { this.setZIndexOffset(0); });
+                markersLayer.addLayer(marker);
+            }
+        });
+        forceHideSpinner();
+    }
+
+    // =============================================================
+    // 5. CÁC HÀM EVENT HANDLER (GLOBAL)
+    // =============================================================
+    window.switchCity = async function(cityCode) {
         visibleCount = 6;
+        if (currentCityFilter === cityCode) return;
+        const spinner = document.getElementById('map-loading-spinner');
+        if (spinner) { 
+            spinner.style.display = 'flex';
+            spinner.classList.remove('spinner-hidden');
+            spinner.style.opacity = '1';
+        }
+        if (!dataCache[cityCode]) {
+            try {
+                const res = await fetch(`/${CONFIG[cityCode].file}`);
+                const json = await res.json();
+                dataCache[cityCode] = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
+            } catch (e) { dataCache[cityCode] = []; }
+        }
+        currentCityFilter = cityCode;
+        allRoomsData = dataCache[cityCode];
+        
+        document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tab-${cityCode}`).classList.add('active');
+        const defaultDist = (cityCode === 'hochiminh' ? 'Phú Nhuận' : 'all');
+        updateDistrictDropdown(defaultDist);
+        const inputDist = document.getElementById('map-district');
+        const btnDist = document.getElementById('btn-map-district');
+        if (inputDist) inputDist.value = defaultDist;
+        if (btnDist) btnDist.textContent = (defaultDist === 'all' ? 'Tất cả' : defaultDist);
+
+        filterAndRender();
+        zoomToDistrict(defaultDist);
+    };
+
+    window.setMapFilter = function(inputId, val, label, el) {
+        visibleCount = 6; // Reset khi lọc
         if(event) event.preventDefault();
         document.getElementById(inputId).value = val;
         document.getElementById('btn-' + inputId).textContent = label;
@@ -924,7 +915,7 @@ const preconnectTags = [
         filterAndRender();
         if (inputId === 'map-district') zoomToDistrict(val);
     };
-
+    
     window.resetMapFilters = function() {
         visibleCount = 6;
         document.getElementById('map-district').value = 'all';
@@ -943,18 +934,41 @@ const preconnectTags = [
 
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
-    // --- 5. SETUP & CLEANUP (QUAN TRỌNG) ---
+    function updateDistrictDropdown(defaultDist = 'all') {
+        const ddMenuDistrict = document.getElementById('dd-menu-district');
+        if (!ddMenuDistrict) return;
+        const districts = [...new Set(allRoomsData.map(r => r.district))].sort();
+        let html = `<li><a class="dropdown-item ${defaultDist === 'all' ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', 'all', 'Tất cả', this)">Tất cả</a></li>`;
+        districts.forEach(d => {
+            html += `<li><a class="dropdown-item ${d === defaultDist ? 'active' : ''}" href="#" onclick="setMapFilter('map-district', '${d}', '${d}', this)">${d}</a></li>`;
+        });
+        ddMenuDistrict.innerHTML = html;
+    }
+
+    // =============================================================
+    // 6. SETUP & CLEANUP (QUAN TRỌNG NHẤT)
+    // =============================================================
     const runPageSetup = async () => {
+        // Hủy map cũ (nếu có)
         if (map) { map.remove(); map = null; }
 
-        // --- 1. KHÔI PHỤC BỘ LỌC & THÀNH PHỐ ---
+        // Lấy lịch sử
         const savedFilters = JSON.parse(sessionStorage.getItem('map_filters') || 'null');
-        const savedScroll = JSON.parse(sessionStorage.getItem('scroll_state') || 'null'); // [MỚI] Lấy vị trí cũ
+        const savedScroll = JSON.parse(sessionStorage.getItem('scroll_state') || 'null');
 
+        // Xác định TP mặc định
         let targetCity = 'hochiminh';
-        if (savedFilters && savedFilters.city) targetCity = savedFilters.city;
+        let targetDistrict = 'all';
 
-        // Nếu cần chuyển thành phố
+        if (savedFilters) {
+            if (savedFilters.city) targetCity = savedFilters.city;
+            if (savedFilters.district) targetDistrict = savedFilters.district;
+        } else {
+            // Khách mới vào trang lần đầu -> Mặc định Phú Nhuận
+            if (targetCity === 'hochiminh') targetDistrict = 'Phú Nhuận';
+        }
+
+        // Tải dữ liệu nếu cần
         if (currentCityFilter !== targetCity || allRoomsData.length === 0) {
             currentCityFilter = targetCity;
             try {
@@ -967,7 +981,9 @@ const preconnectTags = [
             document.getElementById(`tab-${targetCity}`)?.classList.add('active');
         }
 
-        // Khôi phục hiển thị Dropdown
+        // Khôi phục giao diện bộ lọc
+        updateDistrictDropdown(targetDistrict);
+        
         const restore = (id, val) => {
             if (!val) return;
             const input = document.getElementById(id);
@@ -980,46 +996,41 @@ const preconnectTags = [
             }, 0);
         };
 
+        restore('map-district', targetDistrict);
         if (savedFilters) {
-            restore('map-district', savedFilters.district);
             restore('map-type', savedFilters.type);
             restore('map-price', savedFilters.price);
             restore('map-sort', savedFilters.sort);
         }
-        updateDistrictDropdown(savedFilters ? savedFilters.district : 'all');
 
-        // --- 2. [QUAN TRỌNG] KHÔI PHỤC VỊ TRÍ CUỘN ---
-        // Nếu có lịch sử -> dùng số lượng cũ. Nếu không -> mặc định 6
+        // Khôi phục vị trí cuộn
         visibleCount = (savedScroll && savedScroll.count) ? savedScroll.count : 6;
+
+        const inputs = document.querySelectorAll('.amenity-cb');
+        inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
 
         try { filterAndRender(); } catch(e) {}
 
-        // Sau khi render xong, thực hiện cuộn ngay lập tức
         if (savedScroll) {
             setTimeout(() => {
-                // Cuộn Sidebar (Desktop)
                 const sidebar = document.querySelector('.map-sidebar');
                 if (sidebar) sidebar.scrollTop = savedScroll.scrollTop;
-                
-                // Cuộn Màn hình (Mobile)
                 window.scrollTo(0, savedScroll.windowScroll);
-                
-                // Xóa lịch sử để tránh F5 lại bị cuộn lung tung
                 sessionStorage.removeItem('scroll_state');
-            }, 100); // Chờ 1 chút cho DOM ổn định
+            }, 100);
         }
 
         initMapSafely();
     };
 
-    // Chạy khi vào trang (bao gồm cả chuyển trang từ Home sang)
+    // Chạy setup
     document.addEventListener('astro:page-load', runPageSetup);
     
-    // [SỬA LỖI] Dọn dẹp tuyệt đối khi rời trang
+    // Dọn dẹp khi rời trang
     document.addEventListener('astro:before-swap', () => {
         if (map) {
-            map.off(); // Tắt hết sự kiện đang lắng nghe
-            map.remove(); // Hủy map
+            map.off();
+            map.remove();
             map = null;
         }
         if (mapObserver) {
@@ -1027,15 +1038,13 @@ const preconnectTags = [
             mapObserver = null;
         }
     });
-    // [MỚI] Hàm lưu vị trí cuộn và số lượng căn đang xem
+
+    // Lưu trạng thái khi click xem phòng
     window.saveClickState = function() {
         const sidebar = document.querySelector('.map-sidebar');
         const state = {
-            // Lưu vị trí cuộn của Sidebar (Desktop)
             scrollTop: sidebar ? sidebar.scrollTop : 0,
-            // Lưu vị trí cuộn của màn hình (Mobile)
             windowScroll: window.scrollY,
-            // [QUAN TRỌNG] Lưu số lượng căn đang hiển thị (để khi quay lại load đủ số này)
             count: visibleCount 
         };
         sessionStorage.setItem('scroll_state', JSON.stringify(state));
