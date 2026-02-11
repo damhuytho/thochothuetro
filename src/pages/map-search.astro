@@ -797,26 +797,31 @@ const preconnectTags = [
     // 6. SETUP & LAZY LOAD (QUAN TRỌNG NHẤT)
     // =============================================================
     
-    let isMapInitialized = false; // Cờ kiểm tra map đã tải chưa
+    let isMapInitialized = false; 
 
-    // Hàm này chỉ chạy 1 lần duy nhất khi người dùng tương tác
     function startMapLazy() {
         if (isMapInitialized) return;
         isMapInitialized = true;
 
-        // console.log("Người dùng tương tác -> Bắt đầu tải bản đồ thật...");
-        
-        // Hiện spinner nhẹ để báo hiệu đang xử lý (nếu cần)
+        // 1. [QUAN TRỌNG] Phản hồi ngay lập tức: Hiện Spinner lên
+        // Để khách hàng biết là web đang xử lý, không phải bị đơ
         const spinner = document.getElementById('map-loading-spinner');
         if(spinner) {
-             spinner.style.display = 'flex';
+             spinner.style.display = 'flex'; // Bắt buộc hiện
+             spinner.style.opacity = '1';
              spinner.classList.remove('spinner-hidden');
+             // Đưa spinner lên trên cùng để đè lên ảnh placeholder
+             spinner.style.zIndex = '2000'; 
         }
 
-        // Gọi hàm khởi tạo map gốc
-        initMapSafely();
+        // 2. Gọi hàm khởi tạo map (Lúc này trình duyệt mới tải JS nặng)
+        // Dùng setTimeout 1ms để đẩy việc tải map ra sau việc hiển thị spinner
+        // Giúp giao diện không bị khựng lại
+        setTimeout(() => {
+            initMapSafely();
+        }, 1);
 
-        // Gỡ bỏ các sự kiện để không chạy lại
+        // 3. Gỡ bỏ các sự kiện để không chạy lại
         ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'].forEach(evt => {
             document.removeEventListener(evt, startMapLazy);
         });
