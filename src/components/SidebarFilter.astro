@@ -378,20 +378,29 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
     }
 
     // 4. MAIN EXECUTION
-    document.addEventListener('astro:page-load', () => {
+    // 4. MAIN EXECUTION (Đã sửa đổi để chạy ổn định hơn)
+    function initSidebarEvents() {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
         const btnClearMobile = document.getElementById('btn-clear-mobile');
         const btnToggle = document.getElementById('btn-toggle-filter');
         const mobileBar = document.getElementById('mobile-filter-bar');
         
+        // Gán sự kiện CLICK (Quan trọng: Phải gán lại mỗi khi trang load)
         if (btnApply) btnApply.onclick = handleApplyFilter;
         if (btnReset) btnReset.onclick = window.handleResetFilter;
         if (btnClearMobile) btnClearMobile.onclick = window.handleResetFilter;
         if (btnToggle) btnToggle.onclick = window.expandFilter;
 
+        // Xử lý click cho thanh Mobile Bar
         if (mobileBar) {
-            mobileBar.addEventListener('click', (e) => {
+            // Xóa sự kiện cũ trước khi thêm mới để tránh bị double click (nếu có)
+            const newBar = mobileBar.cloneNode(true);
+            if(mobileBar.parentNode) {
+                mobileBar.parentNode.replaceChild(newBar, mobileBar);
+            }
+            
+            newBar.addEventListener('click', (e) => {
                 if (e.target.closest('#btn-clear-mobile')) return;
                 const sidebar = document.getElementById('sidebar-wrapper');
                 if(sidebar) {
@@ -401,17 +410,15 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
-        // --- KHÔI PHỤC TRẠNG THÁI (ĐÃ SỬA: CHẠY TRÊN CLIENT) ---
+        // --- KHÔI PHỤC TRẠNG THÁI TỪ URL ---
         const params = new URLSearchParams(window.location.search);
         
-        // Logic khôi phục tên quận từ URL (ĐÃ SỬA: Hỗ trợ URL /thanh-pho/quan)
+        // 1. Logic khôi phục tên quận từ URL
         let currentPathDist = 'all';
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         
         if (pathSegments.length > 0) {
             const districtLinks = document.querySelectorAll('#btn-display-district + .dropdown-menu .dropdown-item');
-            
-            // Quét từng phần của URL (segment) xem có khớp với quận nào không
             pathSegments.forEach(segment => {
                 districtLinks.forEach(link => {
                     const val = link.getAttribute('data-value');
@@ -434,13 +441,18 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
+        // Xử lý hiển thị trên Mobile
         const hasFilter = renderMobileActiveTags();
         if (window.innerWidth < 992) {
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
             if (hasFilter) {
+                // Nếu đang lọc thì ẩn form đi cho gọn
                 if (typeof window.bsCollapse === 'function') {
-                    window.bsCollapse('filter-form-body', 'hide');
+                    // Nếu có Bootstrap JS
+                    const collapseEl = document.getElementById('filter-form-body');
+                    if(collapseEl) collapseEl.classList.remove('show');
                 } else {
+                    // Fallback thủ công
                     const el = document.getElementById('filter-form-body');
                     if(el) el.classList.remove('show');
                 }
@@ -449,5 +461,8 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
                 if (toggleBtn) toggleBtn.classList.remove('visible');
             }
         }
-    });
+    }
+
+    // CHẠY HÀM KHỞI TẠO (Hỗ trợ cả load thường và Astro SPA)
+    document.addEventListener('DOMContentLoaded', initSidebarEvents);
 </script>
