@@ -323,16 +323,26 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
     }
 
     window.expandFilter = function() {
-        if (typeof window.bsCollapse === 'function') {
-            window.bsCollapse('filter-form-body', 'show');
-        } else {
-            const el = document.getElementById('filter-form-body');
-            if(el) { el.classList.add('show'); el.style.display = 'block'; }
-        }
+        const el = document.getElementById('filter-form-body');
         const toggleBtn = document.getElementById('toggle-filter-btn-container');
+        
+        if (el) {
+            // 1. [QUAN TRỌNG] Phải xóa display:none đã gán lúc ẩn đi
+            el.style.removeProperty('display');
+            
+            // 2. Kích hoạt Bootstrap Show
+            if (typeof window.bsCollapse === 'function') {
+                window.bsCollapse('filter-form-body', 'show');
+            }
+            // 3. Fallback thêm class thủ công
+            el.classList.add('show');
+        }
+
+        // Ẩn nút kích hoạt đi
         if (toggleBtn) {
             toggleBtn.classList.remove('visible');
-            toggleBtn.style.setProperty('display', 'none', 'important');
+            // Dùng style none để ẩn hoàn toàn
+            toggleBtn.style.display = 'none';
         }
     };
 
@@ -378,7 +388,7 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
     }
 
     // 4. MAIN EXECUTION
-    // 4. MAIN EXECUTION (Đã sửa đổi để chạy ổn định hơn)
+    // 4. MAIN EXECUTION (Đã sửa lỗi Mobile Bar)
     function initSidebarEvents() {
         const btnApply = document.getElementById('btn-apply');
         const btnReset = document.getElementById('btn-reset');
@@ -386,34 +396,40 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
         const btnToggle = document.getElementById('btn-toggle-filter');
         const mobileBar = document.getElementById('mobile-filter-bar');
         
-        // Gán sự kiện CLICK (Quan trọng: Phải gán lại mỗi khi trang load)
+        // --- 1. GÁN SỰ KIỆN CÁC NÚT CHÍNH ---
         if (btnApply) btnApply.onclick = handleApplyFilter;
         if (btnReset) btnReset.onclick = window.handleResetFilter;
-        if (btnClearMobile) btnClearMobile.onclick = window.handleResetFilter;
         if (btnToggle) btnToggle.onclick = window.expandFilter;
 
-        // Xử lý click cho thanh Mobile Bar
-        if (mobileBar) {
-            // Xóa sự kiện cũ trước khi thêm mới để tránh bị double click (nếu có)
-            const newBar = mobileBar.cloneNode(true);
-            if(mobileBar.parentNode) {
-                mobileBar.parentNode.replaceChild(newBar, mobileBar);
-            }
-            
-            newBar.addEventListener('click', (e) => {
-                if (e.target.closest('#btn-clear-mobile')) return;
-                const sidebar = document.getElementById('sidebar-wrapper');
-                if(sidebar) {
-                    sidebar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    window.expandFilter();
-                }
-            });
+        // --- 2. XỬ LÝ MOBILE STICKY BAR (Sửa lại hoàn toàn) ---
+        
+        // A. Nút Xóa lọc trên Mobile
+        if (btnClearMobile) {
+            btnClearMobile.onclick = function(e) {
+                // [QUAN TRỌNG] Ngăn sự kiện click lan ra ngoài (để không kích hoạt scroll của thanh bar)
+                e.stopPropagation(); 
+                window.handleResetFilter(e);
+            };
         }
 
-        // --- KHÔI PHỤC TRẠNG THÁI TỪ URL ---
+        // B. Thanh Bar (Click để cuộn lên và mở filter)
+        if (mobileBar) {
+            // Gán trực tiếp onclick (Tự động ghi đè sự kiện cũ, không cần cloneNode)
+            mobileBar.onclick = function() {
+                const sidebar = document.getElementById('sidebar-wrapper');
+                // 1. Cuộn đến vị trí bộ lọc
+                if(sidebar) {
+                    // Dùng 'start' để mép trên bộ lọc căn đúng đỉnh màn hình
+                    sidebar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // 2. Mở bung bộ lọc ra
+                window.expandFilter();
+            };
+        }
+
+        // --- 3. KHÔI PHỤC TRẠNG THÁI TỪ URL (Giữ nguyên logic cũ) ---
         const params = new URLSearchParams(window.location.search);
         
-        // 1. Logic khôi phục tên quận từ URL
         let currentPathDist = 'all';
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         
@@ -441,28 +457,33 @@ const currentAms = searchParams.get('amenities') ? searchParams.get('amenities')
             });
         }
 
-        // Xử lý hiển thị trên Mobile
+        // Xử lý hiển thị ban đầu trên Mobile
         const hasFilter = renderMobileActiveTags();
         if (window.innerWidth < 992) {
             const toggleBtn = document.getElementById('toggle-filter-btn-container');
+            
             if (hasFilter) {
-                // Nếu đang lọc thì ẩn form đi cho gọn
+                // Nếu đang có lọc -> Ẩn form đi để hiện thanh sticky bar
                 if (typeof window.bsCollapse === 'function') {
-                    // Nếu có Bootstrap JS
-                    const collapseEl = document.getElementById('filter-form-body');
-                    if(collapseEl) collapseEl.classList.remove('show');
-                } else {
-                    // Fallback thủ công
-                    const el = document.getElementById('filter-form-body');
-                    if(el) el.classList.remove('show');
+                    window.bsCollapse('filter-form-body', 'hide');
                 }
-                if (toggleBtn) toggleBtn.classList.add('visible');
+                // Fallback an toàn
+                const formBody = document.getElementById('filter-form-body');
+                if(formBody) {
+                    formBody.classList.remove('show');
+                    formBody.style.display = 'none'; // Cưỡng chế ẩn
+                }
+
+                if (toggleBtn) {
+                    toggleBtn.classList.add('visible');
+                    toggleBtn.style.display = 'block';
+                }
             } else {
+                // Nếu không lọc -> Hiện nút "Hiển thị bộ lọc" bình thường (hoặc ẩn tùy logic CSS)
                 if (toggleBtn) toggleBtn.classList.remove('visible');
             }
         }
     }
-
     // CHẠY HÀM KHỞI TẠO (Hỗ trợ cả load thường và Astro SPA)
     document.addEventListener('DOMContentLoaded', initSidebarEvents);
 </script>
