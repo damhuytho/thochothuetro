@@ -53,18 +53,19 @@ const preconnectTags = [
 
     <div class="map-layout-wrapper">
         <img 
-            src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
-            alt="Bản đồ phòng trọ" 
-            class="map-placeholder-lcp" 
-            fetchpriority="high"
-            decoding="sync" 
-            width="800" 
-            height="600"
-            style="background-color: #e5e3df; z-index: 5;"
-        >
+        src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
+        alt="Bản đồ phòng trọ" 
+        class="map-placeholder-lcp" 
+        fetchpriority="high"
+        decoding="sync" 
+        loading="eager"
+        width="800" 
+        height="600"
+        style="background-color: #e5e3df; z-index: 50; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+    >
 
         <div id="full-map-view" class="map-viewport" style="position: relative;">
-            <div id="map" style="width: 100%; height: 100%; z-index: 10;"></div>
+        <div id="map" style="width: 100%; height: 100%; z-index: 1;"></div>
             
             <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" 
                  style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; pointer-events: none;">
@@ -532,7 +533,7 @@ const preconnectTags = [
     // --- 3. KHỞI TẠO MAP (BẢN FIX LỖI VIEW TRANSITION) ---
     // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN FIX LỖI MẤT CSS KHI CHUYỂN TRANG) ---
     function initMapSafely() {
-        // 1. Nạp lại CSS nếu bị mất (Giữ nguyên logic bảo vệ của bạn)
+        // --- 1. Nạp CSS (Giữ nguyên logic bảo vệ giao diện) ---
         if (!document.querySelector('link[href*="leaflet.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
@@ -552,17 +553,17 @@ const preconnectTags = [
             document.head.appendChild(link2);
         }
 
-        // 2. [QUAY LẠI CÁCH CŨ NHƯNG AN TOÀN] Kiểm tra thư viện
-        // Nếu chưa có L hoặc MarkerClusterGroup -> Chờ 100ms rồi kiểm tra lại
+        // --- 2. Kiểm tra thư viện (Cơ chế chờ an toàn) ---
+        // Nếu Leaflet chưa tải xong -> Chờ 100ms rồi kiểm tra lại
         if (!window.L || !window.L.MarkerClusterGroup) {
             setTimeout(initMapSafely, 100);
             return;
         }
 
-        if (map) return; // Map đã có rồi thì thôi
+        if (map) return; // Nếu map đã có rồi thì không làm gì cả
 
         try {
-            // 3. Khởi tạo map
+            // --- 3. Khởi tạo Map ---
             map = L.map('map', {
                 center: CONFIG.hochiminh.coords,
                 zoom: CONFIG.hochiminh.zoom,
@@ -570,34 +571,41 @@ const preconnectTags = [
                 preferCanvas: true
             });
 
-            // 4. [MỚI] Ẩn ảnh Placeholder đi sau khi map đã lên
-            // Giúp người dùng nhìn thấy map thật chứ không phải ảnh tĩnh
+            // --- 4. Xử lý hiển thị (QUAN TRỌNG CHO LCP) ---
+            // Ngay khi map được tạo, tìm ảnh placeholder và làm mờ nó đi
             const placeholder = document.querySelector('.map-placeholder-lcp');
             if (placeholder) {
-                placeholder.style.opacity = '0';
-                setTimeout(() => { placeholder.style.display = 'none'; }, 500);
+                // Thêm hiệu ứng mờ dần trong 0.5 giây
+                placeholder.style.transition = 'opacity 0.5s ease';
+                
+                // Đợi 1 frame nhỏ để trình duyệt nhận diện transition
+                requestAnimationFrame(() => {
+                    placeholder.style.opacity = '0'; // Bắt đầu làm mờ
+                    
+                    // Sau 0.5s (khi đã mờ hẳn) thì ẩn hoàn toàn
+                    setTimeout(() => {
+                        placeholder.style.display = 'none';
+                        placeholder.style.zIndex = '-1'; // Đưa xuống đáy cho chắc chắn
+                    }, 500);
+                });
             }
 
-            // ... (Phần code cấu hình ResizeObserver, Zoom, TileLayer... giữ nguyên như cũ) ...
-            
-            // ResizeObserver
+            // --- 5. Các chức năng phụ trợ (Resize, Zoom, Tile) ---
             const mapDiv = document.getElementById('map');
             const resizeObserver = new ResizeObserver(() => {
                 map.invalidateSize();
             });
             resizeObserver.observe(mapDiv);
 
-            // Zoom Control
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // Tile Layer
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 20,
                 crossOrigin: true
             }).addTo(map);
 
-            // Marker Cluster
+            // --- 6. Marker Cluster (Gom nhóm) ---
             markersLayer = L.markerClusterGroup({
                 showCoverageOnHover: false,
                 maxClusterRadius: 50,
@@ -612,7 +620,7 @@ const preconnectTags = [
             });
             map.addLayer(markersLayer);
 
-            // Events
+            // --- 7. Sự kiện Zoom (Ẩn hiện giá tiền) ---
             const toggleLabels = () => {
                 const currentZoom = map.getZoom();
                 const mapContainer = map.getContainer();
@@ -622,7 +630,7 @@ const preconnectTags = [
             map.on('zoomend', toggleLabels);
             toggleLabels();
 
-            // Render
+            // --- 8. Vẽ dữ liệu lên bản đồ ---
             filterAndRender();
 
         } catch (e) {

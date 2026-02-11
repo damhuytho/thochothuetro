@@ -1,12 +1,11 @@
 // =========================================================
-// SERVICE WORKER - VERSION 7.1 (FINAL STABLE)
+// SERVICE WORKER - VERSION 7.2 (SAFE MODE)
 // =========================================================
 
-const CACHE_NAME = 'tho-cho-thue-tro-v7';
-const IMG_CACHE_NAME = 'tho-images-v7';
-const DATA_CACHE_NAME = 'tho-data-v7'; // Cache riêng cho JSON data
+const CACHE_NAME = 'tho-cho-thue-tro-v8';
+const IMG_CACHE_NAME = 'tho-images-v8';
+const DATA_CACHE_NAME = 'tho-data-v8';
 
-// Danh sách file tĩnh bắt buộc phải có để web chạy nhanh
 const STATIC_ASSETS = [
     '/logo.png',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
@@ -14,7 +13,7 @@ const STATIC_ASSETS = [
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css'
 ];
 
-// 1. INSTALL: Cài đặt và cache file tĩnh
+// 1. INSTALL
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -22,13 +21,12 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. ACTIVATE: Dọn dẹp cache cũ khi bạn đổi tên version (v7 -> v8...)
+// 2. ACTIVATE
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    // Xóa tất cả cache cũ không trùng tên phiên bản hiện tại
                     if (cacheName !== CACHE_NAME && 
                         cacheName !== IMG_CACHE_NAME && 
                         cacheName !== DATA_CACHE_NAME) {
@@ -40,31 +38,30 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// 3. FETCH: Chiến lược cache thông minh
+// 3. FETCH
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // A. BỎ QUA: Không cache Admin, API, và các request không phải GET
+    // BỎ QUA: Admin, API, Non-GET
     if (event.request.method !== 'GET' || url.pathname.startsWith('/admin')) {
         return;
     }
 
-    // B. [RIÊNG CHO MAP] CHIẾN LƯỢC CHO DATA JSON (Stale-While-Revalidate)
-    // - Lần đầu vào: Lấy từ cache ngay cho nhanh (nếu có).
-    // - Đồng thời: Tải ngầm file mới từ server về để cập nhật cho lần sau.
-    // - Chỉ áp dụng cho file .json (Map dùng cái này), các trang khác không bị ảnh hưởng.
+    // A. [MAP DATA] JSON (Stale-While-Revalidate)
+    // Ưu tiên hiện cache ngay lập tức, tải mới ngầm bên dưới
     if (url.pathname.endsWith('.json')) {
         event.respondWith(
             caches.open(DATA_CACHE_NAME).then((cache) => {
                 return cache.match(event.request).then((cachedResponse) => {
-                    const fetchPromise = fetch(event.request).then((networkResponse) => {
-                        // Chỉ lưu vào cache nếu tải thành công
-                        if (networkResponse.status === 200) {
-                            cache.put(event.request, networkResponse.clone());
-                        }
-                        return networkResponse;
-                    });
-                    // Trả về cache ngay nếu có, giúp Map hiện ngay lập tức
+                    const fetchPromise = fetch(event.request.clone()) // Clone request cho an toàn
+                        .then((networkResponse) => {
+                            if (networkResponse.status === 200) {
+                                cache.put(event.request, networkResponse.clone());
+                            }
+                            return networkResponse;
+                        })
+                        .catch(() => cachedResponse); // Nếu mất mạng thì thôi, không lỗi
+
                     return cachedResponse || fetchPromise;
                 });
             })
@@ -72,22 +69,21 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // C. CHIẾN LƯỢC CHO HÌNH ẢNH (Cache First - Ưu tiên tốc độ tuyệt đối)
-    // Áp dụng cho ảnh nội bộ, ảnh trên server img.thochothuetro.com và bản đồ nền (OSM/Carto)
+    // B. [IMAGES & MAP TILES] (Cache First)
+    // Cache ảnh phòng, icon và đặc biệt là bản đồ nền CartoDB/OSM
     if (event.request.destination === 'image' || 
         url.hostname === 'img.thochothuetro.com' ||
-        url.hostname.includes('openstreetmap.org') || // Cache bản đồ nền
-        url.hostname.includes('cartocdn.com') ||      // Cache bản đồ nền
+        url.hostname.includes('openstreetmap.org') ||
+        url.hostname.includes('cartocdn.com') ||
         url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg)$/)) {
         
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                // Nếu đã có ảnh trong máy khách -> Dùng ngay
                 if (cachedResponse) return cachedResponse;
                 
-                // Nếu chưa có -> Tải về và lưu lại
-                return fetch(event.request).then((response) => {
-                    if(!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
+                return fetch(event.request.clone()).then((response) => {
+                    // Chỉ cache nếu tải thành công và đúng loại (Basic hoặc CORS)
+                    if(!response || response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors')) {
                         return response;
                     }
                     const responseClone = response.clone();
@@ -95,34 +91,35 @@ self.addEventListener('fetch', (event) => {
                         cache.put(event.request, responseClone);
                     });
                     return response;
+                }).catch(() => {
+                    // [MỚI] Fallback: Nếu mất mạng và không có ảnh cache -> Trả về ảnh rỗng hoặc logo
+                    // Để tránh vỡ giao diện web
+                    return caches.match('/logo.png'); 
                 });
             })
         );
         return;
     }
 
-    // D. CHIẾN LƯỢC CHO CSS/JS/FONTS (Stale-While-Revalidate)
-    // Giúp web tải giao diện nhanh, tự động cập nhật code mới khi F5
+    // C. [ASSETS] CSS/JS/FONTS (Stale-While-Revalidate)
     if (event.request.destination === 'style' || 
         event.request.destination === 'script' || 
         event.request.destination === 'font') {
         
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                const fetchPromise = fetch(event.request).then((networkResponse) => {
+                const fetchPromise = fetch(event.request.clone()).then((networkResponse) => {
                     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
                     return networkResponse;
-                });
+                }).catch(() => cachedResponse);
                 return cachedResponse || fetchPromise;
             })
         );
         return;
     }
 
-    // E. [QUAN TRỌNG] CHIẾN LƯỢC CHO HTML (Network First - Ưu tiên mạng)
-    // Áp dụng cho Trang chủ, Chi tiết phòng, Quận...
-    // - Luôn cố tải mới để lấy GIÁ và TRẠNG THÁI mới nhất.
-    // - Chỉ dùng Cache cũ khi mất mạng.
+    // D. [HTML] TRANG WEB (Network First)
+    // Luôn cố tải mới nhất, chỉ dùng cache khi Offline
     if (event.request.headers.get('accept')?.includes('text/html')) {
         event.respondWith(
             fetch(event.request)
@@ -131,7 +128,14 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
                     return response;
                 })
-                .catch(() => caches.match(event.request)) // Fallback khi offline
+                .catch(() => {
+                    // Khi Offline -> Trả về trang đã cache
+                    return caches.match(event.request).then(cachedRes => {
+                        // Nếu trang chưa từng cache -> Có thể trả về trang "Offline.html" tùy chỉnh
+                        if (cachedRes) return cachedRes;
+                        return caches.match('/'); // Hoặc quay về trang chủ
+                    });
+                })
         );
         return;
     }
