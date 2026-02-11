@@ -564,11 +564,34 @@ const preconnectTags = [
 
         try {
             // --- 3. Khởi tạo Map ---
+            // [MỚI] Kiểm tra xem có vị trí cũ đã lưu không?
+            let initCenter = CONFIG.hochiminh.coords;
+            let initZoom = CONFIG.hochiminh.zoom;
+            
+            const savedMapState = sessionStorage.getItem('map_state');
+            if (savedMapState) {
+                const state = JSON.parse(savedMapState);
+                if (state.center && state.zoom) {
+                    initCenter = state.center;
+                    initZoom = state.zoom;
+                }
+            }
+
+            // Khởi tạo Map với vị trí đã nhớ
             map = L.map('map', {
-                center: CONFIG.hochiminh.coords,
-                zoom: CONFIG.hochiminh.zoom,
+                center: initCenter,
+                zoom: initZoom,
                 zoomControl: false,
                 preferCanvas: true
+            });
+
+            // [MỚI] Lưu lại vị trí mỗi khi khách kéo hoặc zoom bản đồ
+            map.on('moveend', () => {
+                const state = {
+                    center: map.getCenter(),
+                    zoom: map.getZoom()
+                };
+                sessionStorage.setItem('map_state', JSON.stringify(state));
             });
 
             // --- 4. Xử lý hiển thị (QUAN TRỌNG CHO LCP) ---
@@ -716,6 +739,7 @@ const preconnectTags = [
     }
 
     window.switchCity = async function(cityCode) {
+        visibleCount = 6;
         if (currentCityFilter === cityCode) return;
         const spinner = document.getElementById('map-loading-spinner');
         if (spinner) { 
@@ -822,9 +846,18 @@ const preconnectTags = [
         const countDisplay = document.getElementById('result-count-display');
         if(countDisplay) countDisplay.textContent = currentFiltered.length;
         
-        visibleCount = 6;
+        
         renderListDOM();
         if(map) { requestAnimationFrame(() => renderMapMarkers()); }
+
+        // [MỚI] Lưu đầy đủ: Thành phố, Quận, Giá...
+        sessionStorage.setItem('map_filters', JSON.stringify({
+            city: currentCityFilter, // Quan trọng: Nhớ thành phố đang xem
+            district: district,
+            type: type,
+            price: price,
+            sort: sortMode
+        }));
     }
 
     function renderListDOM() {
@@ -858,7 +891,7 @@ const preconnectTags = [
         // [FIX CLS] Thêm width/height cho ảnh để giữ layout
         return `
         <div class="col-6 col-lg-6"> 
-            <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="window.location.href='${link}'" style="cursor: pointer;">
+            <div class="card h-100 border-0 shadow-sm room-card rounded-3 overflow-hidden position-relative ${isRented ? 'rented-card' : ''}" onclick="saveClickState(); window.location.href='${link}'" style="cursor: pointer;">
                 <div class="ratio ratio-4x3 bg-light position-relative">
                     <img src="${displayImg}" class="card-img-top w-100 h-100 object-fit-cover" alt="${cardTitle}" loading="lazy" width="400" height="300" decoding="async">
                     ${isRented ? `<div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rented-overlay" style="background: rgba(0,0,0,0.6); z-index: 5;"><span class="text-white fw-bold border border-white px-2 py-1 rounded small text-uppercase">Đã cho thuê</span></div>` : ''}
@@ -879,6 +912,7 @@ const preconnectTags = [
     }
 
     window.setMapFilter = function(inputId, val, label, el) {
+        visibleCount = 6;
         if(event) event.preventDefault();
         document.getElementById(inputId).value = val;
         document.getElementById('btn-' + inputId).textContent = label;
@@ -892,6 +926,7 @@ const preconnectTags = [
     };
 
     window.resetMapFilters = function() {
+        visibleCount = 6;
         document.getElementById('map-district').value = 'all';
         document.getElementById('map-type').value = 'all';
         document.getElementById('map-price').value = 'all';
@@ -909,34 +944,82 @@ const preconnectTags = [
     window.loadMoreMapItems = function() { visibleCount += LOAD_STEP; renderListDOM(); }
 
     // --- 5. SETUP & CLEANUP (QUAN TRỌNG) ---
-    const runPageSetup = () => {
-        // [FIX LỖI] Reset biến map về null khi vào trang để đảm bảo sạch sẽ
-        map = null; 
-        
-        let defaultDistrict = 'all';
-        if (currentCityFilter === 'hochiminh') {
-            defaultDistrict = 'Phú Nhuận';
-            const inputDist = document.getElementById('map-district');
-            const btnDist = document.getElementById('btn-map-district');
-            if (inputDist) inputDist.value = defaultDistrict;
-            if (btnDist) btnDist.textContent = defaultDistrict;
+    const runPageSetup = async () => {
+        if (map) { map.remove(); map = null; }
+
+        // --- 1. KHÔI PHỤC BỘ LỌC & THÀNH PHỐ ---
+        const savedFilters = JSON.parse(sessionStorage.getItem('map_filters') || 'null');
+        const savedScroll = JSON.parse(sessionStorage.getItem('scroll_state') || 'null'); // [MỚI] Lấy vị trí cũ
+
+        let targetCity = 'hochiminh';
+        if (savedFilters && savedFilters.city) targetCity = savedFilters.city;
+
+        // Nếu cần chuyển thành phố
+        if (currentCityFilter !== targetCity || allRoomsData.length === 0) {
+            currentCityFilter = targetCity;
+            try {
+                const res = await fetch(`/${CONFIG[targetCity].file}`);
+                const json = await res.json();
+                allRoomsData = (json.rooms || []).filter(r => r.status === 'active' || r.status === 'rented');
+                dataCache[targetCity] = allRoomsData;
+            } catch (e) {}
+            document.querySelectorAll('.btn-city-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${targetCity}`)?.classList.add('active');
         }
-        updateDistrictDropdown(defaultDistrict);
-        
-        const inputs = document.querySelectorAll('.amenity-cb');
-        inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
-        
+
+        // Khôi phục hiển thị Dropdown
+        const restore = (id, val) => {
+            if (!val) return;
+            const input = document.getElementById(id);
+            const btn = document.getElementById('btn-' + id);
+            if (input) input.value = val;
+            setTimeout(() => {
+                const item = document.querySelector(`.dropdown-menu a[onclick*="'${val}'"]`);
+                if (btn && item) btn.textContent = item.textContent;
+                else if (btn && val !== 'all') btn.textContent = val;
+            }, 0);
+        };
+
+        if (savedFilters) {
+            restore('map-district', savedFilters.district);
+            restore('map-type', savedFilters.type);
+            restore('map-price', savedFilters.price);
+            restore('map-sort', savedFilters.sort);
+        }
+        updateDistrictDropdown(savedFilters ? savedFilters.district : 'all');
+
+        // --- 2. [QUAN TRỌNG] KHÔI PHỤC VỊ TRÍ CUỘN ---
+        // Nếu có lịch sử -> dùng số lượng cũ. Nếu không -> mặc định 6
+        visibleCount = (savedScroll && savedScroll.count) ? savedScroll.count : 6;
+
         try { filterAndRender(); } catch(e) {}
+
+        // Sau khi render xong, thực hiện cuộn ngay lập tức
+        if (savedScroll) {
+            setTimeout(() => {
+                // Cuộn Sidebar (Desktop)
+                const sidebar = document.querySelector('.map-sidebar');
+                if (sidebar) sidebar.scrollTop = savedScroll.scrollTop;
+                
+                // Cuộn Màn hình (Mobile)
+                window.scrollTo(0, savedScroll.windowScroll);
+                
+                // Xóa lịch sử để tránh F5 lại bị cuộn lung tung
+                sessionStorage.removeItem('scroll_state');
+            }, 100); // Chờ 1 chút cho DOM ổn định
+        }
+
         initMapSafely();
     };
 
     // Chạy khi vào trang (bao gồm cả chuyển trang từ Home sang)
     document.addEventListener('astro:page-load', runPageSetup);
     
-    // [FIX LỖI] Dọn dẹp khi rời trang
+    // [SỬA LỖI] Dọn dẹp tuyệt đối khi rời trang
     document.addEventListener('astro:before-swap', () => {
         if (map) {
-            map.remove();
+            map.off(); // Tắt hết sự kiện đang lắng nghe
+            map.remove(); // Hủy map
             map = null;
         }
         if (mapObserver) {
@@ -944,4 +1027,17 @@ const preconnectTags = [
             mapObserver = null;
         }
     });
+    // [MỚI] Hàm lưu vị trí cuộn và số lượng căn đang xem
+    window.saveClickState = function() {
+        const sidebar = document.querySelector('.map-sidebar');
+        const state = {
+            // Lưu vị trí cuộn của Sidebar (Desktop)
+            scrollTop: sidebar ? sidebar.scrollTop : 0,
+            // Lưu vị trí cuộn của màn hình (Mobile)
+            windowScroll: window.scrollY,
+            // [QUAN TRỌNG] Lưu số lượng căn đang hiển thị (để khi quay lại load đủ số này)
+            count: visibleCount 
+        };
+        sessionStorage.setItem('scroll_state', JSON.stringify(state));
+    };
 </script>
