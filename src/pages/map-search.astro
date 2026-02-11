@@ -46,34 +46,34 @@ const preconnectTags = [
         <link rel="preload" href="/libs/leaflet/MarkerCluster.Default.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/libs/leaflet/MarkerCluster.Default.css"></noscript>
         
-        <script is:inline src="/libs/leaflet/leaflet.js" defer></script>
+        <script is:inline src="/libs/leaflet/leaflet.js" defer onload="window.leafletLoaded=true; document.dispatchEvent(new Event('leaflet-ready'))"></script>
         <script is:inline src="/libs/leaflet/leaflet.markercluster.js" defer></script>
     </Fragment>
     <h1 class="visually-hidden">Tìm kiếm phòng trọ trên bản đồ</h1>
 
     <div class="map-layout-wrapper">
         <img 
-    src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
-    alt="Bản đồ phòng trọ" 
-    class="map-placeholder-lcp" 
-    fetchpriority="high"
-    decoding="sync" 
-    width="800" 
-    height="600"
-    style="background-color: #e5e3df;"
->
+            src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
+            alt="Bản đồ phòng trọ" 
+            class="map-placeholder-lcp" 
+            fetchpriority="high"
+            decoding="sync" 
+            width="800" 
+            height="600"
+            style="background-color: #e5e3df; z-index: 5;"
+        >
 
         <div id="full-map-view" class="map-viewport" style="position: relative;">
-    <div id="map" style="width: 100%; height: 100%; z-index: 1;"></div>
-    
-    <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" 
-         style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; background: rgba(255,255,255,0.8); backdrop-filter: blur(2px);">
-        <div class="text-center">
-            <div class="spinner-border text-warning mb-2" role="status"></div>
-            <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
+            <div id="map" style="width: 100%; height: 100%; z-index: 10;"></div>
+            
+            <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" 
+                 style="position: absolute; top: 0; left: 0; width: 100%; z-index: 2000; pointer-events: none;">
+                <div class="text-center p-3 rounded bg-white shadow-sm" style="opacity: 0.9;">
+                    <div class="spinner-border text-warning mb-2" role="status"></div>
+                    <div class="small text-muted fw-bold">Đang tải bản đồ...</div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <div class="map-sidebar bg-light d-flex flex-column">
             <div class="city-tabs d-flex shadow-sm">
@@ -532,18 +532,14 @@ const preconnectTags = [
     // --- 3. KHỞI TẠO MAP (BẢN FIX LỖI VIEW TRANSITION) ---
     // --- [SỬA LẠI] HÀM KHỞI TẠO MAP (BẢN FIX LỖI MẤT CSS KHI CHUYỂN TRANG) ---
     function initMapSafely() {
-        // 1. [FIX QUAN TRỌNG] Kiểm tra và nạp lại CSS nếu bị Astro xóa mất
-        // Đây là "thuốc đặc trị" giúp bản đồ không bị vỡ giao diện khi quay lại trang
-        
-        // A. Kiểm tra CSS Leaflet (Cốt lõi)
+        // 1. Nạp lại CSS nếu bị mất (Giữ nguyên logic bảo vệ của bạn)
         if (!document.querySelector('link[href*="leaflet.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = '/libs/leaflet/leaflet.css'; // Đường dẫn file local của bạn
+            link.href = '/libs/leaflet/leaflet.css';
             document.head.appendChild(link);
         }
 
-        // B. Kiểm tra CSS MarkerCluster (Gom nhóm - Rất quan trọng cho trang Search)
         if (!document.querySelector('link[href*="MarkerCluster.css"]')) {
             const link1 = document.createElement('link');
             link1.rel = 'stylesheet';
@@ -556,13 +552,14 @@ const preconnectTags = [
             document.head.appendChild(link2);
         }
 
-        // 2. Kiểm tra xem thư viện JS đã tải xong chưa
+        // 2. [QUAY LẠI CÁCH CŨ NHƯNG AN TOÀN] Kiểm tra thư viện
+        // Nếu chưa có L hoặc MarkerClusterGroup -> Chờ 100ms rồi kiểm tra lại
         if (!window.L || !window.L.MarkerClusterGroup) {
             setTimeout(initMapSafely, 100);
             return;
         }
 
-        if (map) return; // Đã có map thì thôi
+        if (map) return; // Map đã có rồi thì thôi
 
         try {
             // 3. Khởi tạo map
@@ -572,26 +569,35 @@ const preconnectTags = [
                 zoomControl: false,
                 preferCanvas: true
             });
+
+            // 4. [MỚI] Ẩn ảnh Placeholder đi sau khi map đã lên
+            // Giúp người dùng nhìn thấy map thật chứ không phải ảnh tĩnh
+            const placeholder = document.querySelector('.map-placeholder-lcp');
+            if (placeholder) {
+                placeholder.style.opacity = '0';
+                setTimeout(() => { placeholder.style.display = 'none'; }, 500);
+            }
+
+            // ... (Phần code cấu hình ResizeObserver, Zoom, TileLayer... giữ nguyên như cũ) ...
             
-            // 4. [THUỐC ĐẶC TRỊ 2] ResizeObserver
-            // Giúp map tự động vẽ lại khi khung thay đổi kích thước
+            // ResizeObserver
             const mapDiv = document.getElementById('map');
             const resizeObserver = new ResizeObserver(() => {
                 map.invalidateSize();
             });
             resizeObserver.observe(mapDiv);
 
-            // 5. Thêm nút Zoom
+            // Zoom Control
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // 6. Layer Bản đồ (CartoDB Voyager) - Nhớ có crossOrigin: true
+            // Tile Layer
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 maxZoom: 20,
-                crossOrigin: true // Quan trọng để SW cache được
+                crossOrigin: true
             }).addTo(map);
 
-            // 7. Cấu hình Marker Cluster (Gom nhóm)
+            // Marker Cluster
             markersLayer = L.markerClusterGroup({
                 showCoverageOnHover: false,
                 maxClusterRadius: 50,
@@ -606,7 +612,7 @@ const preconnectTags = [
             });
             map.addLayer(markersLayer);
 
-            // 8. Sự kiện Zoom để ẩn/hiện giá
+            // Events
             const toggleLabels = () => {
                 const currentZoom = map.getZoom();
                 const mapContainer = map.getContainer();
@@ -616,7 +622,7 @@ const preconnectTags = [
             map.on('zoomend', toggleLabels);
             toggleLabels();
 
-            // 9. Vẽ marker ngay lập tức
+            // Render
             filterAndRender();
 
         } catch (e) {
