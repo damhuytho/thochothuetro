@@ -23,16 +23,17 @@ const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực q
 
 // [QUAN TRỌNG] Khai báo danh sách Preconnect (Đã rút gọn để không bị Lighthouse phạt)
 const preconnectTags = [
-    // Chỉ cần connect đến subdomain chính 'a', trình duyệt sẽ tự lo phần còn lại
+    // 1. Server Bản đồ: Chỉ cần kết nối 'a', trình duyệt tự lo phần còn lại
     { rel: 'preconnect', href: 'https://a.basemaps.cartocdn.com', crossorigin: true },
-    // Server ảnh của bạn
-    { rel: 'preconnect', href: 'https://img.thochothuetro.com' },
+    
+    // 2. Server Ảnh: Nơi chứa ảnh LCP
+    { rel: 'preconnect', href: 'https://img.thochothuetro.com' }
 ];
 ---
 
 <Layout title={pageTitle} description={pageDesc}>
     <Fragment slot="head">
-        {/* 1. RENDER PRECONNECT TAGS (Đã sửa lỗi cú pháp crossorigin) */}
+        {/* 1. RENDER PRECONNECT TAGS (Đã sửa lỗi crossorigin="anonymous") */}
         {preconnectTags.map(tag => (
             <link 
                 rel={tag.rel} 
@@ -46,7 +47,7 @@ const preconnectTags = [
         {/* 2. PRELOAD LCP IMAGE */}
         <link rel="preload" as="image" href="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" fetchpriority="high" />
         
-        {/* 3. LEAFLET CSS & JS */}
+        {/* 3. LEAFLET CSS & JS (Vẫn preload nhưng chưa chạy ngay) */}
         <link rel="preload" href="/libs/leaflet/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/libs/leaflet/leaflet.css"></noscript>
         <link rel="preload" href="/libs/leaflet/MarkerCluster.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -57,57 +58,50 @@ const preconnectTags = [
         <script is:inline src="/libs/leaflet/leaflet.js" defer onload="window.leafletLoaded=true; document.dispatchEvent(new Event('leaflet-ready'))"></script>
         <script is:inline src="/libs/leaflet/leaflet.markercluster.js" defer></script>
 
-        {/* 4. CRITICAL CSS (Đã tinh chỉnh độ rộng Sidebar) */}
+        {/* 4. CRITICAL CSS */}
         <style>
-            /* Reset cơ bản */
             body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
             
-            /* Khung chính */
             .map-layout-wrapper {
                 position: relative; width: 100%; height: 100vh; 
                 display: flex; flex-direction: column; background-color: #e5e3df;
                 overflow: hidden;
             }
 
-            /* Placeholder Image */
+            /* [QUAN TRỌNG] Placeholder Z-Index 10: Đè lên mọi thứ lúc đầu */
             .map-placeholder-lcp {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                 object-fit: cover; z-index: 10; display: block;
+                transition: opacity 0.5s ease; /* Hiệu ứng mờ dần khi map tải xong */
             }
 
-            /* Layout Components */
+            /* Map Viewport nằm dưới (Z-index 1) */
             .map-viewport { position: relative; width: 100%; flex-grow: 1; z-index: 1; }
+            
             .map-sidebar { position: relative; background: #fff; z-index: 20; display: flex; flex-direction: column; }
             
-            /* --- [SỬA ĐỔI QUAN TRỌNG] GIAO DIỆN DESKTOP --- */
-            /* --- [SỬA ĐỔI QUAN TRỌNG] GIAO DIỆN DESKTOP --- */
+            /* Giao diện Desktop */
             @media (min-width: 992px) {
                 .map-layout-wrapper { 
                     flex-direction: row; 
-                    /* TRỪ ĐI CHIỀU CAO HEADER (khoảng 76px) để không bị mất nút bên dưới */
-                    height: calc(100vh - 76px); 
+                    height: calc(100vh - 76px); /* Trừ Header */
                     min-height: 500px;
                 }
-                
-                /* Tăng độ rộng Sidebar lên 550px cho Laptop */
                 .map-sidebar { 
-                    width: 550px;
+                    width: 550px; 
                     height: 100%; 
                     border-right: 1px solid #dee2e6; 
                     order: 2; 
                     overflow-y: auto; 
-                    /* Thêm padding đáy để nút Xem thêm không bị sát mép dưới */
                     padding-bottom: 80px; 
                 }
                 .map-viewport { height: 100%; order: 1; }
             }
+            
+            /* Màn hình lớn */
+            @media (min-width: 1400px) { .map-sidebar { width: 650px; } }
 
-            /* Màn hình lớn (PC trên 1400px) thì cho rộng hơn nữa */
-            @media (min-width: 1400px) {
-                .map-sidebar { width: 650px; }
-            }
-
-            /* Giao diện Mobile (Giữ nguyên) */
+            /* Mobile */
             @media (max-width: 991px) {
                 .map-layout-wrapper { height: auto; min-height: 100vh; flex-direction: column; }
                 .map-viewport { height: 60vh; min-height: 400px; order: 1; position: sticky; top: 0; }
@@ -797,10 +791,39 @@ const preconnectTags = [
         ddMenuDistrict.innerHTML = html;
     }
 
+    // ... (Giữ nguyên các hàm bên trên như renderListDOM, loadMoreMapItems...)
+
     // =============================================================
-    // 6. SETUP & CLEANUP
+    // 6. SETUP & LAZY LOAD (QUAN TRỌNG NHẤT)
     // =============================================================
+    
+    let isMapInitialized = false; // Cờ kiểm tra map đã tải chưa
+
+    // Hàm này chỉ chạy 1 lần duy nhất khi người dùng tương tác
+    function startMapLazy() {
+        if (isMapInitialized) return;
+        isMapInitialized = true;
+
+        // console.log("Người dùng tương tác -> Bắt đầu tải bản đồ thật...");
+        
+        // Hiện spinner nhẹ để báo hiệu đang xử lý (nếu cần)
+        const spinner = document.getElementById('map-loading-spinner');
+        if(spinner) {
+             spinner.style.display = 'flex';
+             spinner.classList.remove('spinner-hidden');
+        }
+
+        // Gọi hàm khởi tạo map gốc
+        initMapSafely();
+
+        // Gỡ bỏ các sự kiện để không chạy lại
+        ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'].forEach(evt => {
+            document.removeEventListener(evt, startMapLazy);
+        });
+    }
+
     const runPageSetup = async () => {
+        // 1. Khôi phục bộ lọc & Scroll (Làm ngay lập tức để list hiện ra)
         const savedFilters = JSON.parse(sessionStorage.getItem('map_filters') || 'null');
         const savedScroll = JSON.parse(sessionStorage.getItem('scroll_state') || 'null');
 
@@ -814,6 +837,7 @@ const preconnectTags = [
             if (targetCity === 'hochiminh') targetDistrict = 'Phú Nhuận';
         }
 
+        // Load data list phòng (Nhẹ, làm ngay)
         if (currentCityFilter !== targetCity || allRoomsData.length === 0) {
             currentCityFilter = targetCity;
             try {
@@ -827,6 +851,7 @@ const preconnectTags = [
         }
 
         updateDistrictDropdown(targetDistrict);
+        
         const restore = (id, val) => {
             if (!val) return;
             const input = document.getElementById(id);
@@ -847,7 +872,6 @@ const preconnectTags = [
         }
 
         visibleCount = (savedScroll && savedScroll.count) ? savedScroll.count : 6;
-
         const inputs = document.querySelectorAll('.amenity-cb');
         inputs.forEach(input => { input.addEventListener('change', filterAndRender); });
 
@@ -862,10 +886,19 @@ const preconnectTags = [
             }, 100);
         }
 
-        initMapSafely();
+        // 2. THAY VÌ GỌI initMapSafely() NGAY, TA CHỜ SỰ KIỆN
+        // Thêm các sự kiện tương tác để kích hoạt map
+        const events = ['mousemove', 'touchstart', 'scroll', 'keydown', 'click'];
+        events.forEach(evt => {
+            document.addEventListener(evt, startMapLazy, { passive: true, once: true });
+        });
+
+        // Fallback: Nếu sau 4 giây người dùng không làm gì, tự động tải map
+        setTimeout(() => {
+            if (!isMapInitialized) startMapLazy();
+        }, 4000);
     };
     
-    // Chạy khi DOM sẵn sàng
     document.addEventListener('DOMContentLoaded', runPageSetup);
     
     window.saveClickState = function() {
