@@ -946,12 +946,11 @@ const preconnectTags = [
     }
 
     // =============================================================
-    // 6. SETUP & CLEANUP (QUAN TRỌNG NHẤT)
+    // 6. SETUP & CLEANUP (ĐÃ TỐI ƯU HÓA CHO RELOAD TRUYỀN THỐNG)
     // =============================================================
     const runPageSetup = async () => {
-        // Hủy map cũ (nếu có)
-        if (map) { map.remove(); map = null; }
-
+        // Không cần hủy map cũ vì trang load mới hoàn toàn
+        
         // Lấy lịch sử
         const savedFilters = JSON.parse(sessionStorage.getItem('map_filters') || 'null');
         const savedScroll = JSON.parse(sessionStorage.getItem('scroll_state') || 'null');
@@ -983,7 +982,6 @@ const preconnectTags = [
 
         // Khôi phục giao diện bộ lọc
         updateDistrictDropdown(targetDistrict);
-        
         const restore = (id, val) => {
             if (!val) return;
             const input = document.getElementById(id);
@@ -1023,21 +1021,8 @@ const preconnectTags = [
         initMapSafely();
     };
 
-    // Chạy setup
-    document.addEventListener('astro:page-load', runPageSetup);
-    
-    // Dọn dẹp khi rời trang
-    document.addEventListener('astro:before-swap', () => {
-        if (map) {
-            map.off();
-            map.remove();
-            map = null;
-        }
-        if (mapObserver) {
-            mapObserver.disconnect();
-            mapObserver = null;
-        }
-    });
+    // Chạy setup ngay khi DOM sẵn sàng (Thay vì astro:page-load)
+    document.addEventListener('DOMContentLoaded', runPageSetup);
 
     // Lưu trạng thái khi click xem phòng
     window.saveClickState = function() {

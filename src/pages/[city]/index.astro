@@ -247,7 +247,7 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
 
 <script>
 // CLIENT-SIDE FILTER & SORTING LOGIC
-document.addEventListener('astro:page-load', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const queryString = window.location.search.substring(1);
     const params = new URLSearchParams(queryString);
     const introBanner = document.getElementById('intro-banner');

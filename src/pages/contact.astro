@@ -193,7 +193,7 @@ const schemaLocalBusiness = {
 </style>
 
 <script is:inline>
-    document.addEventListener('astro:page-load', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         const btnLoadMap = document.getElementById('btn-load-map');
         const placeholder = document.getElementById('map-placeholder');
         const mapContainer = document.getElementById('contact-map');

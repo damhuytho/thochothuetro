@@ -2,7 +2,7 @@
 // Import trực tiếp từ node_modules 
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { ViewTransitions } from 'astro:transitions';
+
 
 // Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
@@ -46,7 +46,7 @@ if (!isMapPage) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <ViewTransitions />
+  
     
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
@@ -456,8 +456,8 @@ if (!isMapPage) {
     </script>
 
     <script is:inline>
-        // Mobile share functionality
-        document.addEventListener('astro:page-load', () => {
+        // Mobile share functionality - Đã chuyển về sự kiện chuẩn của trình duyệt
+        document.addEventListener('DOMContentLoaded', () => {
             const shareBtn = document.getElementById('mobile-share-btn');
             if (shareBtn) {
                 shareBtn.addEventListener('click', async () => {
