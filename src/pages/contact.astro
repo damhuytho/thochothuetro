@@ -110,11 +110,10 @@ const schemaLocalBusiness = {
                     <div class="text-center">
                         <p class="fw-bold mb-3 small text-uppercase text-muted">Quét mã Zalo để nhận báo giá</p>
                         <div class="d-inline-block border p-2 rounded bg-white shadow-sm mb-3 position-relative qr-wrapper">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/0925996992" 
-                                 alt="QR Zalo 0925996992" 
-                                 width="120" height="120"
-                                 loading="lazy" decoding="async">
-                            <div class="qr-scan-line"></div>
+                            <img src="/images/qr-zalo.png" 
+                              alt="QR Zalo 0925996992" 
+                              width="120" height="120"
+                            decoding="async">
                         </div>
                         <div class="d-grid gap-2">
                             <a href="https://zalo.me/0925996992" target="_blank" class="btn btn-primary fw-bold rounded-pill shadow-sm border-0 btn-pulse-blue" style="background-color: #0068ff;">
@@ -163,6 +162,9 @@ const schemaLocalBusiness = {
 </Layout>
 
 <style>
+    :global(h1, h2, h3, h4, h5, h6, p, span, a) {
+    font-display: swap;
+}
     /* 1. ANIMATION PULSE */
     .btn-pulse-blue { animation: pulse-blue 2s infinite; }
     @keyframes pulse-blue {
