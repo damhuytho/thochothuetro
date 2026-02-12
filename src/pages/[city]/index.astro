@@ -24,16 +24,15 @@ let cityRooms = [];
 try {
     const fileContent = fs.readFileSync(dataPath, 'utf-8');
     const jsonData = JSON.parse(fileContent);
-    // [FIX] Thêm (r: any) để tránh lỗi TypeScript
+    // [FIX 1] Thêm kiểu (r: any) để TypeScript không báo lỗi
     cityRooms = jsonData.rooms.filter((r: any) => r.status === 'active');
 } catch (e) {
     console.error(`Lỗi đọc file ${fileName}:`, e);
     cityRooms = [];
 }
 
-// [FIX] Thêm kiểu any[] cho tham số rooms
+// [FIX 2] Định nghĩa kiểu mảng any[] cho tham số
 function sortRooms(rooms: any[]) { 
-    // [FIX] Thêm kiểu any cho a và b
     return rooms.sort((a: any, b: any) => { 
         if (a.promotion && !b.promotion) return -1;
         if (!a.promotion && b.promotion) return 1;
@@ -41,17 +40,14 @@ function sortRooms(rooms: any[]) {
     });
 }
 
-// Gom nhóm theo quận
-// [FIX] Thêm kiểu any cho r
+// [FIX 3] Định nghĩa kiểu cho map và filter
 const districtNames = [...new Set(cityRooms.map((r: any) => r.district))];
 let districtsData = districtNames.map(name => {
-    // [FIX] Thêm kiểu any cho r
     return { name: name, rooms: sortRooms(cityRooms.filter((r: any) => r.district === name)) }; 
 });
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
 
-// Helper Slug
-// [FIX] Cho phép string hoặc any
+// [FIX 4] Cho phép tham số nhận kiểu string hoặc bất kỳ
 function createSlug(text: string | any) { 
     if (!text) return '';
     return text.toString().toLowerCase()
@@ -66,9 +62,11 @@ function createSlug(text: string | any) {
 const pageTitle = `Phòng Trọ ${cityName} Giá Rẻ, Full Nội Thất | Thọ Cho Thuê Trọ`;
 const pageDesc = `Hệ thống phòng trọ, căn hộ dịch vụ tại ${cityName}. Giờ giấc tự do, an ninh 24/7, full nội thất. Xem phòng ngay!`;
 const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
+// [QUAN TRỌNG] Ảnh để preload (Cải thiện LCP)
+const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
 ---
 
-<Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL}>
+<Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL} preloadImage={preloadImg}>
     <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg">
          <picture>
              <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
@@ -80,7 +78,7 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
                 height="600"
                 fetchpriority="high" 
                 loading="eager"
-                decoding="sync"
+                decoding="async"
             >
          </picture>
          <div class="banner-overlay"></div>
@@ -126,7 +124,7 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
                         </div>
                         
                         <div class="row g-2 g-md-3 room-list-container">
-                            {/* [FIX] Thêm kiểu dữ liệu cho room và idx */}
+                            {/* [FIX 5] Thêm kiểu (room: any, idx: number) */}
                             {dData.rooms.slice(0, 6).map((room: any, idx: number) => ( 
                                 <div class="col-6 col-md-4 room-item"
                                      data-district={room.district}
@@ -255,9 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const noResult = document.getElementById('no-result');
     const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
 
-    // Lấy URL hiện tại để ghép link cho đúng
     const currentPath = window.location.pathname.replace(/\/$/, '');
 
+    // [FIX 6] Định nghĩa kiểu
     const createSlug = (text: string | any) => { 
         if(!text) return '';
         return text.toString().toLowerCase()
@@ -269,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function hasImage(el: Element) { 
-        // [FIX] Ép kiểu HTMLImageElement
+        // [FIX 7] Ép kiểu thành HTMLImageElement để dùng thuộc tính src
         const img = el.querySelector('img') as HTMLImageElement | null; 
         if (!img) return false;
         const src = (img.getAttribute('src') || '').trim();
@@ -277,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // [FIX] Thêm kiểu Element[]
+    // [FIX 8] Định nghĩa kiểu mảng Element[]
     function sortAndCap(items: Element[]) { 
         const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
         const rented = items.filter(i => i.getAttribute('data-status') === 'rented'); 
@@ -290,9 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...active, ...rentedCapped];
     }
 
-    // [FIX] Ép kiểu HTMLElement[]
+    // [FIX 9] Ép kiểu HTMLElement[]
     const allItems = Array.from(document.querySelectorAll('.room-item')) as HTMLElement[];
-    // [FIX] Định nghĩa kiểu Record để tránh lỗi index signature
+    // [FIX 10] Định nghĩa kiểu Dictionary Record<string, HTMLElement[]> để sửa lỗi Index
     const itemsByDistrict: Record<string, HTMLElement[]> = {}; 
 
     allItems.forEach(item => {
@@ -301,11 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsByDistrict[district].push(item);
     });
 
-    // [FIX] Thêm kiểu Element | null cho container
+    // [FIX 11] Thêm | null để an toàn
     function hideAllInContainer(container: Element | null) {
         if (!container) return;
         Array.from(container.querySelectorAll('.room-item')).forEach(el => {
-            // [FIX] Ép kiểu HTMLElement để dùng .style
+            // [FIX 12] Ép kiểu HTMLElement để truy cập style
             (el as HTMLElement).style.display = 'none';
         });
     }
@@ -323,26 +321,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchedCount = sorted.length;
             const remaining = Math.max(0, matchedCount - 6);
 
+            // [FIX 13] Thêm dấu ?. để tránh lỗi Object is possibly null
             const container = wrapper.parentElement?.querySelector('.room-list-container');
             if (container) {
                 sorted.forEach(el => container.appendChild(el));
                 hideAllInContainer(container);
                 sorted.slice(0, 6).forEach(el => { 
-                    // [FIX] Ép kiểu HTMLElement
                     (el as HTMLElement).style.display = 'block'; 
                     anyVisible = true; 
                 });
             }
 
             if (remaining > 0) {
-                // [FIX] Ép kiểu HTMLAnchorElement
+                // [FIX 14] Ép kiểu HTMLAnchorElement để truy cập href
                 const link = wrapper.querySelector('.view-more-link') as HTMLAnchorElement | null;
                 const countSpan = wrapper.querySelector('.remaining-count');
                 
-                // [FIX] Chuyển number sang string
+                // [FIX 15] Chuyển đổi number sang string bằng .toString()
                 if (countSpan) countSpan.textContent = remaining.toString();
                 if (link) link.href = `${currentPath}/${createSlug(district)}`;
-                // [FIX] Ép kiểu HTMLElement cho wrapper
                 (wrapper as HTMLElement).style.display = 'block';
             } else {
                 (wrapper as HTMLElement).style.display = 'none';
@@ -364,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fDistrict = params.get('district');
     const fType = (params.get('type') || 'all').toLowerCase();
     const fPrice = params.get('price');
-    // [FIX] Xử lý trường hợp null
+    // [FIX 16] Xử lý trường hợp null bằng (... || '')
     const fAmenitiesRaw = (params.get('amenities') || '').split(',');
     const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase()).filter(a => a !== '');
     
@@ -388,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (matches && fPrice && fPrice !== 'all') {
-            // [FIX] Xử lý trường hợp null khi parse
+            // [FIX 17] parseInt cần chuỗi, thêm || '0'
             const price = parseInt(item.getAttribute('data-price') || '0') / 1000000;
             if (fPrice === 'duoi-5' && price >= 5) matches = false;
             if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
@@ -429,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
             matchedMap[district].push(item);
             totalMatched++;
         } else {
-            item.style.display = 'none';
+            (item as HTMLElement).style.display = 'none';
         }
     });
 
@@ -440,6 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const matchedCount = sorted.length;
         const remaining = Math.max(0, matchedCount - 6);
 
+        // [FIX 18] Thêm dấu ?.
         const container = wrapper.parentElement?.querySelector('.room-list-container');
         if (container) {
             hideAllInContainer(container);
