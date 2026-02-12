@@ -30,7 +30,6 @@ function getDistricts(fileName: string) {
 
 const hcmDistricts = getDistricts('data_hochiminh.json');
 const hnDistricts = getDistricts('data_hanoi.json');
-const { currentCity } = Astro.props;
 ---
 
 <nav class="navbar navbar-expand-lg fixed-top app-header">
@@ -43,7 +42,7 @@ const { currentCity } = Astro.props;
             </div>
         </a>
 
-        <button class="navbar-toggler border-0 p-0 shadow-none d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
+        <button class="navbar-toggler border-0 p-0 shadow-none d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
             <div class="hamburger-box">
                 <div class="hamburger-inner"></div>
             </div>
@@ -124,7 +123,8 @@ const { currentCity } = Astro.props;
         <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     
-    <div class="offcanvas-body p-0">
+    <div class="offcanvas-body p-0 overflow-y-auto custom-scrollbar">
+        
         <ul class="navbar-nav mobile-nav-list p-3" id="mobileMenuAccordion">
             
             <li class="nav-item mb-2">
@@ -133,18 +133,21 @@ const { currentCity } = Astro.props;
                 </a>
             </li>
 
-            <li class="nav-item accordion-group mb-2 rounded-3 overflow-hidden border border-light">
-                <div class="d-flex align-items-center justify-content-between pe-2 bg-light-subtle">
+            <li class="nav-item mb-2">
+                <div class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0">
                     <a class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark" href="/ho-chi-minh">
                         <i class="fas fa-building me-3 text-warning width-20"></i>TP. Hồ Chí Minh
                     </a>
-                    <button class="btn btn-link text-dark p-3 text-decoration-none collapsed" type="button" 
-                            data-bs-toggle="collapse" data-bs-target="#collapseHCM" aria-expanded="false">
+                    <button class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn" 
+                            type="button" 
+                            onclick="toggleMobileSubmenu('collapseHCM', this)"
+                            style="width: 50px; height: 50px;">
                         <i class="fas fa-chevron-down transition-icon"></i>
                     </button>
                 </div>
-                <div id="collapseHCM" class="collapse bg-white" data-bs-parent="#mobileMenuAccordion">
-                    <div class="py-2 px-2 district-grid-mobile">
+                
+                <div id="collapseHCM" class="mobile-submenu" style="display: none;">
+                    <div class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2">
                         {hcmDistricts.map(dist => (
                             <a class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold" href={`/ho-chi-minh/${createSlug(dist)}`}>
                                 {dist}
@@ -154,18 +157,21 @@ const { currentCity } = Astro.props;
                 </div>
             </li>
 
-            <li class="nav-item accordion-group mb-2 rounded-3 overflow-hidden border border-light">
-                <div class="d-flex align-items-center justify-content-between pe-2 bg-light-subtle">
+            <li class="nav-item mb-2">
+                <div class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0">
                     <a class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark" href="/ha-noi">
                         <i class="fas fa-landmark me-3 text-warning width-20"></i>Hà Nội
                     </a>
-                    <button class="btn btn-link text-dark p-3 text-decoration-none collapsed" type="button" 
-                            data-bs-toggle="collapse" data-bs-target="#collapseHN" aria-expanded="false">
+                    <button class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn" 
+                            type="button" 
+                            onclick="toggleMobileSubmenu('collapseHN', this)"
+                            style="width: 50px; height: 50px;">
                         <i class="fas fa-chevron-down transition-icon"></i>
                     </button>
                 </div>
-                <div id="collapseHN" class="collapse bg-white" data-bs-parent="#mobileMenuAccordion">
-                    <div class="py-2 px-2 district-grid-mobile">
+                
+                <div id="collapseHN" class="mobile-submenu" style="display: none;">
+                    <div class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2">
                         {hnDistricts.map(dist => (
                             <a class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold" href={`/ha-noi/${createSlug(dist)}`}>
                                 {dist}
@@ -181,23 +187,71 @@ const { currentCity } = Astro.props;
                 </a>
             </li>
             
-            <li class="nav-item mb-2">
+            <li class="nav-item mb-4">
                 <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/contact">
                     <i class="fas fa-envelope me-3 text-warning width-20"></i>Liên hệ
                 </a>
             </li>
-        </ul>
 
-        <div class="px-3 pb-4">
-            <a href="tel:0925996992" class="btn btn-primary rounded-pill fw-bold w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                <i class="fas fa-phone-alt animate-ring"></i> 
-                <span>0925 996 992</span>
-            </a>
-        </div>
+            <li class="nav-item mt-2 pt-3 border-top border-light">
+                <a href="tel:0925996992" class="btn btn-warning rounded-pill fw-bold w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-phone-alt animate-ring"></i> 
+                    <span>0925 996 992</span>
+                </a>
+                
+                <p class="small text-muted mb-2 text-center fw-bold">Kết nối với chúng tôi</p>
+                <div class="d-flex justify-content-center gap-3 pb-3">
+                    <a href="https://zalo.me/0925996992" target="_blank" class="social-icon-mobile text-primary">
+                        <i class="fas fa-comment-dots"></i>
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" class="social-icon-mobile text-primary">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" class="social-icon-mobile text-dark">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                </div>
+            </li>
+
+        </ul>
     </div>
 </div>
 
+<script is:inline>
+    // Hàm này chạy độc lập, không cần Bootstrap JS
+    window.toggleMobileSubmenu = function(targetId, btnElement) {
+        // 1. Lấy phần tử mục tiêu
+        const targetEl = document.getElementById(targetId);
+        const icon = btnElement.querySelector('.transition-icon');
+        
+        // 2. Kiểm tra trạng thái hiện tại (Đang mở hay đóng)
+        const isClosed = targetEl.style.display === 'none';
+
+        // 3. ĐÓNG TẤT CẢ CÁC MENU KHÁC (Cơ chế Accordion thủ công)
+        // Tìm tất cả submenu
+        const allSubmenus = document.querySelectorAll('.mobile-submenu');
+        const allIcons = document.querySelectorAll('.toggle-btn .transition-icon');
+        
+        // Đóng hết lại
+        allSubmenus.forEach(el => el.style.display = 'none');
+        allIcons.forEach(ic => ic.style.transform = 'rotate(0deg)');
+
+        // 4. MỞ MENU ĐƯỢC CHỌN (Nếu nó đang đóng)
+        if (isClosed) {
+            targetEl.style.display = 'block';
+            // Hiệu ứng trượt nhẹ (Optional animation via CSS class if needed)
+            if(icon) icon.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+
 <style>
+    /* Z-INDEX ĐỂ ĐÈ LÊN MỌI THỨ */
+    .app-offcanvas {
+        z-index: 999999 !important; 
+    }
+   
+
     /* 1. HEADER CHUNG */
     .app-header {
         background: rgba(255, 255, 255, 0.95);
@@ -218,124 +272,84 @@ const { currentCity } = Astro.props;
     .custom-link:hover, .custom-link.active {
         color: #d9b205; /* Màu vàng thương hiệu */
     }
-    
-    /* Hiệu ứng gạch chân hover */
     .custom-link::after {
-        content: '';
-        position: absolute;
-        width: 0; height: 2px;
-        bottom: 5px; left: 50%;
-        background-color: #d9b205;
-        transition: all 0.3s ease;
-        transform: translateX(-50%);
+        content: ''; position: absolute; width: 0; height: 2px;
+        bottom: 5px; left: 50%; background-color: #d9b205;
+        transition: all 0.3s ease; transform: translateX(-50%);
     }
-    .custom-link:hover::after {
-        width: 60%;
-    }
+    .custom-link:hover::after { width: 60%; }
 
-    /* MEGA MENU DROPDOWN */
+    /* Invisible Bridge */
+    .nav-item.dropdown { position: relative; padding-bottom: 10px; margin-bottom: -10px; }
+    
+    /* MEGA MENU */
     .mega-menu {
-        min-width: 500px; /* Độ rộng tối thiểu để chứa 2 cột */
-        margin-top: 15px !important; /* Cách xa header chút */
-        display: none;
-        background: #fff;
+        min-width: 500px;
+        margin-top: 5px !important;
+        display: none; background: #fff;
     }
     
-    /* Grid Layout cho Quận */
-    .district-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Chia 2 cột đều nhau */
-        gap: 8px;
-    }
-    
-    .district-item {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-        color: #555;
-        transition: all 0.2s;
-    }
-    .district-item:hover {
-        background-color: #fff8e1; /* Nền vàng nhạt khi hover */
-        color: #d9b205;
-        font-weight: 600;
-        transform: translateX(5px); /* Hiệu ứng trượt nhẹ */
-    }
-
-    /* Hiệu ứng Hover Xổ Menu */
     @media (min-width: 992px) {
         .hover-dropdown:hover .mega-menu {
             display: block;
             animation: fadeInUp 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
-        
-        /* Mũi tên nhỏ chỉ lên trên (Optional visual cue) */
         .mega-menu::before {
-            content: '';
-            position: absolute;
-            top: -6px; left: 20px;
-            width: 12px; height: 12px;
-            background: #fff;
-            transform: rotate(45deg);
-            border-left: 1px solid rgba(0,0,0,0.05);
-            border-top: 1px solid rgba(0,0,0,0.05);
+            content: ''; position: absolute; top: -6px; left: 20px;
+            width: 12px; height: 12px; background: #fff; transform: rotate(45deg);
+            border-left: 1px solid rgba(0,0,0,0.05); border-top: 1px solid rgba(0,0,0,0.05);
         }
     }
 
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Grid Layout Desktop */
+    .district-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .district-item { padding: 8px 12px; font-size: 0.9rem; color: #555; transition: all 0.2s; }
+    .district-item:hover { background-color: #fff8e1; color: #d9b205; font-weight: 600; transform: translateX(5px); }
 
     /* 3. MOBILE MENU STYLES */
     .width-20 { width: 20px; text-align: center; }
     
-    .mobile-link {
-        color: #333;
-        font-size: 1rem;
-        transition: all 0.2s;
-    }
-    .mobile-link:hover {
-        background-color: #f8f9fa;
-        color: #d9b205;
-    }
+    .mobile-link { color: #333; font-size: 1rem; transition: all 0.2s; }
+    .mobile-link:hover { background-color: #f8f9fa; color: #d9b205; }
 
-    .district-grid-mobile {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 5px;
-    }
+    .district-grid-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 
-    /* Xoay mũi tên accordion */
-    .accordion-group button[aria-expanded="true"] .transition-icon {
-        transform: rotate(180deg);
-        color: #d9b205;
-    }
+    /* Icon Transition */
     .transition-icon { transition: transform 0.3s ease; }
+    
+    /* Animation cho Submenu Mobile */
+    .mobile-submenu {
+        animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-    /* Hamburger Icon Styling */
-    .hamburger-box {
-        width: 30px;      /* Chiều rộng nút */
-        height: 24px;     /* Chiều cao nút */
-        position: relative;
-        display: inline-block;
-    }
-    .hamburger-inner {
-        top: 50%; margin-top: -1px;
-    }
+    /* Hamburger Icon */
+    .hamburger-box { width: 30px; height: 24px; position: relative; display: inline-block; }
+    .hamburger-inner { top: 50%; margin-top: -2px; display: block; }
     .hamburger-inner, .hamburger-inner::before, .hamburger-inner::after {
-        width: 24px; height: 2px;
-        background-color: #333;
-        border-radius: 4px;
-        position: absolute;
-        transition: transform 0.15s ease;
+        width: 30px; height: 3px; background-color: #333; border-radius: 4px;
+        position: absolute; transition: transform 0.15s ease;
     }
-    .hamburger-inner::before { content: ""; top: -8px; }
-    .hamburger-inner::after { content: ""; bottom: -8px; }
+    .hamburger-inner::before { content: ""; top: -10px; }
+    .hamburger-inner::after { content: ""; bottom: -10px; }
 
-    /* Button CTA Hover */
-    .btn-header-cta:hover {
-        background-color: #c4a004; /* Darker Gold */
-        color: #fff !important;
-        transform: translateY(-2px);
+    /* Social Icon Mobile */
+    .social-icon-mobile {
+        width: 45px; height: 45px; background: #fff; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.2s; text-decoration: none;
     }
+    .social-icon-mobile:active { transform: scale(0.9); }
+
+    .btn-header-cta:hover { background-color: #c4a004; color: #fff !important; transform: translateY(-2px); }
+    
+    /* Custom Scrollbar cho Mobile Menu */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 </style>
