@@ -12,7 +12,7 @@ try {
         const hcmData = JSON.parse(fs.readFileSync(hcmPath, 'utf-8'));
         if (hcmData.rooms) initialRooms = hcmData.rooms;
     }
-    initialRooms = initialRooms.filter(r => r.status === 'active' || r.status === 'rented');
+    initialRooms = initialRooms.filter((r: any) => r.status === 'active' || r.status === 'rented');
 } catch (error) {
     console.error("Lỗi đọc data HCM:", error);
 }
@@ -22,11 +22,9 @@ const pageTitle = "Bản đồ phòng trọ - Tìm kiếm theo vị trí | Thọ
 const pageDesc = "Công cụ tìm kiếm phòng trọ trên bản đồ trực quan. Xem vị trí chính xác, so sánh giá các căn hộ dịch vụ, phòng trọ.";
 
 // [QUAN TRỌNG] Khai báo danh sách Preconnect (Đã rút gọn để không bị Lighthouse phạt)
-const preconnectTags = [
-    // 1. Server Bản đồ: Chỉ cần kết nối 'a', trình duyệt tự lo phần còn lại
+// [QUAN TRỌNG] Khai báo danh sách Preconnect
+const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: string; type?: string }[] = [
     { rel: 'preconnect', href: 'https://a.basemaps.cartocdn.com', crossorigin: true },
-    
-    // 2. Server Ảnh: Nơi chứa ảnh LCP
     { rel: 'preconnect', href: 'https://img.thochothuetro.com' }
 ];
 ---
@@ -35,12 +33,12 @@ const preconnectTags = [
     <Fragment slot="head">
         {/* 1. RENDER PRECONNECT TAGS (Đã sửa lỗi crossorigin="anonymous") */}
         {preconnectTags.map(tag => (
-            <link 
-                rel={tag.rel} 
-                href={tag.href} 
-                as={tag.as} 
-                type={tag.type} 
-                crossorigin={tag.crossorigin ? "anonymous" : undefined} 
+           <link 
+               rel={tag.rel} 
+               href={tag.href} 
+               {...(tag.as ? { as: tag.as } : {})}
+               {...(tag.type ? { type: tag.type } : {})}
+               crossorigin={tag.crossorigin ? "anonymous" : undefined} 
             />
         ))}
 
@@ -222,13 +220,13 @@ const preconnectTags = [
             <div class="flex-grow-1 p-2 p-md-3 list-scroll-container" id="map-list-container">
                 <div class="row g-2" id="map-grid">
                     {/* Render sẵn 6 phòng để đảm bảo SEO & Tốc độ */}
-                    {initialRooms.slice(0, 6).map((room, index) => (
-                        <div class="col-6 col-lg-6">
-                            <CardRoom 
-                                room={room} 
-                                priority={index < 2} 
-                            />
-                        </div>
+                    {initialRooms.slice(0, 6).map((room: any, index: number) => (
+                         <div class="col-6 col-lg-6">
+                             <CardRoom 
+                                   room={room} 
+                                   priority={index < 2} 
+                             />
+                         </div>
                     ))}
                 </div>
                 <div id="map-no-result" class="text-center py-5 d-none">

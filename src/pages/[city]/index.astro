@@ -16,29 +16,25 @@ export async function getStaticPaths() {
 
 const { city } = Astro.params;
 const { cityName, cityCode } = Astro.props;
-
-// --- 2. LOAD DATA (SỬA ĐỔI: Đọc đúng file data của thành phố) ---
-// Thay vì đọc data.json, ta đọc data_hanoi.json hoặc data_hochiminh.json
-const fileName = `data_${cityCode}.json`; 
+// --- 2. LOAD DATA ---
+const fileName = `data_${cityCode}.json`;
 const dataPath = path.join(process.cwd(), 'public', fileName);
 
-// Đọc file (Cần try-catch để an toàn nếu file chưa sinh ra)
 let cityRooms = [];
 try {
     const fileContent = fs.readFileSync(dataPath, 'utf-8');
     const jsonData = JSON.parse(fileContent);
-    
-    // Lấy danh sách phòng ACTIVE (Bỏ qua phòng đã thuê nếu muốn trang sạch sẽ)
-    // Lưu ý: data json mới đã phân loại sẵn city, nên không cần filter city nữa
-    cityRooms = jsonData.rooms.filter(r => r.status === 'active');
+    // [FIX] Thêm (r: any) để tránh lỗi TypeScript
+    cityRooms = jsonData.rooms.filter((r: any) => r.status === 'active');
 } catch (e) {
     console.error(`Lỗi đọc file ${fileName}:`, e);
     cityRooms = [];
 }
 
-// Logic sắp xếp: Ưu tiên Promotion
-function sortRooms(rooms) {
-    return rooms.sort((a, b) => {
+// [FIX] Thêm kiểu any[] cho tham số rooms
+function sortRooms(rooms: any[]) { 
+    // [FIX] Thêm kiểu any cho a và b
+    return rooms.sort((a: any, b: any) => { 
         if (a.promotion && !b.promotion) return -1;
         if (!a.promotion && b.promotion) return 1;
         return 0;
@@ -46,14 +42,17 @@ function sortRooms(rooms) {
 }
 
 // Gom nhóm theo quận
-const districtNames = [...new Set(cityRooms.map(r => r.district))];
+// [FIX] Thêm kiểu any cho r
+const districtNames = [...new Set(cityRooms.map((r: any) => r.district))];
 let districtsData = districtNames.map(name => {
-    return { name: name, rooms: sortRooms(cityRooms.filter(r => r.district === name)) };
+    // [FIX] Thêm kiểu any cho r
+    return { name: name, rooms: sortRooms(cityRooms.filter((r: any) => r.district === name)) }; 
 });
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
 
 // Helper Slug
-function createSlug(text) {
+// [FIX] Cho phép string hoặc any
+function createSlug(text: string | any) { 
     if (!text) return '';
     return text.toString().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -74,22 +73,22 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
          <picture>
              <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
              <img 
-    src="https://img.thochothuetro.com/banner.webp" 
-    class="banner-bg-img" 
-    alt={`Phòng trọ ${cityName}`} 
-    width="1920" 
-    height="600"
-    fetchpriority="high" 
-    loading="eager"
-    decoding="sync"
->
+                src="https://img.thochothuetro.com/banner.webp" 
+                class="banner-bg-img" 
+                alt={`Phòng trọ ${cityName}`} 
+                width="1920" 
+                height="600"
+                fetchpriority="high" 
+                loading="eager"
+                decoding="sync"
+            >
          </picture>
          <div class="banner-overlay"></div>
          <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
             <div class="row w-100">
                 <div class="col-lg-8 mx-auto text-center text-lg-start">
                     <h1 class="hero-title fw-bold text-white mb-3">
-                        Phòng Trọ <span class="text-gradient-gold">{cityName}</span> <br> Tiện Nghi & Giá Rẻ
+                         Phòng Trọ <span class="text-gradient-gold">{cityName}</span> <br> Tiện Nghi & Giá Rẻ
                     </h1>
                     <p class="hero-desc text-white-50 mb-4">
                         Hơn {cityRooms.length}+ phòng trọ an ninh tại {cityName}. Giá từ 3 - 15 triệu/tháng.
@@ -127,7 +126,8 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
                         </div>
                         
                         <div class="row g-2 g-md-3 room-list-container">
-                            {dData.rooms.slice(0, 6).map((room, idx) => (
+                            {/* [FIX] Thêm kiểu dữ liệu cho room và idx */}
+                            {dData.rooms.slice(0, 6).map((room: any, idx: number) => ( 
                                 <div class="col-6 col-md-4 room-item"
                                      data-district={room.district}
                                      data-price={room.price}
@@ -135,14 +135,12 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
                                      data-status={room.status}
                                      data-keypoint={room.keypoint} 
                                      data-pet={room.pet}>
-                                    {/* SỬA ĐỔI: Thêm data-keypoint và data-pet để bộ lọc JS hoạt động */}
                                      
                                      <CardRoom room={room} priority={idx < 6} citySlug={city} />
                                 </div>
                             ))}
                         </div>
 
-                        {/* Nút Xem Thêm (Ẩn mặc định, JS sẽ hiện nếu còn dư phòng) */}
                         <div class="view-more-wrapper text-center mt-3" style="display: none;" data-district={dData.name}>
                             <a href="#" class="view-more-link btn btn-outline-warning rounded-pill px-4">
                                 Xem thêm <span class="remaining-count fw-bold"></span> phòng khác <i class="fas fa-arrow-right ms-2"></i>
@@ -183,13 +181,15 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
     }
 
     .banner-bg-img {
-        position: absolute; top: 0; left: 0;
+        position: absolute;
+        top: 0; left: 0;
         width: 100%; height: 100%;
         object-fit: cover; object-position: center;
     }
 
     .banner-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
         background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
         z-index: 1;
     }
@@ -216,7 +216,8 @@ const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
 
     /* BADGE LUXURY */
     .badge-luxury {
-        display: inline-flex; align-items: center;
+        display: inline-flex;
+        align-items: center;
         padding: 0.6rem 1.2rem;
         background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
@@ -254,11 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const noResult = document.getElementById('no-result');
     const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
 
-    // Lấy URL hiện tại (ví dụ: /ho-chi-minh) để ghép link cho đúng
-    // Bỏ dấu gạch chéo ở cuối nếu có
+    // Lấy URL hiện tại để ghép link cho đúng
     const currentPath = window.location.pathname.replace(/\/$/, '');
 
-    const createSlug = (text) => {
+    const createSlug = (text: string | any) => { 
         if(!text) return '';
         return text.toString().toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -268,19 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/\s+/g, '-');
     };
 
-    function hasImage(el) {
-        const img = el.querySelector('img');
+    function hasImage(el: Element) { 
+        // [FIX] Ép kiểu HTMLImageElement
+        const img = el.querySelector('img') as HTMLImageElement | null; 
         if (!img) return false;
         const src = (img.getAttribute('src') || '').trim();
         if (!src || src.includes('logo')) return false;
         return true;
     }
 
-    function sortAndCap(items) {
+    // [FIX] Thêm kiểu Element[]
+    function sortAndCap(items: Element[]) { 
         const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
-        const rented = items.filter(i => i.getAttribute('data-status') === 'rented');
+        const rented = items.filter(i => i.getAttribute('data-status') === 'rented'); 
         
-        const byImage = (a, b) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
+        const byImage = (a: Element, b: Element) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
         active.sort(byImage);
         rented.sort(byImage);
         
@@ -288,18 +290,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...active, ...rentedCapped];
     }
 
-    const allItems = Array.from(document.querySelectorAll('.room-item'));
-    const itemsByDistrict = {};
+    // [FIX] Ép kiểu HTMLElement[]
+    const allItems = Array.from(document.querySelectorAll('.room-item')) as HTMLElement[];
+    // [FIX] Định nghĩa kiểu Record để tránh lỗi index signature
+    const itemsByDistrict: Record<string, HTMLElement[]> = {}; 
+
     allItems.forEach(item => {
-        const district = item.getAttribute('data-district') || 'unknown';
+        const district = item.getAttribute('data-district') || 'unknown'; 
         if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
         itemsByDistrict[district].push(item);
     });
 
-    function hideAllInContainer(container) {
+    // [FIX] Thêm kiểu Element | null cho container
+    function hideAllInContainer(container: Element | null) {
         if (!container) return;
         Array.from(container.querySelectorAll('.room-item')).forEach(el => {
-            el.style.display = 'none';
+            // [FIX] Ép kiểu HTMLElement để dùng .style
+            (el as HTMLElement).style.display = 'none';
         });
     }
 
@@ -309,34 +316,36 @@ document.addEventListener('DOMContentLoaded', () => {
         let anyVisible = false;
 
         viewMoreWrappers.forEach(wrapper => {
-            const district = wrapper.getAttribute('data-district');
+            const district = wrapper.getAttribute('data-district') || '';
             const list = itemsByDistrict[district] || [];
             
             const sorted = sortAndCap(list);
             const matchedCount = sorted.length;
             const remaining = Math.max(0, matchedCount - 6);
 
-            const container = wrapper.parentElement.querySelector('.room-list-container');
+            const container = wrapper.parentElement?.querySelector('.room-list-container');
             if (container) {
                 sorted.forEach(el => container.appendChild(el));
                 hideAllInContainer(container);
                 sorted.slice(0, 6).forEach(el => { 
-                    el.style.display = 'block'; 
+                    // [FIX] Ép kiểu HTMLElement
+                    (el as HTMLElement).style.display = 'block'; 
                     anyVisible = true; 
                 });
             }
 
             if (remaining > 0) {
-                const link = wrapper.querySelector('.view-more-link');
+                // [FIX] Ép kiểu HTMLAnchorElement
+                const link = wrapper.querySelector('.view-more-link') as HTMLAnchorElement | null;
                 const countSpan = wrapper.querySelector('.remaining-count');
-                if (countSpan) countSpan.textContent = remaining;
                 
-                // SỬA LỖI LINK: Phải ghép với currentPath
+                // [FIX] Chuyển number sang string
+                if (countSpan) countSpan.textContent = remaining.toString();
                 if (link) link.href = `${currentPath}/${createSlug(district)}`;
-                
-                wrapper.style.display = 'block';
+                // [FIX] Ép kiểu HTMLElement cho wrapper
+                (wrapper as HTMLElement).style.display = 'block';
             } else {
-                wrapper.style.display = 'none';
+                (wrapper as HTMLElement).style.display = 'none';
             }
 
             const section = wrapper.parentElement;
@@ -355,13 +364,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const fDistrict = params.get('district');
     const fType = (params.get('type') || 'all').toLowerCase();
     const fPrice = params.get('price');
-    const fAmenitiesRaw = params.get('amenities') ? params.get('amenities').split(',') : [];
-    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase());
+    // [FIX] Xử lý trường hợp null
+    const fAmenitiesRaw = (params.get('amenities') || '').split(',');
+    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase()).filter(a => a !== '');
+    
     const specialGroup = ['ban công', 'cửa sổ'];
     const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
     const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
 
-    const matchedMap = {};
+    const matchedMap: Record<string, HTMLElement[]> = {};
     let totalMatched = 0;
 
     allItems.forEach(item => {
@@ -377,7 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (matches && fPrice && fPrice !== 'all') {
-            const price = parseInt(item.getAttribute('data-price')) / 1000000;
+            // [FIX] Xử lý trường hợp null khi parse
+            const price = parseInt(item.getAttribute('data-price') || '0') / 1000000;
             if (fPrice === 'duoi-5' && price >= 5) matches = false;
             if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
             if (fPrice === 'over8' && price < 8) matches = false;
@@ -391,11 +403,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!ami) continue;
                 if (ami === 'nuôi pet' || ami === 'nuoi pet') {
                     if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) {
-                        matches = false; break;
+                        matches = false;
+                        break;
                     }
                 } else {
                     if (!keypoints.includes(ami)) {
-                        matches = false; break;
+                        matches = false;
+                        break;
                     }
                 }
             }
@@ -420,31 +434,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     viewMoreWrappers.forEach(wrapper => {
-        const district = wrapper.getAttribute('data-district');
+        const district = wrapper.getAttribute('data-district') || '';
         const matchedList = matchedMap[district] || [];
         const sorted = sortAndCap(matchedList);
         const matchedCount = sorted.length;
         const remaining = Math.max(0, matchedCount - 6);
 
-        const container = wrapper.parentElement.querySelector('.room-list-container');
+        const container = wrapper.parentElement?.querySelector('.room-list-container');
         if (container) {
             hideAllInContainer(container);
             sorted.forEach(el => container.appendChild(el));
-            sorted.slice(0, 6).forEach(el => el.style.display = 'block');
+            sorted.slice(0, 6).forEach(el => (el as HTMLElement).style.display = 'block');
         }
 
         if (remaining > 0) {
-            const link = wrapper.querySelector('.view-more-link');
+            const link = wrapper.querySelector('.view-more-link') as HTMLAnchorElement | null;
             const countSpan = wrapper.querySelector('.remaining-count');
             
-            if (countSpan) countSpan.textContent = remaining;
-            
-            // SỬA LỖI LINK: Phải ghép với currentPath
-            if (link) link.href = `${currentPath}/${createSlug(district)}?${queryString}`;
-            
-            wrapper.style.display = 'block';
+            if (countSpan) countSpan.textContent = remaining.toString();
+            if (link) link.href = `${currentPath}/${createSlug(district)}`;
+            (wrapper as HTMLElement).style.display = 'block';
         } else {
-            wrapper.style.display = 'none';
+            (wrapper as HTMLElement).style.display = 'none';
         }
 
         const section = wrapper.parentElement;

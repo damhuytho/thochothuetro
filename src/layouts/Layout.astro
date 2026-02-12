@@ -2,7 +2,7 @@
 // Import trực tiếp từ node_modules 
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-
+import MobileBottomNav from '../components/MobileBottomNav.astro';
 
 // Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
@@ -311,13 +311,7 @@ if (!isMapPage) {
             }
             .navbar-nav .nav-link:active { background-color: #fffbe6; color: #d9b205 !important; transform: scale(0.97); }
 
-            .social-icon-mobile {
-                width: 44px;
-                height: 44px; background: #f8f9fa;
-                border-radius: 50%; display: flex; align-items: center; justify-content: center;
-                color: #333; text-decoration: none;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            }
+            
         }
 
         /* --- DESKTOP STYLES (>= 992px) --- */
@@ -334,46 +328,14 @@ if (!isMapPage) {
            ========================================= */
         @media (max-width: 991px) {
             body { background-color: #f8f9fa; }
-            .mobile-bottom-nav {
-                position: fixed;
-                bottom: 0; left: 0; width: 100%; height: 68px;
-                background: rgba(255, 255, 255, 0.92);
-                backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-                border-top: 1px solid rgba(0, 0, 0, 0.05);
-                display: flex; justify-content: space-around;
-                align-items: center;
-                z-index: 9000; padding-bottom: env(safe-area-inset-bottom);
-            }
-            .nav-item-mobile {
-                flex: 1;
-                display: flex; flex-direction: column; align-items: center; justify-content: center;
-                text-decoration: none; border: none; background: none; padding: 8px 0;
-                color: #8e8e93;
-                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); -webkit-tap-highlight-color: transparent;
-            }
-            .nav-item-mobile i { font-size: 22px; margin-bottom: 4px; }
-            .nav-item-mobile span { font-size: 11px; font-weight: 500; letter-spacing: 0.2px; }
-            .nav-item-mobile.active { color: #d9b205; }
-            .nav-item-mobile.active span { font-weight: 700; }
-            .nav-item-mobile.share-btn:active i { color: #28a745; transform: scale(1.1); }
-            .nav-item-mobile.zalo-btn { color: #0068ff; opacity: 0.9; }
-            .nav-item-mobile.zalo-btn span { font-weight: 600; }
-            .nav-item-mobile:not(.active):not(.zalo-btn):active { color: var(--primary-color); transform: scale(0.95); }
+            
         }
 
         /* HEADER NAVIGATION */
-        .app-header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 1px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; padding: 10px 0; z-index: 1040;
-        }
+        
         .brand-text { font-size: 1.1rem; color: #d9b205 !important; letter-spacing: -0.5px; }
         .brand-slogan { font-size: 0.75rem; font-weight: 500; }
         
-        .hamburger-icon { width: 24px; height: 18px; position: relative; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
-        .hamburger-icon span { display: block; width: 100%; height: 2px; background-color: #333; border-radius: 2px; }
-
         .btn-header-cta { background: #d9b205 !important; border: none; color: #1a1a1a !important; padding: 8px 20px; transition: transform 0.2s; }
         .btn-header-cta:active { transform: scale(0.96); }
         
@@ -429,56 +391,9 @@ if (!isMapPage) {
     <Footer /> 
 )}
 
-{ !isMapPage && (
-    <div class="mobile-bottom-nav">
-        <a href="/map-search" class={`nav-item-mobile ${currentPath.includes('map-search') ? 'active' : ''}`}>
-            <i class="fas fa-map-marked-alt"></i>
-            <span>Bản đồ</span>
-        </a>
-
-        <button id="mobile-share-btn" class="nav-item-mobile share-btn">
-            <i class="fas fa-share-alt"></i>
-            <span>Chia sẻ</span>
-        </button>
-
-        <a href="https://zalo.me/0925996992" target="_blank" class="nav-item-mobile zalo-btn">
-            <i class="fas fa-comment-dots"></i>
-            <span>Zalo</span>
-        </a>
-    </div>
-)}    
+{ !isMapPage && <MobileBottomNav /> }
     <script>
         import "../scripts/bootstrap-custom.js";
-    </script>
-
-    <script is:inline>
-        // Mobile share functionality - Đã chuyển về sự kiện chuẩn của trình duyệt
-        document.addEventListener('DOMContentLoaded', () => {
-            const shareBtn = document.getElementById('mobile-share-btn');
-            if (shareBtn) {
-                shareBtn.addEventListener('click', async () => {
-                    const shareData = {
-                        title: document.title,
-                        text: 'Phòng trọ đẹp, giá tốt tại Tân Bình & Phú Nhuận:',
-                        url: window.location.href
-                    };
-                    if (navigator.share) {
-                        try { 
-                            await navigator.share(shareData); 
-                        } catch (err) {
-                            console.log('Share cancelled');
-                        }
-                    } else {
-                        try { 
-                            await navigator.clipboard.writeText(window.location.href);
-                            alert('Đã sao chép liên kết!');
-                        } catch (err) {
-                            console.log('Copy failed');
-                        }
-                    }
-                });
-            }
-        });
     </script>
 
     <script is:inline>
