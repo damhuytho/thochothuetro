@@ -130,46 +130,52 @@ const districtSEO = {
         h2: "Vị trí vàng giáp Quận 1, gần Phan Xích Long"
     }
 };
-
+// --- 1. CHUẨN BỊ DỮ LIỆU ---
 const specificInfo = districtSEO[districtName];
 const cityName = cityCode === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
+const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh'; // Thêm dòng này để tạo link
 const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} ${cityName} Giá Rẻ, Full Nội Thất`;
 const pageDesc = specificInfo?.desc || `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName}, ${cityName}. Giờ giấc tự do, an ninh, có thang máy. Xem phòng ngay!`;
 const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
-const introText = specificInfo?.intro || `Danh sách các căn hộ dịch vụ, phòng trọ tiện nghi tại khu vực **Quận ${districtName}** (${cityName}).`;
-const h1Text = specificInfo?.h1 || `Cho Thuê Phòng Trọ ${districtName}`;
-const h2Text = specificInfo?.h2 || `Danh sách phòng trọ tại ${districtName} ${cityName}`;
 
 const siteURL = Astro.site || 'https://thochothuetro.com';
-const canonicalURL = `${siteURL}/${currentSlug}`;
+const canonicalURL = `${siteURL}/${citySlug}/${createSlug(districtName)}`; // Sửa lại canonical cho chuẩn link cấp 3
 const imageURL = `${siteURL}/logo.png`;
 
-// Schema Price Calc
+// [LƯU Ý QUAN TRỌNG]: Đảm bảo biến 'rooms' (hoặc biến chứa danh sách phòng) đã được khai báo từ props
+// Nếu biến của bạn tên là 'rooms', hãy gán nó vào đây:
+const initialDisplayRooms = rooms || []; 
+
+// Tính toán giá cho Schema
 const allPrices = initialDisplayRooms.map(r => r.price).filter(p => p > 0);
 const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : 3000000;
 const maxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 8000000;
 
-// Schema Objects (Giữ nguyên logic cũ của bạn vì đã tốt)
+// --- 2. TẠO CÁC SCHEMA OBJECTS ---
+
+// Schema 1: Breadcrumb (Đã nâng cấp lên 3 cấp: Home > City > District)
 const schemaBreadcrumb = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": siteURL },
-    { "@type": "ListItem", "position": 2, "name": `Quận ${districtName}`, "item": canonicalURL }
+    { "@type": "ListItem", "position": 2, "name": cityName, "item": `${siteURL}/${citySlug}` },
+    { "@type": "ListItem", "position": 3, "name": `Quận ${districtName}`, "item": canonicalURL }
   ]
 };
 
+// Schema 2: ItemList (Danh sách sản phẩm)
 const schemaItemList = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   "numberOfItems": initialDisplayRooms.length,
-  "itemListElement": initialDisplayRooms.slice(0, Math.min(10, initialDisplayRooms.length)).map((room, index) => ({
+  "itemListElement": initialDisplayRooms.slice(0, 10).map((room, index) => ({
     "@type": "ListItem",
     "position": index + 1,
     "item": {
-      "@type": "Product",
-      "name": `Cho thuê ${room.type} mã ${room.room_code} tại ${room.district}`,
-      "url": `${siteURL}/${createSlug(room.district)}/${room.id}`,
+      "@type": "Product", // Hoặc "Accommodation"
+      "name": `Cho thuê ${room.type} mã ${room.room_code}`,
+      "url": `${siteURL}/${citySlug}/${createSlug(room.district)}/${room.id}`,
       "offers": {
         "@type": "Offer",
         "price": room.price,
@@ -180,59 +186,36 @@ const schemaItemList = {
   }))
 };
 
-const schemaCollectionPage = {
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": pageTitle,
-  "description": pageDesc,
-  "url": canonicalURL,
-  "image": imageURL,
-  "breadcrumb": { "@id": `${canonicalURL}#breadcrumb` },
-  "mainEntity": {
-    "@type": "OfferCatalog",
-    "name": `Danh sách phòng trọ Quận ${districtName}`,
-    "itemListElement": initialDisplayRooms.slice(0, Math.min(5, initialDisplayRooms.length)).map(room => ({
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Accommodation",
-        "name": `${room.type} ${room.room_code}`,
-        "address": { "@type": "PostalAddress", "addressLocality": room.district, "addressRegion": "TP.HCM", "addressCountry": "VN" }
-      },
-      "price": room.price,
-      "priceCurrency": "VND",
-      "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
-    }))
-  },
-  "offers": {
-    "@type": "AggregateOffer",
-    "priceCurrency": "VND",
-    "lowPrice": minPrice,
-    "highPrice": maxPrice,
-    "offerCount": initialDisplayRooms.length
-  }
-};
-
+// Schema 3: FAQPage (Câu hỏi thường gặp)
 const schemaFAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
     {
       "@type": "Question",
-      "name": `Giá phòng trọ Quận ${districtName} bao nhiêu?`,
-      "acceptedAnswer": { "@type": "Answer", "text": `Giá phòng trọ Quận ${districtName} dao động từ ${(minPrice/1000000).toFixed(1)} - ${(maxPrice/1000000).toFixed(1)} triệu/tháng tùy theo diện tích và tiện nghi.` }
+      "name": `Giá phòng trọ Quận ${districtName} khoảng bao nhiêu?`,
+      "acceptedAnswer": { "@type": "Answer", "text": `Giá phòng trọ tại Quận ${districtName} thường dao động từ ${(minPrice/1000000).toFixed(1)} đến ${(maxPrice/1000000).toFixed(1)} triệu đồng/tháng, tùy thuộc vào diện tích và tiện nghi.` }
     },
     {
       "@type": "Question", 
-      "name": `Phòng trọ Quận ${districtName} có những tiện ích gì?`,
-      "acceptedAnswer": { "@type": "Answer", "text": "Phòng trọ có đầy đủ tiện nghi: giường, tủ, điều hòa, nóng lạnh, máy giặt chung, bảo vệ 24/7, thang máy, wifi miễn phí, giờ giấc tự do." }
+      "name": `Phòng trọ Quận ${districtName} có tiện ích gì?`,
+      "acceptedAnswer": { "@type": "Answer", "text": "Hệ thống phòng của Thọ Cho Thuê Trọ thường có đầy đủ nội thất (giường, tủ, máy lạnh), giờ giấc tự do, khóa vân tay an ninh và máy giặt chung." }
     },
     {
       "@type": "Question",
-      "name": `Có thể xem phòng trực tiếp không?`,
-      "acceptedAnswer": { "@type": "Answer", "text": "Có, chúng tôi hỗ trợ xem phòng miễn phí 24/7. Liên hệ 0925996992 để đặt lịch xem phòng." }
+      "name": `Làm sao để đặt lịch xem phòng?`,
+      "acceptedAnswer": { "@type": "Answer", "text": "Bạn có thể liên hệ trực tiếp qua số điện thoại 0925996992 (Zalo) để được hỗ trợ xem phòng miễn phí 24/7." }
     }
   ]
 };
+
+// Gộp tất cả Schema vào một mảng để xuất ra HTML gọn gàng
+const allSchemas = [
+    schemaBreadcrumb, 
+    schemaItemList, 
+    schemaCollectionPage, 
+    schemaFAQ
+];
 ---
 
 <Layout 
@@ -244,10 +227,7 @@ const schemaFAQ = {
     currentCity={cityCode}
 >
     
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaBreadcrumb)} />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaItemList)} />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaCollectionPage)} />
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(schemaFAQ)} />
+    <script type="application/ld+json" slot="head" set:html={JSON.stringify(allSchemas)}></script>
 
     <div class="bg-light border-bottom py-3 mb-4">
         <div class="container">

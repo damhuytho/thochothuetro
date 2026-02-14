@@ -239,6 +239,12 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
         background: rgba(255, 255, 255, 0.25);
         transform: translateY(-2px);
     }
+    /* Thêm vào style của index.astro */
+    .district-section {
+    /* Tăng tốc độ render cực mạnh cho các trang dài */
+    content-visibility: auto; 
+    contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của 1 khối quận */
+    }
 
     /* RESPONSIVE */
     @media (max-width: 991px) {
