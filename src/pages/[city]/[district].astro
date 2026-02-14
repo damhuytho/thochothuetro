@@ -87,9 +87,8 @@ export async function getStaticPaths() {
 }
 
 // Lấy Params và Props mới
-const { districtName, allRooms, cityCode } = Astro.props;
+const { districtName, rooms, cityCode } = Astro.props; 
 const { city, district } = Astro.params;
-const currentSlug = district; 
 
 // --- SERVER-SIDE SORTING ---
 const activeRooms = allRooms.filter(r => r.status === 'active');
