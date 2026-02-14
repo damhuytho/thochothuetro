@@ -87,10 +87,11 @@ export async function getStaticPaths() {
 }
 
 // Lấy Params và Props mới
-const { districtName, rooms, cityCode } = Astro.props; 
+const { districtName, allRooms, cityCode } = Astro.props;
 const { city, district } = Astro.params;
 
 // --- SERVER-SIDE SORTING ---
+const roomsData = allRooms || [];
 const activeRooms = allRooms.filter(r => r.status === 'active');
 const rentedRooms = allRooms.filter(r => r.status === 'rented');
 
@@ -136,19 +137,15 @@ const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh'; // Thêm dòng
 const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} ${cityName} Giá Rẻ, Full Nội Thất`;
 const pageDesc = specificInfo?.desc || `Danh sách phòng trọ, căn hộ dịch vụ tại Quận ${districtName}, ${cityName}. Giờ giấc tự do, an ninh, có thang máy. Xem phòng ngay!`;
 const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
-
+// [SỬA LỖI] Bổ sung 3 biến bị thiếu h1Text, h2Text, introText
+const h1Text = specificInfo?.h1 || `Cho Thuê Phòng Trọ Quận ${districtName}`;
+const h2Text = specificInfo?.h2 || `Danh sách phòng trọ, căn hộ dịch vụ tiện nghi`;
+const introText = specificInfo?.intro || `Tổng hợp các phòng trọ giá tốt tại khu vực <strong>Quận ${districtName}</strong>. Giờ giấc tự do, đầy đủ nội thất.`;
 const siteURL = Astro.site || 'https://thochothuetro.com';
 const canonicalURL = `${siteURL}/${citySlug}/${createSlug(districtName)}`;
 const imageURL = `${siteURL}/logo.png`;
 
 
-// Thêm (rooms || []) để đảm bảo không lỗi nếu rooms bị null/undefined
-    const initialDisplayRooms = (rooms || []).filter(r => {
-        const dName = r.district ? r.district.toLowerCase() : '';
-        const target = districtName ? districtName.toLowerCase() : '';
-        // So sánh tương đối để tránh lỗi chính tả (VD: "Q.1" vs "Quận 1")
-        return dName.includes(target.replace('quận ', '').trim());
-    });
 
 // Tính toán giá cho Schema
 const allPrices = initialDisplayRooms.map(r => r.price).filter(p => p > 0);
