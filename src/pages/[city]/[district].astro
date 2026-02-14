@@ -139,12 +139,17 @@ const pageDesc = specificInfo?.desc || `Danh sách phòng trọ, căn hộ dịc
 const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLowerCase()}, cho thuê phòng trọ ${districtName.toLowerCase()}, căn hộ dịch vụ ${districtName.toLowerCase()}`;
 
 const siteURL = Astro.site || 'https://thochothuetro.com';
-const canonicalURL = `${siteURL}/${citySlug}/${createSlug(districtName)}`; // Sửa lại canonical cho chuẩn link cấp 3
+const canonicalURL = `${siteURL}/${citySlug}/${createSlug(districtName)}`;
 const imageURL = `${siteURL}/logo.png`;
 
-// [LƯU Ý QUAN TRỌNG]: Đảm bảo biến 'rooms' (hoặc biến chứa danh sách phòng) đã được khai báo từ props
-// Nếu biến của bạn tên là 'rooms', hãy gán nó vào đây:
-const initialDisplayRooms = rooms || []; 
+
+// Thêm (rooms || []) để đảm bảo không lỗi nếu rooms bị null/undefined
+    const initialDisplayRooms = (rooms || []).filter(r => {
+        const dName = r.district ? r.district.toLowerCase() : '';
+        const target = districtName ? districtName.toLowerCase() : '';
+        // So sánh tương đối để tránh lỗi chính tả (VD: "Q.1" vs "Quận 1")
+        return dName.includes(target.replace('quận ', '').trim());
+    });
 
 // Tính toán giá cho Schema
 const allPrices = initialDisplayRooms.map(r => r.price).filter(p => p > 0);
@@ -155,36 +160,67 @@ const maxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 8000000;
 
 // Schema 1: Breadcrumb (Đã nâng cấp lên 3 cấp: Home > City > District)
 const schemaBreadcrumb = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": siteURL },
-    { "@type": "ListItem", "position": 2, "name": cityName, "item": `${siteURL}/${citySlug}` },
-    { "@type": "ListItem", "position": 3, "name": `Quận ${districtName}`, "item": canonicalURL }
-  ]
-};
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": siteURL },
+        { "@type": "ListItem", "position": 2, "name": cityName, "item": `${siteURL}/${citySlug}` },
+        { "@type": "ListItem", "position": 3, "name": `Quận ${districtName}`, "item": canonicalURL }
+      ]
+    };
 
 // Schema 2: ItemList (Danh sách sản phẩm)
 const schemaItemList = {
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "numberOfItems": initialDisplayRooms.length,
-  "itemListElement": initialDisplayRooms.slice(0, 10).map((room, index) => ({
-    "@type": "ListItem",
-    "position": index + 1,
-    "item": {
-      "@type": "Product", // Hoặc "Accommodation"
-      "name": `Cho thuê ${room.type} mã ${room.room_code}`,
-      "url": `${siteURL}/${citySlug}/${createSlug(room.district)}/${room.id}`,
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "numberOfItems": initialDisplayRooms.length,
+      "itemListElement": initialDisplayRooms.slice(0, 10).map((room, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Product",
+          "name": `Cho thuê ${room.type} mã ${room.room_code}`,
+          "url": `${siteURL}/${citySlug}/${createSlug(room.district)}/${room.id}`,
+          "offers": {
+            "@type": "Offer",
+            "price": room.price,
+            "priceCurrency": "VND",
+            "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+          }
+        }
+      }))
+    };
+const schemaCollectionPage = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": pageTitle,
+      "description": pageDesc,
+      "url": canonicalURL,
+      "image": imageURL,
+      "breadcrumb": schemaBreadcrumb, // Link trực tiếp vào object breadcrumb ở trên luôn cho gọn
+      "mainEntity": {
+        "@type": "OfferCatalog",
+        "name": `Danh sách phòng trọ Quận ${districtName}`,
+        "itemListElement": initialDisplayRooms.slice(0, 5).map(room => ({
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Accommodation",
+            "name": `${room.type} ${room.room_code}`,
+            "address": { "@type": "PostalAddress", "addressLocality": room.district, "addressRegion": cityName, "addressCountry": "VN" }
+          },
+          "price": room.price,
+          "priceCurrency": "VND",
+          "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+        }))
+      },
       "offers": {
-        "@type": "Offer",
-        "price": room.price,
+        "@type": "AggregateOffer",
         "priceCurrency": "VND",
-        "availability": room.status === 'active' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+        "lowPrice": minPrice,
+        "highPrice": maxPrice,
+        "offerCount": initialDisplayRooms.length
       }
-    }
-  }))
-};
+    };
 
 // Schema 3: FAQPage (Câu hỏi thường gặp)
 const schemaFAQ = {
@@ -211,21 +247,14 @@ const schemaFAQ = {
 
 // Gộp tất cả Schema vào một mảng để xuất ra HTML gọn gàng
 const allSchemas = [
-    schemaBreadcrumb, 
-    schemaItemList, 
-    schemaCollectionPage, 
-    schemaFAQ
-];
+        schemaBreadcrumb, 
+        schemaItemList, 
+        schemaCollectionPage, // Đã thêm vào đây
+        schemaFAQ
+    ];
 ---
 
-<Layout 
-    title={pageTitle} 
-    description={pageDesc} 
-    keywords={pageKeywords}
-    image={imageURL}
-    canonicalURL={canonicalURL}
-    currentCity={cityCode}
->
+<Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL}>
     
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(allSchemas)}></script>
 
