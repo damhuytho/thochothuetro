@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Helper tạo Slug chuẩn
-function createSlug(str) {
+function createSlug(str: any) {
     if (!str) return '';
     return str.toString().toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -43,7 +43,7 @@ export async function getStaticPaths() {
   const validRooms = rooms.filter(r => r.status === 'active' || r.status === 'rented');
 
   // Helper tạo slug nội bộ
-  function localCreateSlug(str) {
+  function localCreateSlug(str: any) { 
       if (!str) return '';
       return str.toString().toLowerCase()
           .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd')
@@ -51,7 +51,7 @@ export async function getStaticPaths() {
   }
 
   // 3. Tạo danh sách các đường dẫn duy nhất (City + District)
-  const paths = [];
+  const paths: any[] = [];
   const uniqueKeys = new Set();
 
   validRooms.forEach(room => {
@@ -92,10 +92,10 @@ const { city, district } = Astro.params;
 
 // --- SERVER-SIDE SORTING ---
 const roomsData = allRooms || [];
-const activeRooms = allRooms.filter(r => r.status === 'active');
-const rentedRooms = allRooms.filter(r => r.status === 'rented');
+const activeRooms = roomsData.filter((r: any) => r.status === 'active');
+const rentedRooms = roomsData.filter((r: any) => r.status === 'rented');
 
-activeRooms.sort((a, b) => {
+activeRooms.sort((a: any, b: any) => {
     // 1. Ưu tiên Promotion
     const aPromo = !!a.promotion;
     const bPromo = !!b.promotion;
@@ -131,7 +131,8 @@ const districtSEO = {
     }
 };
 // --- 1. CHUẨN BỊ DỮ LIỆU ---
-const specificInfo = districtSEO[districtName];
+const districtSEOConfig = districtSEO as any;
+const specificInfo = districtSEOConfig[districtName];
 const cityName = cityCode === 'hanoi' ? 'Hà Nội' : 'TP.HCM';
 const citySlug = cityCode === 'hanoi' ? 'ha-noi' : 'ho-chi-minh'; // Thêm dòng này để tạo link
 const pageTitle = specificInfo?.title || `Cho Thuê Phòng Trọ Quận ${districtName} ${cityName} Giá Rẻ, Full Nội Thất`;
