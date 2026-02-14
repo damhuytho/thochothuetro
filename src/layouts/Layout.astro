@@ -256,63 +256,7 @@ if (!isMapPage) {
             }
         }
 
-        /* =========================================================
-           4. MENU MOBILE & OFF CANVAS
-           ========================================================= */
-        @media (max-width: 991px) {
-            .app-offcanvas {
-                position: fixed !important;
-                top: 0 !important; bottom: 0 !important; right: 0 !important;
-                left: auto !important;
-                width: 85vw !important;
-                max-width: 320px !important;
-                height: 100vh !important;
-                background-color: #ffffff !important;
-                z-index: 1050 !important;
-                box-shadow: -5px 0 30px rgba(0,0,0,0.15) !important;
-                border-left: 1px solid rgba(0,0,0,0.05) !important;
-                transform: translate3d(100%, 0, 0) !important;
-                visibility: hidden !important;
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0.4s !important;
-                display: flex !important; flex-direction: column !important;
-            }
-
-            .app-offcanvas.show, .app-offcanvas.showing { 
-                transform: translate3d(0, 0, 0) !important;
-                visibility: visible !important;
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0s !important;
-            }
-
-            .app-offcanvas.hiding {
-                transform: translate3d(100%, 0, 0) !important;
-                visibility: visible !important; 
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            }
-
-            .offcanvas-header {
-                display: flex;
-                align-items: center; justify-content: space-between;
-                padding: 18px 20px; border-bottom: 1px solid #f2f2f2; min-height: 70px;
-            }
-            .offcanvas-body {
-                flex-grow: 1;
-                padding: 20px;
-                overflow-y: auto !important; overscroll-behavior: contain;
-            }
-            .btn-close { opacity: 1 !important; padding: 10px !important; margin: 0 !important; box-shadow: none !important; }
-            .offcanvas-header img { width: 40px !important; height: 40px !important; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
-
-            .navbar-nav .nav-item { width: 100%; margin-bottom: 0.5rem; }
-            .navbar-nav .nav-link {
-                padding: 12px 16px !important;
-                border-radius: 12px;
-                background-color: #f8f9fa; color: #333 !important;
-                font-weight: 600; font-size: 15px; display: flex; align-items: center; transition: all 0.2s;
-            }
-            .navbar-nav .nav-link:active { background-color: #fffbe6; color: #d9b205 !important; transform: scale(0.97); }
-
-            
-        }
+        
 
         /* --- DESKTOP STYLES (>= 992px) --- */
         @media (min-width: 992px) {
@@ -356,18 +300,7 @@ if (!isMapPage) {
             .nav-link:hover { color: #d9b205 !important; background: rgba(217, 178, 5, 0.08); }
         }
 
-        /* FOOTER & HELPERS */
-        footer { background-color: #1a1a1a; color: #e0e0e0; flex-shrink: 0; }
-        footer a { color: #e0e0e0; text-decoration: none; transition: color 0.3s ease; }
-        footer a:hover { color: var(--warning-color); }
-        .footer-logo { height: 60px; width: auto; border-radius: 8px; }
-        .social-link {
-            display: flex; align-items: center; justify-content: center;
-            width: 42px; height: 42px; background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%; margin-right: 12px; font-size: 18px;
-            transition: all 0.3s ease;
-        }
-        .social-link:hover { background: var(--warning-color); color: #1a1a1a !important; transform: translateY(-3px); }
+        
 
         @media (min-width: 992px) {
             .app-offcanvas { display: none !important; }
