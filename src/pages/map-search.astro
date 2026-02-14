@@ -42,7 +42,7 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
         ))}
 
         {/* 2. PRELOAD LCP IMAGE */}
-        <link rel="preload" as="image" href="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" fetchpriority="high" />
+        <link rel="preload" as="image" href="https://img.thochothuetro.com/map_detail_demo.webp" fetchpriority="high" />
         
         {/* 3. LEAFLET CSS & JS (Vẫn preload nhưng chưa chạy ngay) */}
         <link rel="preload" href="/libs/leaflet/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -67,9 +67,17 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
 
             /* [QUAN TRỌNG] Placeholder Z-Index 10: Đè lên mọi thứ lúc đầu */
             .map-placeholder-lcp {
-                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                object-fit: cover; z-index: 10; display: block;
-                transition: opacity 0.5s ease; /* Hiệu ứng mờ dần khi map tải xong */
+                position: absolute !important; 
+                top: 0; 
+                left: 0; 
+                width: 100% !important; 
+                height: 100% !important;
+                z-index: 10 !important; /* Đè lên mọi thứ, kể cả Spinner */
+                display: block;
+                opacity: 1;
+                transition: opacity 0.5s ease;
+                background-color: #e5e3df; /* Màu nền trùng màu map */
+                pointer-events: none; /* Cho phép click xuyên qua nếu cần */
             }
 
             /* Map Viewport nằm dưới (Z-index 1) */
@@ -79,6 +87,10 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
             
             /* Giao diện Desktop */
             @media (min-width: 992px) {
+                .map-placeholder-lcp {
+                    object-fit: cover !important;
+                    object-position: center center;
+                }
                 .map-layout-wrapper { 
                     flex-direction: row; 
                     height: calc(100vh - 76px); /* Trừ Header */
@@ -105,6 +117,10 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
                 .map-sidebar { width: 100%; height: auto; order: 2; flex-grow: 1; }
                 .leaflet-control-zoom { display: none; }
                 footer { display: none !important; }
+                .map-placeholder-lcp {
+                    object-fit: contain !important;
+                    object-position: center center;
+                }
             }
         </style>
     </Fragment>
@@ -113,19 +129,18 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
 
     <div class="map-layout-wrapper">
         {/* Ảnh Placeholder với style inline để chắc chắn hiện ngay */}
-        <img 
-            src="https://img.thochothuetro.com/map_detail_demo_1_11zon.webp" 
+        
+
+        <div id="full-map-view" class="map-viewport">
+            <img 
+            src="https://img.thochothuetro.com/map_detail_demo.webp" 
             alt="Bản đồ phòng trọ" 
             class="map-placeholder-lcp" 
             fetchpriority="high"
             decoding="sync" 
             loading="eager"
-            width="800" 
-            height="600"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10; display: block;"
-        >
-
-        <div id="full-map-view" class="map-viewport">
+            width="500" 
+            height="622">
             <div id="map" style="width: 100%; height: 100%; z-index: 1;"></div>
             
             <div id="map-loading-spinner" class="d-flex justify-content-center align-items-center h-100" 
