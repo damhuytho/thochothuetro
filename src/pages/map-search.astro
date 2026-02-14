@@ -893,10 +893,9 @@ const preconnectTags: { rel: string; href: string; crossorigin?: boolean; as?: s
         // 2. [MỚI] Tự động tải ngay khi trang đã Load xong (Thay vì chờ 4s)
         // Nếu trang đã tải xong hoàn toàn (ảnh LCP đã hiện) -> Tải Map ngay
         if (document.readyState === 'complete') {
-            setTimeout(startMapLazy, 100); 
+            setTimeout(startMapLazy, 2500); 
         } else {
-            // Nếu chưa xong, đợi sự kiện 'load' rồi tải ngay
-            window.addEventListener('load', () => setTimeout(startMapLazy, 100));
+            window.addEventListener('load', () => setTimeout(startMapLazy, 2500));
         }
     };
     
