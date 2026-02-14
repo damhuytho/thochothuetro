@@ -141,7 +141,8 @@ const pageKeywords = specificInfo?.keywords || `phòng trọ ${districtName.toLo
 const h1Text = specificInfo?.h1 || `Cho Thuê Phòng Trọ Quận ${districtName}`;
 const h2Text = specificInfo?.h2 || `Danh sách phòng trọ, căn hộ dịch vụ tiện nghi`;
 const introText = specificInfo?.intro || `Tổng hợp các phòng trọ giá tốt tại khu vực <strong>Quận ${districtName}</strong>. Giờ giấc tự do, đầy đủ nội thất.`;
-const siteURL = Astro.site || 'https://thochothuetro.com';
+const rawSite = Astro.site ? Astro.site.toString() : 'https://thochothuetro.com';
+const siteURL = rawSite.replace(/\/$/, '');
 const canonicalURL = `${siteURL}/${citySlug}/${createSlug(districtName)}`;
 const imageURL = `${siteURL}/logo.png`;
 
