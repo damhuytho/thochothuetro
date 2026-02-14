@@ -24,7 +24,9 @@ const {
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
-const siteURL = Astro.site || 'https://thochothuetro.com';
+// [SỬA LỖI] Cắt bỏ dấu gạch chéo ở cuối (nếu có) để tránh lỗi //logo.png
+const rawSite = Astro.site ? Astro.site.toString() : 'https://thochothuetro.com';
+const siteURL = rawSite.replace(/\/$/, '');
 const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 
 // --- [LOGIC QUAN TRỌNG] Kiểm tra xem có phải trang bản đồ không ---
