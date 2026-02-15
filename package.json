@@ -16,11 +16,13 @@
     "@fontsource/be-vietnam-pro": "^5.2.8",
     "@popperjs/core": "^2.11.8",
     "astro": "^5.17.1",
+    "astro-purgecss": "^5.5.0",
     "axios": "^1.13.4",
     "bootstrap": "^5.3.8",
     "critical": "^7.2.1",
     "dotenv": "^17.2.3",
     "googleapis": "^171.1.0",
+    "purgecss": "^7.0.2",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
