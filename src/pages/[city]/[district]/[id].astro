@@ -763,7 +763,61 @@ const relatedRooms = [...activeRelated, ...rentedRelated]
 
 <style>
   /* --- CSS ĐƯỢC CHUYỂN TỪ STYLE.CSS SANG ĐÂY ĐỂ TỐI ƯU LCP --- */
-
+  /* Card Liên hệ Nhỏ gọn */
+  .contact-card-compact {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .contact-card-compact:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+    border-color: var(--primary);
+  }
+  .contact-compact-body {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    gap: 15px;
+  }
+  .contact-compact-img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+  .contact-compact-info {
+    flex: 1;
+  }
+  .btn-call-compact {
+    background: var(--primary);
+    color: #1a1a1a;
+    font-weight: 800;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .btn-call-compact:hover {
+    background: #f39c12;
+  }
+  .btn-zalo-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #1a1a1a;
+    font-weight: 700;
+  }
+  .btn-zalo-compact:hover {
+    border-color: var(--primary);
+    color: #d35400;
+  }
   /* Utility */
   .text-warning {
     color: #d9b205 !important;
@@ -868,7 +922,7 @@ const relatedRooms = [...activeRelated, ...rentedRelated]
 
   /* Sticky Mobile */
   .sticky-top-mobile {
-    z-index: 1020;
+    z-index: 990;
     position: sticky;
     top: 0px;
   }
