@@ -5,6 +5,12 @@ $primary: #d9b205;
 $warning: #d9b205;
 $body-bg: #f8f9fa;
 $font-family-base: 'Be Vietnam Pro', sans-serif;
+// Tối ưu tốc độ: Tắt hiệu ứng chuyển động không cần thiết ở cấp độ Bootstrap
+$enable-caret: false;
+$enable-rounded: true;
+$enable-shadows: false;
+$enable-gradients: false;
+$enable-transitions: true; // Giữ lại transition cơ bản
 
 // 2. IMPORT BOOTSTRAP
 
@@ -17,7 +23,7 @@ $font-family-base: 'Be Vietnam Pro', sans-serif;
 
 // --- Reset & Base Styles (QUAN TRỌNG: Sửa lỗi của bạn ở đây) ---
 @import "bootstrap/scss/root";
-@import "bootstrap/scss/reboot"; // <--- ĐÂY LÀ FILE BẠN THIẾU
+@import "bootstrap/scss/reboot"; 
 
 // --- Layout & Components ---
 @import "bootstrap/scss/type";       // Type cần Reboot để chạy được
@@ -31,13 +37,10 @@ $font-family-base: 'Be Vietnam Pro', sans-serif;
 @import "bootstrap/scss/dropdown";
 @import "bootstrap/scss/navbar";
 @import "bootstrap/scss/nav";
-//@import "bootstrap/scss/modal";
 @import "bootstrap/scss/close";
-//@import "bootstrap/scss/badge";
 @import "bootstrap/scss/breadcrumb";
 @import "bootstrap/scss/offcanvas";
-//@import "bootstrap/scss/transitions";
-//@import "bootstrap/scss/forms"; 
+
 
 // --- Utilities API (Luôn để cuối cùng) ---
 @import "bootstrap/scss/utilities/api";

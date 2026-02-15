@@ -3,7 +3,8 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import MobileBottomNav from '../components/MobileBottomNav.astro';
-
+import "../styles/main.scss";
+import '../styles/style.css';
 // Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
     title: string;
@@ -31,14 +32,6 @@ const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 
 // --- [LOGIC QUAN TRỌNG] Kiểm tra xem có phải trang bản đồ không ---
 const isMapPage = currentPath.includes('/map-search');
-
-// 1. Luôn tải Main SCSS (Bootstrap)
-import "../styles/main.scss";
-
-// 2. Tải style.css có điều kiện (Dùng await import để tránh lỗi Syntax)
-if (!isMapPage) {
-    await import('../styles/style.css');
-}
 
 
 ---

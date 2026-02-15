@@ -21,6 +21,18 @@ body {
     padding-bottom: 70px; /* Chừa chỗ cho Mobile Nav */
     line-height: 1.6; 
 }
+.district-section, 
+.room-list-container,
+.detail-container-standard,
+footer {
+    content-visibility: auto; 
+    contain-intrinsic-size: 1px 1000px; /* Chiều cao giả lập để thanh cuộn mượt */
+}
+header, .navbar, .universal-page-header {
+    position: relative;
+    z-index: 1000;
+    /* Tuyệt đối không thêm content-visibility vào đây */
+}
 /* 4. [QUAN TRỌNG] Phải định nghĩa lại các thẻ in đậm */
 /* Vì body đã set 300, nên phải nhắc trình duyệt: thẻ b, strong, heading vẫn phải đậm */
 b, strong, h1, h2, h3, h4, h5, h6, .fw-bold {
