@@ -1,412 +1,686 @@
 ---
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
 // Helper tạo Slug
 function createSlug(str: any) {
-    if (!str) return '';
-    return str.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
+  if (!str) return "";
+  return str
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
 }
 
 // Hàm đọc dữ liệu
 function getDistricts(fileName: string) {
-    try {
-        const dataPath = path.join(process.cwd(), 'public', fileName);
-        if (fs.existsSync(dataPath)) {
-            const jsonData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-            const rooms: any[] = jsonData.rooms || [];
-            return [...new Set(rooms.map((r: any) => r.district).filter((d: any) => d))].sort() as string[];
-        }
-    } catch (e) {
-        console.error(`Error loading ${fileName}:`, e);
+  try {
+    const dataPath = path.join(process.cwd(), "public", fileName);
+    if (fs.existsSync(dataPath)) {
+      const jsonData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+      const rooms: any[] = jsonData.rooms || [];
+      return [
+        ...new Set(rooms.map((r: any) => r.district).filter((d: any) => d)),
+      ].sort() as string[];
     }
-    return [];
+  } catch (e) {
+    console.error(`Error loading ${fileName}:`, e);
+  }
+  return [];
 }
 
-const hcmDistricts = getDistricts('data_hochiminh.json');
-const hnDistricts = getDistricts('data_hanoi.json');
+const hcmDistricts = getDistricts("data_hochiminh.json");
+const hnDistricts = getDistricts("data_hanoi.json");
 ---
 
 <nav class="navbar navbar-expand-lg fixed-top app-header">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <img src="/logo.png" alt="Thọ Cho Thuê Trọ" width="48" height="48" class="app-logo">
-            <div class="d-flex flex-column">
-                <span class="brand-text fw-bold lh-1 text-uppercase" style="color: #1a1a1a; font-size: 1.1rem; letter-spacing: -0.5px;">Thọ Cho Thuê Trọ</span>
-                <span class="brand-slogan text-muted d-none d-sm-block" style="font-size: 0.75rem;">Hệ thống phòng trọ tiện nghi</span>
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img
+        src="/logo.png"
+        alt="Thọ Cho Thuê Trọ"
+        width="48"
+        height="48"
+        class="app-logo"
+      />
+      <div class="d-flex flex-column">
+        <span
+          class="brand-text fw-bold lh-1 text-uppercase"
+          style="color: #1a1a1a; font-size: 1.1rem; letter-spacing: -0.5px;"
+          >Thọ Cho Thuê Trọ</span
+        >
+        <span
+          class="brand-slogan text-muted d-none d-sm-block"
+          style="font-size: 0.75rem;">Hệ thống phòng trọ tiện nghi</span
+        >
+      </div>
+    </a>
+
+    <button
+      class="navbar-toggler border-0 p-0 shadow-none d-lg-none me-2"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#appMenu"
+      aria-controls="appMenu"
+      aria-label="Mở menu"
+    >
+      <div class="hamburger-box">
+        <div class="hamburger-inner"></div>
+      </div>
+    </button>
+
+    <div
+      class="collapse navbar-collapse justify-content-end d-none d-lg-flex"
+      id="desktopMenu"
+    >
+      <ul class="navbar-nav align-items-center gap-1">
+        <li class="nav-item">
+          <a class="nav-link custom-link px-3" href="/">Trang chủ</a>
+        </li>
+
+        <li class="nav-item dropdown hover-dropdown">
+          <a
+            class="nav-link custom-link px-3 dropdown-toggle"
+            href="/ho-chi-minh"
+            role="button"
+            aria-expanded="false"
+          >
+            TP. Hồ Chí Minh
+          </a>
+          <div class="dropdown-menu mega-menu shadow-lg border-0 rounded-3 p-3">
+            <div
+              class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom"
+            >
+              <span class="text-warning fw-bold small text-uppercase spacing-1"
+                >Chọn Quận</span
+              >
+              <a
+                href="/ho-chi-minh"
+                class="small text-muted text-decoration-none hover-underline"
+                >Xem tất cả &rarr;</a
+              >
             </div>
-        </a>
-
-        <button class="navbar-toggler border-0 p-0 shadow-none d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#appMenu" aria-controls="appMenu" aria-label="Mở menu">
-            <div class="hamburger-box">
-                <div class="hamburger-inner"></div>
-            </div>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-end d-none d-lg-flex" id="desktopMenu">
-            <ul class="navbar-nav align-items-center gap-1">
-                <li class="nav-item">
-                    <a class="nav-link custom-link px-3" href="/">Trang chủ</a>
-                </li>
-
-                <li class="nav-item dropdown hover-dropdown">
-                    <a class="nav-link custom-link px-3 dropdown-toggle" href="/ho-chi-minh" role="button" aria-expanded="false">
-                        TP. Hồ Chí Minh
+            <ul class="list-unstyled district-grid mb-0">
+              {
+                hcmDistricts.map((dist) => (
+                  <li>
+                    <a
+                      class="dropdown-item district-item rounded-2"
+                      href={`/ho-chi-minh/${createSlug(dist)}`}
+                    >
+                      {dist}
                     </a>
-                    <div class="dropdown-menu mega-menu shadow-lg border-0 rounded-3 p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                            <span class="text-warning fw-bold small text-uppercase spacing-1">Chọn Quận</span>
-                            <a href="/ho-chi-minh" class="small text-muted text-decoration-none hover-underline">Xem tất cả &rarr;</a>
-                        </div>
-                        <ul class="list-unstyled district-grid mb-0">
-                            {hcmDistricts.map(dist => (
-                                <li>
-                                    <a class="dropdown-item district-item rounded-2" href={`/ho-chi-minh/${createSlug(dist)}`}>
-                                        {dist}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </li>
-
-                <li class="nav-item dropdown hover-dropdown">
-                    <a class="nav-link custom-link px-3 dropdown-toggle" href="/ha-noi" role="button" aria-expanded="false">
-                        Hà Nội
-                    </a>
-                    <div class="dropdown-menu mega-menu shadow-lg border-0 rounded-3 p-3">
-                         <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                            <span class="text-warning fw-bold small text-uppercase spacing-1">Chọn Quận</span>
-                            <a href="/ha-noi" class="small text-muted text-decoration-none hover-underline">Xem tất cả &rarr;</a>
-                        </div>
-                        <ul class="list-unstyled district-grid mb-0">
-                            {hnDistricts.map(dist => (
-                                <li>
-                                    <a class="dropdown-item district-item rounded-2" href={`/ha-noi/${createSlug(dist)}`}>
-                                        {dist}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link custom-link px-3" href="/map-search">Bản đồ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link custom-link px-3" href="/contact">Liên hệ</a>
-                </li>
-                
-                <li class="nav-item ms-3">
-                    <a href="tel:0925996992" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2 btn-header-cta">
-                        <i class="fas fa-phone-alt animate-ring"></i> 
-                        <span>0925 996 992</span>
-                    </a>
-                </li>
+                  </li>
+                ))
+              }
             </ul>
-        </div>
+          </div>
+        </li>
+
+        <li class="nav-item dropdown hover-dropdown">
+          <a
+            class="nav-link custom-link px-3 dropdown-toggle"
+            href="/ha-noi"
+            role="button"
+            aria-expanded="false"
+          >
+            Hà Nội
+          </a>
+          <div class="dropdown-menu mega-menu shadow-lg border-0 rounded-3 p-3">
+            <div
+              class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom"
+            >
+              <span class="text-warning fw-bold small text-uppercase spacing-1"
+                >Chọn Quận</span
+              >
+              <a
+                href="/ha-noi"
+                class="small text-muted text-decoration-none hover-underline"
+                >Xem tất cả &rarr;</a
+              >
+            </div>
+            <ul class="list-unstyled district-grid mb-0">
+              {
+                hnDistricts.map((dist) => (
+                  <li>
+                    <a
+                      class="dropdown-item district-item rounded-2"
+                      href={`/ha-noi/${createSlug(dist)}`}
+                    >
+                      {dist}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link custom-link px-3" href="/map-search">Bản đồ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link custom-link px-3" href="/contact">Liên hệ</a>
+        </li>
+
+        <li class="nav-item ms-3">
+          <a
+            href="tel:0925996992"
+            class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2 btn-header-cta"
+          >
+            <i class="fas fa-phone-alt animate-ring"></i>
+            <span>0925 996 992</span>
+          </a>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
-<div class="offcanvas offcanvas-end app-offcanvas border-0" tabindex="-1" id="appMenu" aria-labelledby="appMenuLabel">
-    <div class="offcanvas-header border-bottom">
-        <div class="d-flex align-items-center gap-2">
-            <img src="/logo.png" width="40" height="40" alt="Logo">
-            <h5 class="offcanvas-title fw-bold text-uppercase" id="appMenuLabel">Menu</h5>
+<div
+  class="offcanvas offcanvas-end app-offcanvas border-0"
+  tabindex="-1"
+  id="appMenu"
+  aria-labelledby="appMenuLabel"
+>
+  <div class="offcanvas-header border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <img src="/logo.png" width="40" height="40" alt="Logo" />
+      <h5 class="offcanvas-title fw-bold text-uppercase" id="appMenuLabel">
+        Menu
+      </h5>
+    </div>
+    <button
+      type="button"
+      class="btn-close shadow-none"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-0 overflow-y-auto custom-scrollbar">
+    <ul class="navbar-nav mobile-nav-list p-3" id="mobileMenuAccordion">
+      <li class="nav-item mb-2">
+        <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/">
+          <i class="fas fa-home me-3 text-warning width-20"></i>Trang chủ
+        </a>
+      </li>
+
+      <li class="nav-item mb-2">
+        <div
+          class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0"
+        >
+          <a
+            class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark"
+            href="/ho-chi-minh"
+          >
+            <i class="fas fa-building me-3 text-warning width-20"></i>TP. Hồ Chí
+            Minh
+          </a>
+          <button
+            class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn"
+            type="button"
+            onclick="toggleMobileSubmenu('collapseHCM', this)"
+            style="width: 50px; height: 50px;"
+          >
+            <i class="fas fa-chevron-down transition-icon"></i>
+          </button>
         </div>
-        <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    
-    <div class="offcanvas-body p-0 overflow-y-auto custom-scrollbar">
-        
-        <ul class="navbar-nav mobile-nav-list p-3" id="mobileMenuAccordion">
-            
-            <li class="nav-item mb-2">
-                <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/">
-                    <i class="fas fa-home me-3 text-warning width-20"></i>Trang chủ
+
+        <div id="collapseHCM" class="mobile-submenu" style="display: none;">
+          <div
+            class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2"
+          >
+            {
+              hcmDistricts.map((dist) => (
+                <a
+                  class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold"
+                  href={`/ho-chi-minh/${createSlug(dist)}`}
+                >
+                  {dist}
                 </a>
-            </li>
+              ))
+            }
+          </div>
+        </div>
+      </li>
 
-            <li class="nav-item mb-2">
-                <div class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0">
-                    <a class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark" href="/ho-chi-minh">
-                        <i class="fas fa-building me-3 text-warning width-20"></i>TP. Hồ Chí Minh
-                    </a>
-                    <button class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn" 
-                            type="button" 
-                            onclick="toggleMobileSubmenu('collapseHCM', this)"
-                            style="width: 50px; height: 50px;">
-                        <i class="fas fa-chevron-down transition-icon"></i>
-                    </button>
-                </div>
-                
-                <div id="collapseHCM" class="mobile-submenu" style="display: none;">
-                    <div class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2">
-                        {hcmDistricts.map(dist => (
-                            <a class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold" href={`/ho-chi-minh/${createSlug(dist)}`}>
-                                {dist}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            </li>
+      <li class="nav-item mb-2">
+        <div
+          class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0"
+        >
+          <a
+            class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark"
+            href="/ha-noi"
+          >
+            <i class="fas fa-landmark me-3 text-warning width-20"></i>Hà Nội
+          </a>
+          <button
+            class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn"
+            type="button"
+            onclick="toggleMobileSubmenu('collapseHN', this)"
+            style="width: 50px; height: 50px;"
+          >
+            <i class="fas fa-chevron-down transition-icon"></i>
+          </button>
+        </div>
 
-            <li class="nav-item mb-2">
-                <div class="d-flex align-items-center justify-content-between bg-light-subtle rounded-3 pe-0">
-                    <a class="nav-link mobile-link fw-bold px-3 py-3 flex-grow-1 text-dark" href="/ha-noi">
-                        <i class="fas fa-landmark me-3 text-warning width-20"></i>Hà Nội
-                    </a>
-                    <button class="btn btn-link text-dark p-3 text-decoration-none d-flex align-items-center justify-content-center toggle-btn" 
-                            type="button" 
-                            onclick="toggleMobileSubmenu('collapseHN', this)"
-                            style="width: 50px; height: 50px;">
-                        <i class="fas fa-chevron-down transition-icon"></i>
-                    </button>
-                </div>
-                
-                <div id="collapseHN" class="mobile-submenu" style="display: none;">
-                    <div class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2">
-                        {hnDistricts.map(dist => (
-                            <a class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold" href={`/ha-noi/${createSlug(dist)}`}>
-                                {dist}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            </li>
-
-            <li class="nav-item mb-2">
-                <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/map-search">
-                    <i class="fas fa-map-marked-alt me-3 text-warning width-20"></i>Bản đồ
+        <div id="collapseHN" class="mobile-submenu" style="display: none;">
+          <div
+            class="py-2 px-2 district-grid-mobile bg-white rounded-3 border border-light mt-2"
+          >
+            {
+              hnDistricts.map((dist) => (
+                <a
+                  class="dropdown-item py-2 px-3 rounded-2 text-muted small fw-bold"
+                  href={`/ha-noi/${createSlug(dist)}`}
+                >
+                  {dist}
                 </a>
-            </li>
-            
-            <li class="nav-item mb-4">
-                <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/contact">
-                    <i class="fas fa-envelope me-3 text-warning width-20"></i>Liên hệ
-                </a>
-            </li>
+              ))
+            }
+          </div>
+        </div>
+      </li>
 
-            <li class="nav-item mt-2 pt-3 border-top border-light">
-                <a href="tel:0925996992" class="btn btn-warning rounded-pill fw-bold w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                    <i class="fas fa-phone-alt animate-ring"></i> 
-                    <span>0925 996 992</span>
-                </a>
-                
-                <p class="small text-muted mb-2 text-center fw-bold">Kết nối với chúng tôi</p>
-                <div class="d-flex justify-content-center gap-3 pb-3">
-                    <a href="https://zalo.me/0925996992" target="_blank" class="social-icon-mobile text-primary">
-                        <i class="fas fa-comment-dots"></i>
-                    </a>
-                    <a href="https://www.facebook.com/profile.php?id=61584268626330" target="_blank" class="social-icon-mobile text-primary">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://www.tiktok.com/@thochothuetroo" target="_blank" class="social-icon-mobile text-dark">
-                        <i class="fab fa-tiktok"></i>
-                    </a>
-                </div>
-            </li>
+      <li class="nav-item mb-2">
+        <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/map-search">
+          <i class="fas fa-map-marked-alt me-3 text-warning width-20"></i>Bản đồ
+        </a>
+      </li>
 
-        </ul>
-    </div>
+      <li class="nav-item mb-4">
+        <a class="nav-link mobile-link rounded-3 px-3 py-2" href="/contact">
+          <i class="fas fa-envelope me-3 text-warning width-20"></i>Liên hệ
+        </a>
+      </li>
+
+      <li class="nav-item mt-2 pt-3 border-top border-light">
+        <a
+          href="tel:0925996992"
+          class="btn btn-warning rounded-pill fw-bold w-100 py-3 mb-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
+        >
+          <i class="fas fa-phone-alt animate-ring"></i>
+          <span>0925 996 992</span>
+        </a>
+
+        <p class="small text-muted mb-2 text-center fw-bold">
+          Kết nối với chúng tôi
+        </p>
+        <div class="d-flex justify-content-center gap-3 pb-3">
+          <a
+            href="https://zalo.me/0925996992"
+            target="_blank"
+            class="social-icon-mobile text-primary"
+          >
+            <i class="fas fa-comment-dots"></i>
+          </a>
+          <a
+            href="https://www.facebook.com/profile.php?id=61584268626330"
+            target="_blank"
+            class="social-icon-mobile text-primary"
+          >
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a
+            href="https://www.tiktok.com/@thochothuetroo"
+            target="_blank"
+            class="social-icon-mobile text-dark"
+          >
+            <i class="fab fa-tiktok"></i>
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
 </div>
 
 <script is:inline>
-    // Hàm này chạy độc lập, không cần Bootstrap JS
-    window.toggleMobileSubmenu = function(targetId, btnElement) {
-        // 1. Lấy phần tử mục tiêu
-        const targetEl = document.getElementById(targetId);
-        const icon = btnElement.querySelector('.transition-icon');
-        
-        // 2. Kiểm tra trạng thái hiện tại (Đang mở hay đóng)
-        const isClosed = targetEl.style.display === 'none';
+  // Hàm này chạy độc lập, không cần Bootstrap JS
+  window.toggleMobileSubmenu = function (targetId, btnElement) {
+    // 1. Lấy phần tử mục tiêu
+    const targetEl = document.getElementById(targetId);
+    const icon = btnElement.querySelector(".transition-icon");
 
-        // 3. ĐÓNG TẤT CẢ CÁC MENU KHÁC (Cơ chế Accordion thủ công)
-        // Tìm tất cả submenu
-        const allSubmenus = document.querySelectorAll('.mobile-submenu');
-        const allIcons = document.querySelectorAll('.toggle-btn .transition-icon');
-        
-        // Đóng hết lại
-        allSubmenus.forEach(el => el.style.display = 'none');
-        allIcons.forEach(ic => ic.style.transform = 'rotate(0deg)');
+    // 2. Kiểm tra trạng thái hiện tại (Đang mở hay đóng)
+    const isClosed = targetEl.style.display === "none";
 
-        // 4. MỞ MENU ĐƯỢC CHỌN (Nếu nó đang đóng)
-        if (isClosed) {
-            targetEl.style.display = 'block';
-            // Hiệu ứng trượt nhẹ (Optional animation via CSS class if needed)
-            if(icon) icon.style.transform = 'rotate(180deg)';
-        }
+    // 3. ĐÓNG TẤT CẢ CÁC MENU KHÁC (Cơ chế Accordion thủ công)
+    // Tìm tất cả submenu
+    const allSubmenus = document.querySelectorAll(".mobile-submenu");
+    const allIcons = document.querySelectorAll(".toggle-btn .transition-icon");
+
+    // Đóng hết lại
+    allSubmenus.forEach((el) => (el.style.display = "none"));
+    allIcons.forEach((ic) => (ic.style.transform = "rotate(0deg)"));
+
+    // 4. MỞ MENU ĐƯỢC CHỌN (Nếu nó đang đóng)
+    if (isClosed) {
+      targetEl.style.display = "block";
+      // Hiệu ứng trượt nhẹ (Optional animation via CSS class if needed)
+      if (icon) icon.style.transform = "rotate(180deg)";
     }
+  };
 </script>
 
 <style>
-    /* Z-INDEX ĐỂ ĐÈ LÊN MỌI THỨ */
-    .app-offcanvas {
-        z-index: 999999 !important; 
-    }
-   
+  /* Z-INDEX ĐỂ ĐÈ LÊN MỌI THỨ */
+  .app-offcanvas {
+    z-index: 999999 !important;
+  }
 
-    /* 1. HEADER CHUNG */
-    .app-header {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        padding: 12px 0;
-        transition: all 0.3s ease;
-    }
+  /* 1. HEADER CHUNG */
+  .app-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 12px 0;
+    transition: all 0.3s ease;
+  }
 
-    /* 2. DESKTOP MENU STYLES */
-    .custom-link {
-        color: #444;
-        font-weight: 600;
-        font-size: 0.95rem;
-        position: relative;
-        transition: color 0.3s ease;
-    }
-    .custom-link:hover, .custom-link.active {
-        color: #d9b205; /* Màu vàng thương hiệu */
-    }
-    .custom-link::after {
-        content: ''; position: absolute; width: 0; height: 2px;
-        bottom: 5px; left: 50%; background-color: #d9b205;
-        transition: all 0.3s ease; transform: translateX(-50%);
-    }
-    .custom-link:hover::after { width: 60%; }
+  /* 2. DESKTOP MENU STYLES */
+  .custom-link {
+    color: #444;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .custom-link:hover,
+  .custom-link.active {
+    color: #d9b205; /* Màu vàng thương hiệu */
+  }
+  .custom-link::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 5px;
+    left: 50%;
+    background-color: #d9b205;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  .custom-link:hover::after {
+    width: 60%;
+  }
 
-    /* Invisible Bridge */
-    .nav-item.dropdown { position: relative; padding-bottom: 10px; margin-bottom: -10px; }
-    
-    /* MEGA MENU */
-    .mega-menu {
-        min-width: 500px;
-        margin-top: 5px !important;
-        display: none; background: #fff;
+  /* Invisible Bridge */
+  .nav-item.dropdown {
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: -10px;
+  }
+
+  /* MEGA MENU */
+  .mega-menu {
+    min-width: 500px;
+    margin-top: 10px !important; /* Tăng khoảng cách lên cho thoáng */
+    display: none;
+    background: #fff;
+    /* [QUAN TRỌNG] Cho phép menu nổi lên trên các thành phần khác */
+    z-index: 9999;
+  }
+
+  /* [FIX LỖI MENU] Cầu nối vô hình bao trùm toàn bộ chiều rộng menu */
+  .mega-menu::after {
+    content: "";
+    position: absolute;
+    top: -20px; /* Vươn lên trên để lấp khoảng hở margin-top */
+    left: 0;
+    width: 100%;
+    height: 20px; /* Chiều cao cầu nối */
+    background: transparent; /* Trong suốt */
+    display: block;
+  }
+
+  @media (min-width: 992px) {
+    .hover-dropdown:hover .mega-menu {
+      display: block;
+      animation: fadeInUp 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
-    
-    @media (min-width: 992px) {
-        .hover-dropdown:hover .mega-menu {
-            display: block;
-            animation: fadeInUp 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .mega-menu::before {
-            content: ''; position: absolute; top: -6px; left: 20px;
-            width: 12px; height: 12px; background: #fff; transform: rotate(45deg);
-            border-left: 1px solid rgba(0,0,0,0.05); border-top: 1px solid rgba(0,0,0,0.05);
-        }
+    /* Mũi tên nhỏ chỉ lên trên */
+    .mega-menu::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 20px;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      transform: rotate(45deg);
+      border-left: 1px solid rgba(0, 0, 0, 0.05);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      z-index: 10000; /* Đè lên cầu nối */
     }
+  }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Grid Layout Desktop */
-    .district-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .district-item { padding: 8px 12px; font-size: 0.9rem; color: #555; transition: all 0.2s; }
-    .district-item:hover { background-color: #fff8e1; color: #d9b205; font-weight: 600; transform: translateX(5px); }
-
-    /* 3. MOBILE MENU STYLES */
-    .width-20 { width: 20px; text-align: center; }
-    
-    .mobile-link { color: #333; font-size: 1rem; transition: all 0.2s; }
-    .mobile-link:hover { background-color: #f8f9fa; color: #d9b205; }
-
-    .district-grid-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-
-    /* Icon Transition */
-    .transition-icon { transition: transform 0.3s ease; }
-    
-    /* Animation cho Submenu Mobile */
-    .mobile-submenu {
-        animation: slideDown 0.3s ease-out;
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
     }
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
+  }
 
-    /* Hamburger Icon */
-    .hamburger-box { width: 30px; height: 24px; position: relative; display: inline-block; }
-    .hamburger-inner { top: 50%; margin-top: -2px; display: block; }
-    .hamburger-inner, .hamburger-inner::before, .hamburger-inner::after {
-        width: 30px; height: 3px; background-color: #333; border-radius: 4px;
-        position: absolute; transition: transform 0.15s ease;
+  /* Grid Layout Desktop */
+  .district-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .district-item {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: #555;
+    transition: all 0.2s;
+  }
+  .district-item:hover {
+    background-color: #fff8e1;
+    color: #d9b205;
+    font-weight: 600;
+    transform: translateX(5px);
+  }
+
+  /* 3. MOBILE MENU STYLES */
+  .width-20 {
+    width: 20px;
+    text-align: center;
+  }
+
+  .mobile-link {
+    color: #333;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+  .mobile-link:hover {
+    background-color: #f8f9fa;
+    color: #d9b205;
+  }
+
+  .district-grid-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  /* Icon Transition */
+  .transition-icon {
+    transition: transform 0.3s ease;
+  }
+
+  /* Animation cho Submenu Mobile */
+  .mobile-submenu {
+    animation: slideDown 0.3s ease-out;
+  }
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
     }
-    .hamburger-inner::before { content: ""; top: -10px; }
-    .hamburger-inner::after { content: ""; bottom: -10px; }
-
-    /* Social Icon Mobile */
-    .social-icon-mobile {
-        width: 45px; height: 45px; background: #fff; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: transform 0.2s; text-decoration: none;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .social-icon-mobile:active { transform: scale(0.9); }
+  }
 
-    .btn-header-cta:hover { background-color: #c4a004; color: #fff !important; transform: translateY(-2px); }
-    
-    /* Custom Scrollbar cho Mobile Menu */
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-    /* =========================================================
+  /* Hamburger Icon */
+  .hamburger-box {
+    width: 30px;
+    height: 24px;
+    position: relative;
+    display: inline-block;
+  }
+  .hamburger-inner {
+    top: 50%;
+    margin-top: -2px;
+    display: block;
+  }
+  .hamburger-inner,
+  .hamburger-inner::before,
+  .hamburger-inner::after {
+    width: 30px;
+    height: 3px;
+    background-color: #333;
+    border-radius: 4px;
+    position: absolute;
+    transition: transform 0.15s ease;
+  }
+  .hamburger-inner::before {
+    content: "";
+    top: -10px;
+  }
+  .hamburger-inner::after {
+    content: "";
+    bottom: -10px;
+  }
+
+  /* Social Icon Mobile */
+  .social-icon-mobile {
+    width: 45px;
+    height: 45px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    text-decoration: none;
+  }
+  .social-icon-mobile:active {
+    transform: scale(0.9);
+  }
+
+  .btn-header-cta:hover {
+    background-color: #c4a004;
+    color: #fff !important;
+    transform: translateY(-2px);
+  }
+
+  /* Custom Scrollbar cho Mobile Menu */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  /* =========================================================
            4. MENU MOBILE & OFF CANVAS
            ========================================================= */
-        @media (max-width: 991px) {
-            .app-offcanvas {
-                position: fixed ;
-                top: 0 ; bottom: 0 ; right: 0 ;
-                left: auto ;
-                width: 85vw ;
-                max-width: 320px ;
-                height: 100vh ;
-                background-color: #ffffff ;
-                z-index: 1050 ;
-                box-shadow: -5px 0 30px rgba(0,0,0,0.15) ;
-                border-left: 1px solid rgba(0,0,0,0.05) ;
-                transform: translate3d(100%, 0, 0) ;
-                visibility: hidden ;
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0.4s ;
-                display: flex ; flex-direction: column ;
-            }
+  @media (max-width: 991px) {
+    .app-offcanvas {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: auto;
+      width: 85vw;
+      max-width: 320px;
+      height: 100vh;
+      background-color: #ffffff;
+      z-index: 1050;
+      box-shadow: -5px 0 30px rgba(0, 0, 0, 0.15);
+      border-left: 1px solid rgba(0, 0, 0, 0.05);
+      transform: translate3d(100%, 0, 0);
+      visibility: hidden;
+      transition:
+        transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+        visibility 0s linear 0.4s;
+      display: flex;
+      flex-direction: column;
+    }
 
-            .app-offcanvas.show, .app-offcanvas.showing { 
-                transform: translate3d(0, 0, 0) !important;
-                visibility: visible !important;
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0s linear 0s !important;
-            }
+    .app-offcanvas.show,
+    .app-offcanvas.showing {
+      transform: translate3d(0, 0, 0) !important;
+      visibility: visible !important;
+      transition:
+        transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+        visibility 0s linear 0s !important;
+    }
 
-            .app-offcanvas.hiding {
-                transform: translate3d(100%, 0, 0) !important;
-                visibility: visible !important; 
-                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            }
+    .app-offcanvas.hiding {
+      transform: translate3d(100%, 0, 0) !important;
+      visibility: visible !important;
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    }
 
-            .offcanvas-header {
-                display: flex;
-                align-items: center; justify-content: space-between;
-                padding: 18px 20px; border-bottom: 1px solid #f2f2f2; min-height: 70px;
-            }
-            .offcanvas-body {
-                flex-grow: 1;
-                padding: 20px;
-                overflow-y: auto !important; overscroll-behavior: contain;
-            }
-            .btn-close { opacity: 1 !important; padding: 10px !important; margin: 0 ; box-shadow: none !important; }
-            .offcanvas-header img { width: 40px !important; height: 40px !important; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
+    .offcanvas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid #f2f2f2;
+      min-height: 70px;
+    }
+    .offcanvas-body {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+    }
+    .btn-close {
+      opacity: 1 !important;
+      padding: 10px !important;
+      margin: 0;
+      box-shadow: none !important;
+    }
+    .offcanvas-header img {
+      width: 40px !important;
+      height: 40px !important;
+      object-fit: contain;
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
 
-            .navbar-nav .nav-item { width: 100%; margin-bottom: 0.5rem; }
-            .navbar-nav .nav-link {
-                padding: 12px 16px !important;
-                border-radius: 12px;
-                background-color: #f8f9fa; color: #333 !important;
-                font-weight: 600; font-size: 15px; display: flex; align-items: center; transition: all 0.2s;
-            }
-            .navbar-nav .nav-link:active { background-color: #fffbe6; color: #d9b205 !important; transform: scale(0.97); }
-
-            
-        }
+    .navbar-nav .nav-item {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .navbar-nav .nav-link {
+      padding: 12px 16px !important;
+      border-radius: 12px;
+      background-color: #f8f9fa;
+      color: #333 !important;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .navbar-nav .nav-link:active {
+      background-color: #fffbe6;
+      color: #d9b205 !important;
+      transform: scale(0.97);
+    }
+  }
 </style>
