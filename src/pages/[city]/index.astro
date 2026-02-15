@@ -1,482 +1,614 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SidebarFilter from '../../components/SidebarFilter.astro';
-import CardRoom from '../../components/CardRoom.astro';
-import CommitmentFooter from '../../components/CommitmentFooter.astro';
-import fs from 'node:fs';
-import path from 'node:path';
+import Layout from "../../layouts/Layout.astro";
+import SidebarFilter from "../../components/SidebarFilter.astro";
+import CardRoom from "../../components/CardRoom.astro";
+import CommitmentFooter from "../../components/CommitmentFooter.astro";
+import fs from "node:fs";
+import path from "node:path";
 
 // --- 1. GET STATIC PATHS ---
 export async function getStaticPaths() {
-    return [
-        { params: { city: 'ho-chi-minh' }, props: { cityName: 'Hồ Chí Minh', cityCode: 'hochiminh' } },
-        { params: { city: 'ha-noi' }, props: { cityName: 'Hà Nội', cityCode: 'hanoi' } }
-    ];
+  return [
+    {
+      params: { city: "ho-chi-minh" },
+      props: { cityName: "Hồ Chí Minh", cityCode: "hochiminh" },
+    },
+    {
+      params: { city: "ha-noi" },
+      props: { cityName: "Hà Nội", cityCode: "hanoi" },
+    },
+  ];
 }
 
 const { city } = Astro.params;
 const { cityName, cityCode } = Astro.props;
 // --- 2. LOAD DATA ---
 const fileName = `data_${cityCode}.json`;
-const dataPath = path.join(process.cwd(), 'public', fileName);
+const dataPath = path.join(process.cwd(), "public", fileName);
 
 let cityRooms = [];
 try {
-    const fileContent = fs.readFileSync(dataPath, 'utf-8');
-    const jsonData = JSON.parse(fileContent);
-    // [FIX 1] Thêm kiểu (r: any) để TypeScript không báo lỗi
-    cityRooms = jsonData.rooms.filter((r: any) => r.status === 'active');
+  const fileContent = fs.readFileSync(dataPath, "utf-8");
+  const jsonData = JSON.parse(fileContent);
+  // [FIX 1] Thêm kiểu (r: any) để TypeScript không báo lỗi
+  cityRooms = jsonData.rooms.filter((r: any) => r.status === "active");
 } catch (e) {
-    console.error(`Lỗi đọc file ${fileName}:`, e);
-    cityRooms = [];
+  console.error(`Lỗi đọc file ${fileName}:`, e);
+  cityRooms = [];
 }
 
 // [FIX 2] Định nghĩa kiểu mảng any[] cho tham số
-function sortRooms(rooms: any[]) { 
-    return rooms.sort((a: any, b: any) => { 
-        if (a.promotion && !b.promotion) return -1;
-        if (!a.promotion && b.promotion) return 1;
-        return 0;
-    });
+function sortRooms(rooms: any[]) {
+  return rooms.sort((a: any, b: any) => {
+    if (a.promotion && !b.promotion) return -1;
+    if (!a.promotion && b.promotion) return 1;
+    return 0;
+  });
 }
 
 // [FIX 3] Định nghĩa kiểu cho map và filter
 const districtNames = [...new Set(cityRooms.map((r: any) => r.district))];
-let districtsData = districtNames.map(name => {
-    return { name: name, rooms: sortRooms(cityRooms.filter((r: any) => r.district === name)) }; 
+let districtsData = districtNames.map((name) => {
+  return {
+    name: name,
+    rooms: sortRooms(cityRooms.filter((r: any) => r.district === name)),
+  };
 });
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
 
 // [FIX 4] Cho phép tham số nhận kiểu string hoặc bất kỳ
-function createSlug(text: string | any) { 
-    if (!text) return '';
-    return text.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[đĐ]/g, 'd')
-        .replace(/[^a-z0-9\s]/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
+function createSlug(text: string | any) {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
 }
 
 // --- SEO CONFIG ---
 const pageTitle = `Phòng Trọ ${cityName} Giá Rẻ, Full Nội Thất | Thọ Cho Thuê Trọ`;
 const pageDesc = `Hệ thống phòng trọ, căn hộ dịch vụ tại ${cityName}. Giờ giấc tự do, an ninh 24/7, full nội thất. Xem phòng ngay!`;
-const canonicalURL = `${Astro.site || 'https://thochothuetro.com'}/${city}`;
+const canonicalURL = `${Astro.site || "https://thochothuetro.com"}/${city}`;
 // [QUAN TRỌNG] Ảnh để preload (Cải thiện LCP)
 const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
 ---
 
-<Layout title={pageTitle} description={pageDesc} currentCity={cityCode} canonicalURL={canonicalURL} preloadImage={preloadImg}>
-    <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg">
-         <picture>
-             <source media="(max-width: 767px)" srcset="https://img.thochothuetro.com/banner-mobile.webp" width="768" height="500">
-             <img 
-                src="https://img.thochothuetro.com/banner.webp" 
-                class="banner-bg-img" 
-                alt={`Phòng trọ ${cityName}`} 
-                width="1920" 
-                height="600"
-                fetchpriority="high" 
-                loading="eager"
-                decoding="async"
-            >
-         </picture>
-         <div class="banner-overlay"></div>
-         <div class="banner-content container position-relative z-2 h-100 d-flex align-items-center">
-            <div class="row w-100">
-                <div class="col-lg-8 mx-auto text-center text-lg-start">
-                    <h1 class="hero-title fw-bold text-white mb-3">
-                         Phòng Trọ <span class="text-gradient-gold">{cityName}</span> <br> Tiện Nghi & Giá Rẻ
-                    </h1>
-                    <p class="hero-desc text-white-50 mb-4">
-                        Hơn {cityRooms.length}+ phòng trọ an ninh tại {cityName}. Giá từ 3 - 15 triệu/tháng.
-                    </p>
-                </div>
-            </div>
-         </div>
-    </section>
-
-    <div class="container my-4">
-        <div class="row align-items-stretch">
-            <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column">
-                <SidebarFilter currentCity={cityCode} />
-            </aside>
-
-            <main class="col-lg-9">
-                <div id="intro-banner" class="mb-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <h2 class="h5 fw-bold text-dark m-0 text-uppercase border-start border-4 border-warning ps-3">
-                            Khu vực {cityName}
-                        </h2>
-                    </div>
-                </div>
-
-                {districtsData.length > 0 ? districtsData.map((dData) => (
-                   <section class="district-section mb-5" data-district={dData.name}>
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
-                            <h2 class="h5 fw-bold text-dark m-0 text-uppercase">
-                                <span class="text-warning me-2"><i class="fas fa-map-marker-alt"></i></span> 
-                                {dData.name}
-                            </h2>
-                            <a href={`/${city}/${createSlug(dData.name)}`} class="small text-muted text-decoration-none hover-warning">
-                                Xem tất cả <i class="fas fa-angle-right ms-1"></i>
-                            </a>
-                        </div>
-                        
-                        <div class="row g-2 g-md-3 room-list-container">
-                            {/* [FIX 5] Thêm kiểu (room: any, idx: number) */}
-                            {dData.rooms.slice(0, 6).map((room: any, idx: number) => ( 
-                                <div class="col-6 col-md-4 room-item"
-                                     data-district={room.district}
-                                     data-price={room.price}
-                                     data-type={room.type}
-                                     data-status={room.status}
-                                     data-keypoint={room.keypoint} 
-                                     data-pet={room.pet}>
-                                     
-                                     <CardRoom room={room} priority={idx < 6} citySlug={city} />
-                                </div>
-                            ))}
-                        </div>
-
-                        <div class="view-more-wrapper text-center mt-3" style="display: none;" data-district={dData.name}>
-                            <a href="#" class="view-more-link btn btn-outline-warning rounded-pill px-4">
-                                Xem thêm <span class="remaining-count fw-bold"></span> phòng khác <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
-
-                   </section>
-                )) : (
-                    <div class="text-center py-5">
-                        <p class="text-muted">Đang cập nhật dữ liệu phòng tại {cityName}...</p>
-                    </div>
-                )}
-
-                <div id="no-result" class="d-none text-center py-5">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Không tìm thấy phòng phù hợp với bộ lọc.</p>
-                </div>
-            </main>
+<Layout
+  title={pageTitle}
+  description={pageDesc}
+  currentCity={cityCode}
+  canonicalURL={canonicalURL}
+  preloadImage={preloadImg}
+>
+  <Fragment slot="head">
+    <link
+      rel="preload"
+      href="/fonts/fa-solid-900.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/fa-brands-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </Fragment>
+  <section class="banner-hero-wrapper mb-4 mb-md-5 shadow-lg">
+    <picture>
+      <source
+        media="(max-width: 767px)"
+        srcset="https://img.thochothuetro.com/banner-mobile.webp"
+        width="768"
+        height="500"
+      />
+      <img
+        src="https://img.thochothuetro.com/banner.webp"
+        class="banner-bg-img"
+        alt={`Phòng trọ ${cityName}`}
+        width="1920"
+        height="600"
+        fetchpriority="high"
+        loading="eager"
+        decoding="async"
+      />
+    </picture>
+    <div class="banner-overlay"></div>
+    <div
+      class="banner-content container position-relative z-2 h-100 d-flex align-items-center"
+    >
+      <div class="row w-100">
+        <div class="col-lg-8 mx-auto text-center text-lg-start">
+          <h1 class="hero-title fw-bold text-white mb-3">
+            Phòng Trọ <span class="text-gradient-gold">{cityName}</span>
+            <br /> Tiện Nghi & Giá Rẻ
+          </h1>
+          <p class="hero-desc text-white-50 mb-4">
+            Hơn {cityRooms.length}+ phòng trọ an ninh tại {cityName}. Giá từ 3 -
+            15 triệu/tháng.
+          </p>
         </div>
+      </div>
     </div>
-    <CommitmentFooter />
+  </section>
+
+  <div class="container my-4">
+    <div class="row align-items-stretch">
+      <aside class="col-lg-3 mb-5 mb-lg-0 d-flex flex-column">
+        <SidebarFilter currentCity={cityCode} />
+      </aside>
+
+      <main class="col-lg-9">
+        <div id="intro-banner" class="mb-4">
+          <div class="d-flex align-items-center mb-3">
+            <h2
+              class="h5 fw-bold text-dark m-0 text-uppercase border-start border-4 border-warning ps-3"
+            >
+              Khu vực {cityName}
+            </h2>
+          </div>
+        </div>
+
+        {
+          districtsData.length > 0 ? (
+            districtsData.map((dData) => (
+              <section class="district-section mb-5" data-district={dData.name}>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
+                  <h2 class="h5 fw-bold text-dark m-0 text-uppercase">
+                    <span class="text-warning me-2">
+                      <i class="fas fa-map-marker-alt" />
+                    </span>
+                    {dData.name}
+                  </h2>
+                  <a
+                    href={`/${city}/${createSlug(dData.name)}`}
+                    class="small text-muted text-decoration-none hover-warning"
+                  >
+                    Xem tất cả <i class="fas fa-angle-right ms-1" />
+                  </a>
+                </div>
+
+                <div class="row g-2 g-md-3 room-list-container">
+                  {/* [FIX 5] Thêm kiểu (room: any, idx: number) */}
+                  {dData.rooms.slice(0, 6).map((room: any, idx: number) => (
+                    <div
+                      class="col-6 col-md-4 room-item"
+                      data-district={room.district}
+                      data-price={room.price}
+                      data-type={room.type}
+                      data-status={room.status}
+                      data-keypoint={room.keypoint}
+                      data-pet={room.pet}
+                    >
+                      <CardRoom
+                        room={room}
+                        priority={idx < 6}
+                        citySlug={city}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  class="view-more-wrapper text-center mt-3"
+                  style="display: none;"
+                  data-district={dData.name}
+                >
+                  <a
+                    href="#"
+                    class="view-more-link btn btn-outline-warning rounded-pill px-4"
+                  >
+                    Xem thêm <span class="remaining-count fw-bold" /> phòng khác{" "}
+                    <i class="fas fa-arrow-right ms-2" />
+                  </a>
+                </div>
+              </section>
+            ))
+          ) : (
+            <div class="text-center py-5">
+              <p class="text-muted">
+                Đang cập nhật dữ liệu phòng tại {cityName}...
+              </p>
+            </div>
+          )
+        }
+
+        <div id="no-result" class="d-none text-center py-5">
+          <i class="fas fa-search fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Không tìm thấy phòng phù hợp với bộ lọc.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+  <CommitmentFooter />
 </Layout>
 
 <style>
-    /* HERO BANNER STYLES */
+  /* HERO BANNER STYLES */
+  .banner-hero-wrapper {
+    position: relative;
+    height: 380px;
+    /* [TỐI ƯU] Dùng kỹ thuật này an toàn hơn 100vw để tránh thanh cuộn ngang */
+    width: 100%;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #222;
+    /* [QUAN TRỌNG] Giữ chỗ layout trước khi ảnh load (giảm CLS) */
+    aspect-ratio: 16/9;
+  }
+
+  @media (min-width: 768px) {
     .banner-hero-wrapper {
-        position: relative;
-        height: 380px;
-        /* [TỐI ƯU] Dùng kỹ thuật này an toàn hơn 100vw để tránh thanh cuộn ngang */
-        width: 100%; 
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        width: 100vw;
-        overflow: hidden;
-        background-color: #222;
-        /* [QUAN TRỌNG] Giữ chỗ layout trước khi ảnh load (giảm CLS) */
-        aspect-ratio: 16/9; 
+      height: 450px;
+      aspect-ratio: 1920/600; /* Tỷ lệ ảnh banner desktop */
     }
+  }
 
-    @media (min-width: 768px) {
-        .banner-hero-wrapper { 
-            height: 450px; 
-            aspect-ratio: 1920/600; /* Tỷ lệ ảnh banner desktop */
-        }
-    }
+  .banner-bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
 
-    .banner-bg-img {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover; object-position: center;
-    }
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+    z-index: 1;
+  }
 
-    .banner-overlay {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
-        z-index: 1;
-    }
+  .banner-content {
+    position: relative;
+    z-index: 2;
+  }
 
-    .banner-content { position: relative; z-index: 2; }
+  .hero-title {
+    font-size: clamp(1.75rem, 5vw, 3.2rem);
+    line-height: 1.2;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+  }
 
-    .hero-title {
-        font-size: clamp(1.75rem, 5vw, 3.2rem);
-        line-height: 1.2;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-    }
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-    .text-gradient-gold {
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
+  .hero-desc {
+    font-size: clamp(0.95rem, 2vw, 1.15rem);
+    line-height: 1.6;
+  }
 
-    .hero-desc {
-        font-size: clamp(0.95rem, 2vw, 1.15rem);
-        line-height: 1.6;
-    }
+  /* BADGE LUXURY */
+  .badge-luxury {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
 
-    /* BADGE LUXURY */
-    .badge-luxury {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.6rem 1.2rem;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        border-radius: 25px;
-        color: white;
-        font-size: 0.9rem; font-weight: 600;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.3s ease;
-    }
-
-    .badge-luxury:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-    }
-    /* Thêm vào style của index.astro */
-    .district-section {
+  .badge-luxury:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+  /* Thêm vào style của index.astro */
+  .district-section {
     /* Tăng tốc độ render cực mạnh cho các trang dài */
-    content-visibility: auto; 
+    content-visibility: auto;
     contain-intrinsic-size: 1000px; /* Chiều cao ước lượng của 1 khối quận */
-    }
+  }
 
-    /* RESPONSIVE */
-    @media (max-width: 991px) {
-        .banner-hero-wrapper { height: 350px; }
-        .hero-title { font-size: 1.75rem; }
-        .badge-luxury { font-size: 0.75rem; padding: 0.5rem 0.9rem; }
+  /* RESPONSIVE */
+  @media (max-width: 991px) {
+    .banner-hero-wrapper {
+      height: 350px;
     }
-    
-    .room-list-container {
-        content-visibility: auto;
-        contain-intrinsic-size: 1000px; 
+    .hero-title {
+      font-size: 1.75rem;
     }
+    .badge-luxury {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.9rem;
+    }
+  }
+
+  .room-list-container {
+    content-visibility: auto;
+    contain-intrinsic-size: 1000px;
+  }
 </style>
 
 <script>
-// CLIENT-SIDE FILTER & SORTING LOGIC
-document.addEventListener('DOMContentLoaded', () => {
+  // CLIENT-SIDE FILTER & SORTING LOGIC
+  document.addEventListener("DOMContentLoaded", () => {
     const queryString = window.location.search.substring(1);
     const params = new URLSearchParams(queryString);
-    const introBanner = document.getElementById('intro-banner');
-    const noResult = document.getElementById('no-result');
-    const viewMoreWrappers = document.querySelectorAll('.view-more-wrapper');
+    const introBanner = document.getElementById("intro-banner");
+    const noResult = document.getElementById("no-result");
+    const viewMoreWrappers = document.querySelectorAll(".view-more-wrapper");
 
-    const currentPath = window.location.pathname.replace(/\/$/, '');
+    const currentPath = window.location.pathname.replace(/\/$/, "");
 
     // [FIX 6] Định nghĩa kiểu
-    const createSlug = (text: string | any) => { 
-        if(!text) return '';
-        return text.toString().toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[đĐ]/g, 'd')
-            .replace(/[^a-z0-9\s]/g, '')
-            .trim()
-            .replace(/\s+/g, '-');
+    const createSlug = (text: string | any) => {
+      if (!text) return "";
+      return text
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d")
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
     };
 
-    function hasImage(el: Element) { 
-        // [FIX 7] Ép kiểu thành HTMLImageElement để dùng thuộc tính src
-        const img = el.querySelector('img') as HTMLImageElement | null; 
-        if (!img) return false;
-        const src = (img.getAttribute('src') || '').trim();
-        if (!src || src.includes('logo')) return false;
-        return true;
+    function hasImage(el: Element) {
+      // [FIX 7] Ép kiểu thành HTMLImageElement để dùng thuộc tính src
+      const img = el.querySelector("img") as HTMLImageElement | null;
+      if (!img) return false;
+      const src = (img.getAttribute("src") || "").trim();
+      if (!src || src.includes("logo")) return false;
+      return true;
     }
 
     // [FIX 8] Định nghĩa kiểu mảng Element[]
-    function sortAndCap(items: Element[]) { 
-        const active = items.filter(i => i.getAttribute('data-status') !== 'rented');
-        const rented = items.filter(i => i.getAttribute('data-status') === 'rented'); 
-        
-        const byImage = (a: Element, b: Element) => (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
-        active.sort(byImage);
-        rented.sort(byImage);
-        
-        const rentedCapped = rented.slice(0, 9);
-        return [...active, ...rentedCapped];
+    function sortAndCap(items: Element[]) {
+      const active = items.filter(
+        (i) => i.getAttribute("data-status") !== "rented",
+      );
+      const rented = items.filter(
+        (i) => i.getAttribute("data-status") === "rented",
+      );
+
+      const byImage = (a: Element, b: Element) =>
+        (hasImage(b) ? 1 : 0) - (hasImage(a) ? 1 : 0);
+      active.sort(byImage);
+      rented.sort(byImage);
+
+      const rentedCapped = rented.slice(0, 9);
+      return [...active, ...rentedCapped];
     }
 
     // [FIX 9] Ép kiểu HTMLElement[]
-    const allItems = Array.from(document.querySelectorAll('.room-item')) as HTMLElement[];
+    const allItems = Array.from(
+      document.querySelectorAll(".room-item"),
+    ) as HTMLElement[];
     // [FIX 10] Định nghĩa kiểu Dictionary Record<string, HTMLElement[]> để sửa lỗi Index
-    const itemsByDistrict: Record<string, HTMLElement[]> = {}; 
+    const itemsByDistrict: Record<string, HTMLElement[]> = {};
 
-    allItems.forEach(item => {
-        const district = item.getAttribute('data-district') || 'unknown'; 
-        if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
-        itemsByDistrict[district].push(item);
+    allItems.forEach((item) => {
+      const district = item.getAttribute("data-district") || "unknown";
+      if (!itemsByDistrict[district]) itemsByDistrict[district] = [];
+      itemsByDistrict[district].push(item);
     });
 
     // [FIX 11] Thêm | null để an toàn
     function hideAllInContainer(container: Element | null) {
-        if (!container) return;
-        Array.from(container.querySelectorAll('.room-item')).forEach(el => {
-            // [FIX 12] Ép kiểu HTMLElement để truy cập style
-            (el as HTMLElement).style.display = 'none';
-        });
+      if (!container) return;
+      Array.from(container.querySelectorAll(".room-item")).forEach((el) => {
+        // [FIX 12] Ép kiểu HTMLElement để truy cập style
+        (el as HTMLElement).style.display = "none";
+      });
     }
 
     // --- NO FILTER (DEFAULT DISPLAY) ---
     if (!queryString) {
-        if (introBanner) introBanner.classList.remove('d-none');
-        let anyVisible = false;
+      if (introBanner) introBanner.classList.remove("d-none");
+      let anyVisible = false;
 
-        viewMoreWrappers.forEach(wrapper => {
-            const district = wrapper.getAttribute('data-district') || '';
-            const list = itemsByDistrict[district] || [];
-            
-            const sorted = sortAndCap(list);
-            const matchedCount = sorted.length;
-            const remaining = Math.max(0, matchedCount - 6);
+      viewMoreWrappers.forEach((wrapper) => {
+        const district = wrapper.getAttribute("data-district") || "";
+        const list = itemsByDistrict[district] || [];
 
-            // [FIX 13] Thêm dấu ?. để tránh lỗi Object is possibly null
-            const container = wrapper.parentElement?.querySelector('.room-list-container');
-            if (container) {
-                sorted.forEach(el => container.appendChild(el));
-                hideAllInContainer(container);
-                sorted.slice(0, 6).forEach(el => { 
-                    (el as HTMLElement).style.display = 'block'; 
-                    anyVisible = true; 
-                });
-            }
+        const sorted = sortAndCap(list);
+        const matchedCount = sorted.length;
+        const remaining = Math.max(0, matchedCount - 6);
 
-            if (remaining > 0) {
-                // [FIX 14] Ép kiểu HTMLAnchorElement để truy cập href
-                const link = wrapper.querySelector('.view-more-link') as HTMLAnchorElement | null;
-                const countSpan = wrapper.querySelector('.remaining-count');
-                
-                // [FIX 15] Chuyển đổi number sang string bằng .toString()
-                if (countSpan) countSpan.textContent = remaining.toString();
-                if (link) link.href = `${currentPath}/${createSlug(district)}`;
-                (wrapper as HTMLElement).style.display = 'block';
-            } else {
-                (wrapper as HTMLElement).style.display = 'none';
-            }
-
-            const section = wrapper.parentElement;
-            if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
-        });
-
-        if (noResult) {
-            noResult.classList.toggle('d-none', anyVisible);
+        // [FIX 13] Thêm dấu ?. để tránh lỗi Object is possibly null
+        const container = wrapper.parentElement?.querySelector(
+          ".room-list-container",
+        );
+        if (container) {
+          sorted.forEach((el) => container.appendChild(el));
+          hideAllInContainer(container);
+          sorted.slice(0, 6).forEach((el) => {
+            (el as HTMLElement).style.display = "block";
+            anyVisible = true;
+          });
         }
-        return;
+
+        if (remaining > 0) {
+          // [FIX 14] Ép kiểu HTMLAnchorElement để truy cập href
+          const link = wrapper.querySelector(
+            ".view-more-link",
+          ) as HTMLAnchorElement | null;
+          const countSpan = wrapper.querySelector(".remaining-count");
+
+          // [FIX 15] Chuyển đổi number sang string bằng .toString()
+          if (countSpan) countSpan.textContent = remaining.toString();
+          if (link) link.href = `${currentPath}/${createSlug(district)}`;
+          (wrapper as HTMLElement).style.display = "block";
+        } else {
+          (wrapper as HTMLElement).style.display = "none";
+        }
+
+        const section = wrapper.parentElement;
+        if (section)
+          section.style.display = matchedCount === 0 ? "none" : "block";
+      });
+
+      if (noResult) {
+        noResult.classList.toggle("d-none", anyVisible);
+      }
+      return;
     }
 
     // --- WITH FILTER ---
-    if (introBanner) introBanner.classList.add('d-none');
-    
-    const fDistrict = params.get('district');
-    const fType = (params.get('type') || 'all').toLowerCase();
-    const fPrice = params.get('price');
+    if (introBanner) introBanner.classList.add("d-none");
+
+    const fDistrict = params.get("district");
+    const fType = (params.get("type") || "all").toLowerCase();
+    const fPrice = params.get("price");
     // [FIX 16] Xử lý trường hợp null bằng (... || '')
-    const fAmenitiesRaw = (params.get('amenities') || '').split(',');
-    const fAmenities = fAmenitiesRaw.map(a => (a || '').toString().trim().toLowerCase()).filter(a => a !== '');
-    
-    const specialGroup = ['ban công', 'cửa sổ'];
-    const selectedSpecial = fAmenities.filter(a => specialGroup.includes(a));
-    const selectedNormal = fAmenities.filter(a => !specialGroup.includes(a));
+    const fAmenitiesRaw = (params.get("amenities") || "").split(",");
+    const fAmenities = fAmenitiesRaw
+      .map((a) => (a || "").toString().trim().toLowerCase())
+      .filter((a) => a !== "");
+
+    const specialGroup = ["ban công", "cửa sổ"];
+    const selectedSpecial = fAmenities.filter((a) => specialGroup.includes(a));
+    const selectedNormal = fAmenities.filter((a) => !specialGroup.includes(a));
 
     const matchedMap: Record<string, HTMLElement[]> = {};
     let totalMatched = 0;
 
-    allItems.forEach(item => {
-        let matches = true;
+    allItems.forEach((item) => {
+      let matches = true;
 
-        if (fDistrict && fDistrict !== 'all' && item.getAttribute('data-district') !== fDistrict) {
-            matches = false;
-        }
-        
-        const itemType = (item.getAttribute('data-type') || '').toLowerCase();
-        if (matches && fType !== 'all' && itemType !== fType) {
-            matches = false;
-        }
+      if (
+        fDistrict &&
+        fDistrict !== "all" &&
+        item.getAttribute("data-district") !== fDistrict
+      ) {
+        matches = false;
+      }
 
-        if (matches && fPrice && fPrice !== 'all') {
-            // [FIX 17] parseInt cần chuỗi, thêm || '0'
-            const price = parseInt(item.getAttribute('data-price') || '0') / 1000000;
-            if (fPrice === 'duoi-5' && price >= 5) matches = false;
-            if (fPrice === '5to8' && (price < 5 || price >= 8)) matches = false;
-            if (fPrice === 'over8' && price < 8) matches = false;
-        }
+      const itemType = (item.getAttribute("data-type") || "").toLowerCase();
+      if (matches && fType !== "all" && itemType !== fType) {
+        matches = false;
+      }
 
-        if (matches && fAmenities.length > 0) {
-            const keypoints = (item.getAttribute('data-keypoint') || '').toLowerCase();
-            const petAllowed = item.getAttribute('data-pet') === 'yes';
+      if (matches && fPrice && fPrice !== "all") {
+        // [FIX 17] parseInt cần chuỗi, thêm || '0'
+        const price =
+          parseInt(item.getAttribute("data-price") || "0") / 1000000;
+        if (fPrice === "duoi-5" && price >= 5) matches = false;
+        if (fPrice === "5to8" && (price < 5 || price >= 8)) matches = false;
+        if (fPrice === "over8" && price < 8) matches = false;
+      }
 
-            for (let ami of selectedNormal) {
-                if (!ami) continue;
-                if (ami === 'nuôi pet' || ami === 'nuoi pet') {
-                    if (!keypoints.includes('pet') && !keypoints.includes('thú cưng') && !petAllowed) {
-                        matches = false;
-                        break;
-                    }
-                } else {
-                    if (!keypoints.includes(ami)) {
-                        matches = false;
-                        break;
-                    }
-                }
+      if (matches && fAmenities.length > 0) {
+        const keypoints = (
+          item.getAttribute("data-keypoint") || ""
+        ).toLowerCase();
+        const petAllowed = item.getAttribute("data-pet") === "yes";
+
+        for (let ami of selectedNormal) {
+          if (!ami) continue;
+          if (ami === "nuôi pet" || ami === "nuoi pet") {
+            if (
+              !keypoints.includes("pet") &&
+              !keypoints.includes("thú cưng") &&
+              !petAllowed
+            ) {
+              matches = false;
+              break;
             }
-
-            if (matches && selectedSpecial.length > 0) {
-                let hasAtLeastOne = false;
-                if (selectedSpecial.includes('ban công') && keypoints.includes('ban công')) hasAtLeastOne = true;
-                if (selectedSpecial.includes('cửa sổ') && keypoints.includes('cửa sổ')) hasAtLeastOne = true;
-                if (!hasAtLeastOne) matches = false;
+          } else {
+            if (!keypoints.includes(ami)) {
+              matches = false;
+              break;
             }
+          }
         }
 
-        const district = item.getAttribute('data-district') || 'unknown';
-        if (!matchedMap[district]) matchedMap[district] = [];
-        
-        if (matches) {
-            matchedMap[district].push(item);
-            totalMatched++;
-        } else {
-            (item as HTMLElement).style.display = 'none';
+        if (matches && selectedSpecial.length > 0) {
+          let hasAtLeastOne = false;
+          if (
+            selectedSpecial.includes("ban công") &&
+            keypoints.includes("ban công")
+          )
+            hasAtLeastOne = true;
+          if (
+            selectedSpecial.includes("cửa sổ") &&
+            keypoints.includes("cửa sổ")
+          )
+            hasAtLeastOne = true;
+          if (!hasAtLeastOne) matches = false;
         }
+      }
+
+      const district = item.getAttribute("data-district") || "unknown";
+      if (!matchedMap[district]) matchedMap[district] = [];
+
+      if (matches) {
+        matchedMap[district].push(item);
+        totalMatched++;
+      } else {
+        (item as HTMLElement).style.display = "none";
+      }
     });
 
-    viewMoreWrappers.forEach(wrapper => {
-        const district = wrapper.getAttribute('data-district') || '';
-        const matchedList = matchedMap[district] || [];
-        const sorted = sortAndCap(matchedList);
-        const matchedCount = sorted.length;
-        const remaining = Math.max(0, matchedCount - 6);
+    viewMoreWrappers.forEach((wrapper) => {
+      const district = wrapper.getAttribute("data-district") || "";
+      const matchedList = matchedMap[district] || [];
+      const sorted = sortAndCap(matchedList);
+      const matchedCount = sorted.length;
+      const remaining = Math.max(0, matchedCount - 6);
 
-        // [FIX 18] Thêm dấu ?.
-        const container = wrapper.parentElement?.querySelector('.room-list-container');
-        if (container) {
-            hideAllInContainer(container);
-            sorted.forEach(el => container.appendChild(el));
-            sorted.slice(0, 6).forEach(el => (el as HTMLElement).style.display = 'block');
-        }
+      // [FIX 18] Thêm dấu ?.
+      const container = wrapper.parentElement?.querySelector(
+        ".room-list-container",
+      );
+      if (container) {
+        hideAllInContainer(container);
+        sorted.forEach((el) => container.appendChild(el));
+        sorted
+          .slice(0, 6)
+          .forEach((el) => ((el as HTMLElement).style.display = "block"));
+      }
 
-        if (remaining > 0) {
-            const link = wrapper.querySelector('.view-more-link') as HTMLAnchorElement | null;
-            const countSpan = wrapper.querySelector('.remaining-count');
-            
-            if (countSpan) countSpan.textContent = remaining.toString();
-            if (link) link.href = `${currentPath}/${createSlug(district)}`;
-            (wrapper as HTMLElement).style.display = 'block';
-        } else {
-            (wrapper as HTMLElement).style.display = 'none';
-        }
+      if (remaining > 0) {
+        const link = wrapper.querySelector(
+          ".view-more-link",
+        ) as HTMLAnchorElement | null;
+        const countSpan = wrapper.querySelector(".remaining-count");
 
-        const section = wrapper.parentElement;
-        if (section) section.style.display = matchedCount === 0 ? 'none' : 'block';
+        if (countSpan) countSpan.textContent = remaining.toString();
+        if (link) link.href = `${currentPath}/${createSlug(district)}`;
+        (wrapper as HTMLElement).style.display = "block";
+      } else {
+        (wrapper as HTMLElement).style.display = "none";
+      }
+
+      const section = wrapper.parentElement;
+      if (section)
+        section.style.display = matchedCount === 0 ? "none" : "block";
     });
 
     if (noResult) {
-        noResult.classList.toggle('d-none', totalMatched > 0);
+      noResult.classList.toggle("d-none", totalMatched > 0);
     }
-});
+  });
 </script>
