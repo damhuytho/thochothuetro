@@ -1,5 +1,5 @@
 /* =========================================
-   1. CẤU HÌNH CHUNG & RESET
+   1. CORE: CẤU HÌNH CHUNG & RESET
    ========================================= */
 :root {
     --primary: #f1c40f; 
@@ -15,89 +15,77 @@ body {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-weight: 400;
-    color: #4a4a4a;
-    background: var(--gray-bg);
     color: var(--text-dark);
+    background: var(--gray-bg);
     padding-bottom: 70px; /* Chừa chỗ cho Mobile Nav */
     line-height: 1.6; 
-}
-.district-section, 
-.room-list-container,
-.detail-container-standard,
-footer {
-    content-visibility: auto; 
-    contain-intrinsic-size: 1px 1000px; /* Chiều cao giả lập để thanh cuộn mượt */
-}
-header, .navbar, .universal-page-header {
-    position: relative;
-    z-index: 999999 !important;
-    /* Tuyệt đối không thêm content-visibility vào đây */
-}
-/* 4. [QUAN TRỌNG] Phải định nghĩa lại các thẻ in đậm */
-/* Vì body đã set 300, nên phải nhắc trình duyệt: thẻ b, strong, heading vẫn phải đậm */
-b, strong, h1, h2, h3, h4, h5, h6, .fw-bold {
-    font-weight: 700;
-    color: #1a1a1a; /* Tiêu đề thì cho đậm màu hơn */
 }
 
 a { text-decoration: none; }
 
-/* [SỬA LỖI 3] Chỉ reset ul cho các thành phần nội dung, KHÔNG reset toàn bộ (tránh lỗi Map) */
+/* Reset ul cho nội dung, sidebar, footer */
 .content-text ul, .sidebar-wrapper ul, .footer ul { 
     padding-left: 0; list-style: none; 
 }
 
-/* =========================================
-   6. HEADER & BREADCRUMB
-   ========================================= */
-.page-header-block {
-    box-shadow: none !important;
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-.page-header-title { 
+/* Định nghĩa lại độ đậm font */
+b, strong, h1, h2, h3, h4, h5, h6, .fw-bold {
+    font-weight: 700;
     color: #1a1a1a;
-    font-weight: 800;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.breadcrumb-custom { 
-    font-size: 0.9rem; color: #666; font-weight: 500; 
-}
-.breadcrumb-custom a { 
-    color: #1a1a1a !important; font-weight: 600; transition: color 0.2s;
-}
-.breadcrumb-custom a:hover { color: #f1c40f !important; }
-.breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; opacity: 0.5; color: #999 !important; }
-
-/* Header riêng cho trang Detail cũ - Giữ lại phòng hờ */
-.property-header {
-    background: #ffffff !important;   /* Nền trắng */
-    padding: 15px 0 !important;       /* Thu hẹp chiều cao */
-    width: 100%;
-    margin: 0 !important;
-    border-bottom: 1px solid #e0e0e0; /* Kẻ mờ bên dưới */
-    box-shadow: none !important;      /* Bỏ bóng đổ */
 }
 
 /* =========================================
-   9. SIDEBAR & CONTACT CARD (FIXED - STICKY)
+   2. PERFORMANCE: CONTENT VISIBILITY
    ========================================= */
+/* Giúp trình duyệt không cần render những phần chưa cuộn tới */
+.district-section, 
+.room-list-container,
+footer {
+    content-visibility: auto; 
+    contain-intrinsic-size: 1px 1000px;
+}
+
+/* Header luôn phải hiển thị ngay lập tức */
+header, .navbar, .universal-page-header {
+    position: relative;
+    z-index: 1050 !important;
+}
+
+/* =========================================
+   3. SIDEBAR & STICKY LAYOUT (Dùng cho cả Index & District)
+   ========================================= */
+/* Cấu trúc bao ngoài Sidebar */
+.col-lg-3 {
+    height: auto; 
+    position: relative;
+}
+
+/* Lớp dính thực tế */
+.sidebar-sticky-wrapper, 
+.sidebar-sticky-inner {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 90px !important; 
+    z-index: 100;
+    overflow: visible !important; 
+    height: fit-content !important;
+}
 
 .sidebar-wrapper { 
     height: 100%; 
-    /* LƯU Ý: Không được thêm overflow: hidden ở đây, nếu có sẽ mất sticky */
 }
 
-
+/* Tắt dính trên điện thoại */
+@media (max-width: 991px) {
+    .sidebar-sticky-wrapper,
+    .sidebar-sticky-inner {
+        position: static !important;
+    }
+    body { padding-bottom: 70px !important; }
+}
 
 /* =========================================
-   10. STYLE CHO TRANG CONTACT (GIỮ LẠI ĐỂ KHÔNG MẤT STYLE)
+   4. CONTACT CARD (Thường dùng trong Sidebar)
    ========================================= */
 .contact-card-modern {
     border-radius: 20px; overflow: hidden; transition: transform 0.3s ease;
@@ -117,148 +105,32 @@ a { text-decoration: none; }
 }
 
 /* =========================================
-   12. RESPONSIVE MEDIA QUERIES
+   5. MOBILE HEADER FIX
    ========================================= */
-@media (max-width: 991px) {
-    /* Reset Sticky Mobile */
-    .sidebar-sticky-inner { position: static !important; }
-    /* Đẩy footer lên tránh bị nút gọi che */
-    body { padding-bottom: 70px !important; }
-}
-
-/* =========================================================
-   FIX LAYOUT STICKY - PHIÊN BẢN CHUẨN (ĐÃ SỬA LỖI)
-   ========================================================= */
-
-/* 2. Cấu trúc bao ngoài Sidebar */
-.col-lg-3 {
-    height: auto; 
-    position: relative;
-}
-
-/* 3. Lớp dính thực tế */
-.sidebar-sticky-wrapper, 
-.sidebar-sticky-inner {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 90px !important; /* ĐÃ SỬA: Tăng lên 90px để không bị Header (70px) che mất */
-    z-index: 100;
-    overflow: visible !important; 
-    height: fit-content !important; /* Đảm bảo wrapper chỉ cao bằng nội dung */
-}
-
-/* 4. Tắt dính trên điện thoại */
-@media (max-width: 991px) {
-    .sidebar-sticky-wrapper,
-    .sidebar-sticky-inner {
-        position: static !important;
-    }
-    body { padding-bottom: 70px !important; }
-}
-/* =========================================
-   NEW HEADER STYLE (Dùng chung cho cả 3 trang)
-   ========================================= */
-.universal-page-header {
-    background: #ffffff !important;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 30px 0;
-    width: 100%;
-    margin-bottom: 0px;
-    text-align: center !important;
-    font-family: 'Lexend', sans-serif !important;
-    box-shadow: none !important;
-}
-
-.universal-page-header h1 {
-    color: #1a1a1a;
-    font-weight: 800;
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-    text-transform: uppercase; /* Viết hoa toàn bộ tiêu đề */
-}
-
-/* Định dạng lại Breadcrumb để nó nằm giữa và đẹp hơn */
-.header-breadcrumb {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    color: #666;
-}
-
-.header-breadcrumb a {
-    color: #666;
-    text-decoration: none;
-    transition: 0.2s;
-}
-
-.header-breadcrumb a:hover {
-    color: #f1c40f; /* Màu vàng thương hiệu khi di chuột */
-}
-
-.header-breadcrumb .divider {
-    font-size: 0.7rem;
-    color: #ccc;
-}
-
-/* =========================================
-   13. MOBILE HEADER FIX
-   ========================================= */
-
-/* Chỉnh font chữ tên thương hiệu trên mobile */
 .brand-name-mobile {
-    font-size: 1.25rem; /* Giảm nhẹ kích thước nếu cần */
-    line-height: 1.5;    /* Tăng khoảng cách dòng để không bị che khuất */
+    font-size: 1.25rem;
+    line-height: 1.5;
     display: flex;
     align-items: center;
-    height: auto;       /* Đảm bảo chiều cao tự động theo chữ */
-    padding-top: 5px;   /* Căn chỉnh lề trên dưới */
+    height: auto;
+    padding-top: 5px;
     padding-bottom: 5px;
 }
 
-/* Màn hình điện thoại nhỏ (dưới 400px) */
 @media (max-width: 400px) {
-    /* Thu nhỏ logo chút xíu */
-    .logo-mobile-img {
-        width: 38px !important; 
-        height: 38px !important;
-    }
-
-    /* Thu nhỏ cỡ chữ tiêu đề */
-    .brand-name-mobile {
-        font-size: 0.85rem; 
-    }
-
-    /* Ẩn luôn câu slogan "Uy tín - Tận tâm" để đỡ chật */
-    .brand-slogan-mobile {
-        display: none !important; 
-    }
-    
-    /* Thu hẹp padding nút gọi */
+    .logo-mobile-img { width: 38px !important; height: 38px !important; }
+    .brand-name-mobile { font-size: 0.85rem; }
+    .brand-slogan-mobile { display: none !important; }
     .btn-call-mobile {
         padding-left: 8px !important;
         padding-right: 8px !important;
         font-size: 0.8rem !important;
     }
 }
-/* [FIX LỖI MENU] Đảm bảo Header luôn nằm trên cùng */
-/* Phải cao hơn .sticky-top-mobile (1020) ở trang chi tiết */
-header, .navbar, nav {
-    position: relative;
-    z-index: 1050 !important; 
-}
 
-/* Đảm bảo dropdown menu cũng nổi lên hẳn */
-.dropdown-menu {
-    z-index: 999999 !important;
-}
-/* Đẩy nội dung trang web xuống một bậc để nhường chỗ cho Menu */
+/* Z-Index Fixes */
+.dropdown-menu { z-index: 999999 !important; }
 main, .breadcrumb-section, .sidebar-wrapper {
-    position: relative;
-    z-index: 1 !important; /* Chỉ là dân thường thôi */
+    position: relative; z-index: 1 !important;
 }
-
-/* Đảm bảo cầu nối (Bridge) cũng được hưởng lây quyền lực này */
-.nav-item.dropdown::after {
-    z-index: 1000000 !important; /* Cao hơn cả Header */}
+.nav-item.dropdown::after { z-index: 1000000 !important; }

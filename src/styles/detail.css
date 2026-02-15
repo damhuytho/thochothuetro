@@ -1,0 +1,71 @@
+/* =========================================
+   STYLES DÀNH RIÊNG CHO TRANG CHI TIẾT / TRANG TĨNH
+   (Không load ở Trang chủ và Danh sách quận để tối ưu tốc độ)
+   ========================================= */
+
+/* 1. Header & Breadcrumb kiểu cũ */
+.page-header-block {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.page-header-title { 
+    color: #1a1a1a;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.breadcrumb-custom { 
+    font-size: 0.9rem; color: #666; font-weight: 500; 
+}
+.breadcrumb-custom a { 
+    color: #1a1a1a !important; font-weight: 600; transition: color 0.2s;
+}
+.breadcrumb-custom a:hover { color: #f1c40f !important; }
+.breadcrumb-custom i { margin: 0 8px; font-size: 0.7rem; opacity: 0.5; color: #999 !important; }
+
+/* 2. Header màu trắng (Universal) */
+.universal-page-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 30px 0;
+    width: 100%;
+    margin-bottom: 0px;
+    text-align: center !important;
+    font-family: 'Lexend', sans-serif !important;
+    box-shadow: none !important;
+}
+
+.universal-page-header h1 {
+    color: #1a1a1a;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.header-breadcrumb {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; font-size: 0.95rem; color: #666;
+}
+.header-breadcrumb a:hover { color: #f1c40f; }
+.header-breadcrumb .divider { font-size: 0.7rem; color: #ccc; }
+
+/* 3. Header cũ của Property */
+.property-header {
+    background: #ffffff !important;
+    padding: 15px 0 !important;
+    width: 100%; margin: 0 !important;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: none !important;
+}
+
+.detail-container-standard {
+    content-visibility: auto; 
+    contain-intrinsic-size: 1px 1500px;
+}
