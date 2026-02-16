@@ -5,7 +5,7 @@ import CardRoom from "../../components/CardRoom.astro";
 import CommitmentFooter from "../../components/CommitmentFooter.astro";
 import fs from "node:fs";
 import path from "node:path";
-
+import { createSlug } from "../../utils/helpers.js";
 // --- 1. GET STATIC PATHS ---
 export async function getStaticPaths() {
   return [
@@ -55,20 +55,6 @@ let districtsData = districtNames.map((name) => {
   };
 });
 districtsData.sort((a, b) => b.rooms.length - a.rooms.length);
-
-// [FIX 4] Cho phép tham số nhận kiểu string hoặc bất kỳ
-function createSlug(text: string | any) {
-  if (!text) return "";
-  return text
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[đĐ]/g, "d")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
 
 // --- SEO CONFIG ---
 const pageTitle = `Phòng Trọ ${cityName} Giá Rẻ, Full Nội Thất | Thọ Cho Thuê Trọ`;
@@ -158,7 +144,8 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
 
         {
           districtsData.length > 0 ? (
-            districtsData.map((dData) => (
+            /* [SỬA LẠI] Thêm tham số dIdx vào đây */
+            districtsData.map((dData, dIdx) => (
               <section class="district-section mb-5" data-district={dData.name}>
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-warning">
                   <h2 class="h5 fw-bold text-dark m-0 text-uppercase">
@@ -176,7 +163,7 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
                 </div>
 
                 <div class="row g-2 g-md-3 room-list-container">
-                  {/* [FIX 5] Thêm kiểu (room: any, idx: number) */}
+                  {/* [FIX] dData.rooms đã có sẵn từ server, chỉ cần map ra */}
                   {dData.rooms.slice(0, 6).map((room: any, idx: number) => (
                     <div
                       class="col-6 col-md-4 room-item"
@@ -189,7 +176,8 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
                     >
                       <CardRoom
                         room={room}
-                        priority={idx < 6}
+                        /* [QUAN TRỌNG] Chỉ ưu tiên tải ảnh cho 6 phòng đầu của QUẬN ĐẦU TIÊN (dIdx === 0) */
+                        priority={dIdx === 0 && idx < 6}
                         citySlug={city}
                       />
                     </div>
@@ -212,6 +200,7 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
               </section>
             ))
           ) : (
+            /* Trường hợp chưa có dữ liệu */
             <div class="text-center py-5">
               <p class="text-muted">
                 Đang cập nhật dữ liệu phòng tại {cityName}...
@@ -347,6 +336,7 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
 </style>
 
 <script>
+  import { createSlug } from "../../utils/helpers.js";
   // CLIENT-SIDE FILTER & SORTING LOGIC
   document.addEventListener("DOMContentLoaded", () => {
     const queryString = window.location.search.substring(1);
@@ -356,20 +346,6 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
     const viewMoreWrappers = document.querySelectorAll(".view-more-wrapper");
 
     const currentPath = window.location.pathname.replace(/\/$/, "");
-
-    // [FIX 6] Định nghĩa kiểu
-    const createSlug = (text: string | any) => {
-      if (!text) return "";
-      return text
-        .toString()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[đĐ]/g, "d")
-        .replace(/[^a-z0-9\s]/g, "")
-        .trim()
-        .replace(/\s+/g, "-");
-    };
 
     function hasImage(el: Element) {
       // [FIX 7] Ép kiểu thành HTMLImageElement để dùng thuộc tính src

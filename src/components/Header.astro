@@ -1,20 +1,7 @@
 ---
 import fs from "node:fs";
 import path from "node:path";
-
-// Helper tạo Slug
-function createSlug(str: any) {
-  if (!str) return "";
-  return str
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[đĐ]/g, "d")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
+import { createSlug } from "../utils/helpers.js";
 
 // Hàm đọc dữ liệu
 function getDistricts(fileName: string) {

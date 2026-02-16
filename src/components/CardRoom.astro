@@ -1,27 +1,6 @@
 ---
+import { formatPrice, createSlug } from "../utils/helpers.js";
 const { room, priority = false, citySlug = "ho-chi-minh" } = Astro.props;
-function hideNumber(address) {
-  if (!address) return "";
-  return address.replace(/^[0-9][0-9a-zA-Z\/,.-]*\s+/, "");
-}
-
-function formatPrice(price) {
-  if (price >= 1000000) return (price / 1000000).toString() + " Triệu";
-  return new Intl.NumberFormat("vi-VN").format(price);
-}
-
-function createSlug(str) {
-  if (!str) return "";
-  return str
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
-    .replace(/[đĐ]/g, "d")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
 
 // --- LOGIC ẢNH MỚI (Ghép ID thành Link) ---
 const IMG_BASE_URL = "https://img.thochothuetro.com";

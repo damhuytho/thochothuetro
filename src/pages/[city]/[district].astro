@@ -1,24 +1,11 @@
 ---
+import { createSlug } from "../../utils/helpers.js";
 import Layout from "../../layouts/Layout.astro";
 import SidebarFilter from "../../components/SidebarFilter.astro";
 import CardRoom from "../../components/CardRoom.astro";
 import CommitmentFooter from "../../components/CommitmentFooter.astro";
 import fs from "node:fs";
 import path from "node:path";
-
-// Helper tạo Slug chuẩn
-function createSlug(str: any) {
-  if (!str) return "";
-  return str
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[đĐ]/g, "d")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
 
 export async function getStaticPaths() {
   // 1. [SỬA ĐỔI] Đọc dữ liệu từ cả 2 file thành phố
@@ -47,20 +34,6 @@ export async function getStaticPaths() {
     (r) => r.status === "active" || r.status === "rented",
   );
 
-  // Helper tạo slug nội bộ
-  function localCreateSlug(str: any) {
-    if (!str) return "";
-    return str
-      .toString()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[đĐ]/g, "d")
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
-  }
-
   // 3. Tạo danh sách các đường dẫn duy nhất (City + District)
   const paths: any[] = [];
   const uniqueKeys = new Set();
@@ -70,7 +43,7 @@ export async function getStaticPaths() {
     const cityCode = room.city ? room.city : "hochiminh";
     const citySlug = cityCode === "hanoi" ? "ha-noi" : "ho-chi-minh";
 
-    const distSlug = localCreateSlug(room.district);
+    const distSlug = createSlug(room.district);
     const key = `${citySlug}-${distSlug}`;
 
     if (!uniqueKeys.has(key)) {

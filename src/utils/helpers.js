@@ -24,3 +24,15 @@ export function getThumbnail(images) {
     const thumb = images.find(img => img.includes('_thumb'));
     return thumb ? thumb : images[0];
 }
+export function createSlug(str) {
+  if (!str) return "";
+  return str
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}

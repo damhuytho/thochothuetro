@@ -1,26 +1,12 @@
 ---
 // --- 1. IMPORTS & SETUP ---
+import { formatPrice, createSlug } from "../../../utils/helpers.js";
 import Layout from "../../../layouts/Layout.astro";
 import CommitmentSidebar from "../../../components/CommitmentSidebar.astro";
 import CardRoom from "../../../components/CardRoom.astro";
-import { formatPrice, hideNumber } from "../../../utils/helpers.js";
 import fs from "node:fs";
 import path from "node:path";
 import "../../../styles/detail.css";
-
-// --- 2. HELPER FUNCTIONS ---
-function createSlug(str: any) {
-  if (!str) return "";
-  return str
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[đĐ]/g, "d")
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
 
 function getVideoId(url: string) {
   if (!url) return null;
@@ -56,23 +42,10 @@ export async function getStaticPaths() {
     (r) => r.status === "active" || r.status === "rented",
   );
 
-  const makeSlug = (str: any) => {
-    if (!str) return "";
-    return str
-      .toString()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[đĐ]/g, "d")
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
-  };
-
   return activeRooms.map((room) => {
     const cityCode = room.city ? room.city : "hochiminh";
     const citySlug = cityCode === "hanoi" ? "ha-noi" : "ho-chi-minh";
-    const districtSlug = makeSlug(room.district);
+    const districtSlug = createSlug(room.district);
 
     return {
       params: { city: citySlug, district: districtSlug, id: room.id },
