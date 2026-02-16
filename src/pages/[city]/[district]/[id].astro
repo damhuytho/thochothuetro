@@ -155,7 +155,7 @@ const collageImageMobile =
     : collageImageWeb;
 
 // Logic Text & SEO
-const cleanAddress = hideNumber(room.address);
+const cleanAddress = room.address;
 const finalDesc =
   room.desc_ai_detail && room.desc_ai_detail.length > 50
     ? room.desc_ai_detail
@@ -185,7 +185,7 @@ const highlightFeature =
 
 const pageTitle = `Cho thuê ${room.type} ${cleanAddress}, ${highlightFeature} - Giá ${formatPrice(room.price)}`;
 const pageDesc = `🔥 Chỉ ${formatPrice(room.price)}/tháng. Cho thuê ${room.type} tại ${room.district} (${cleanAddress}). ✅ ${keypointsList.slice(0, 3).join(", ")}. ☎️ 0925 996 992.`;
-const canonicalURL = `${Astro.site || "https://thochothuetro.com"}/${currentDistrictSlug}/${room.id}`;
+const canonicalURL = `${Astro.site || "https://thochothuetro.com"}/${currentCitySlug}/${currentDistrictSlug}/${room.id}`;
 const baseAltText = `Phòng trọ ${room.type} tại ${cleanAddress}, ${room.district}`;
 const videoId = getVideoId(room.video);
 

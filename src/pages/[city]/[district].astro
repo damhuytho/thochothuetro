@@ -753,4 +753,11 @@ const allSchemas = [
     border-color: var(--primary, #f1c40f) !important;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
+  /* [TỐI ƯU] Thêm vào phần style cuối file */
+  #district-room-container {
+    /* Cực kỳ quan trọng cho danh sách dài: Tăng tốc độ render */
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1500px; /* Ước lượng chiều cao danh sách để thanh cuộn không bị nhảy */
+    min-height: 500px; /* Tránh CLS khi chưa load xong */
+  }
 </style>
