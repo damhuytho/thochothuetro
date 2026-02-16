@@ -234,18 +234,16 @@ const preloadImg = "https://img.thochothuetro.com/banner-mobile.webp";
   /* HERO BANNER STYLES */
   .banner-hero-wrapper {
     position: relative;
+    /* Mobile First: Chiều cao cho mobile */
     height: 380px;
-    /* [TỐI ƯU] Dùng kỹ thuật này an toàn hơn 100vw để tránh thanh cuộn ngang */
-    width: 100%;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    width: 100vw;
+    width: 100%; /* Đổi từ 100vw thành 100% để tránh thanh cuộn ngang và tính toán lại */
     overflow: hidden;
     background-color: #222;
-    /* [QUAN TRỌNG] Giữ chỗ layout trước khi ảnh load (giảm CLS) */
+    /* Giữ chỗ layout (Aspect Ratio) để không bị nhảy layout (CLS) */
     aspect-ratio: 16/9;
+    /* Tối ưu render: Báo trình duyệt ưu tiên vẽ khu vực này */
+    content-visibility: visible;
+    contain: layout paint;
   }
 
   @media (min-width: 768px) {
