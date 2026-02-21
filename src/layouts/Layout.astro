@@ -1,152 +1,236 @@
 ---
-// Import trực tiếp từ node_modules 
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import MobileBottomNav from '../components/MobileBottomNav.astro';
+// Import trực tiếp từ node_modules
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import MobileBottomNav from "../components/MobileBottomNav.astro";
 import "../styles/main.scss";
-import '../styles/style.css';
+import "../styles/style.css";
 // Khai báo kiểu dữ liệu cho Props (TypeScript)
 export interface Props {
-    title: string;
-    description?: string;
-    image?: string;
-    preloadImage?: string;
-    canonicalURL?: string;
-    currentCity?: string;
+  title: string;
+  description?: string;
+  image?: string;
+  preloadImage?: string;
+  canonicalURL?: string;
+  currentCity?: string;
 }
 
-const { 
-    title, 
-    description = "Hệ thống phòng trọ tiện nghi, giờ giấc tự do tại Tân Bình & Phú Nhuận. Cam kết hình thật, giá thật.",
-    image = "/logo.png",
-    preloadImage,
-    canonicalURL,
-    currentCity 
+const {
+  title,
+  description = "Hệ thống phòng trọ tiện nghi, giờ giấc tự do tại Tân Bình & Phú Nhuận. Cam kết hình thật, giá thật.",
+  image = "/logo.png",
+  preloadImage,
+  canonicalURL,
+  currentCity,
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 // [SỬA LỖI] Cắt bỏ dấu gạch chéo ở cuối (nếu có) để tránh lỗi //logo.png
-const rawSite = Astro.site ? Astro.site.toString() : 'https://thochothuetro.com';
-const siteURL = rawSite.replace(/\/$/, '');
+const rawSite = Astro.site
+  ? Astro.site.toString()
+  : "https://thochothuetro.com";
+const siteURL = rawSite.replace(/\/$/, "");
 const fullURL = canonicalURL || `${siteURL}${currentPath}`;
 
 // --- [LOGIC QUAN TRỌNG] Kiểm tra xem có phải trang bản đồ không ---
-const isMapPage = currentPath.includes('/map-search');
-
-
+const isMapPage = currentPath.includes("/map-search");
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi" class={isMapPage ? "is-map-page" : ""}>
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-    
+
     <link rel="icon" type="image/png" href="/logo.png" />
-    
-    <link rel="preload" href="/fonts/be-vietnam-pro-v12-latin_vietnamese-regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="/fonts/be-vietnam-pro-v12-latin_vietnamese-700.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link
+      rel="preload"
+      href="/fonts/be-vietnam-pro-v12-latin_vietnamese-regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/be-vietnam-pro-v12-latin_vietnamese-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
     <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="theme-color" content="#d9b205" />
     <meta name="generator" content={Astro.generator} />
     <style is:inline>
-    /* 1. Font Solid (Icon đậm: home, phone, user...) */
-    @font-face {
-        font-family: 'Font Awesome 6 Free';
+      /* 1. Font Solid (Icon đậm: home, phone, user...) */
+      @font-face {
+        font-family: "Font Awesome 6 Free";
         font-style: normal;
         font-weight: 900;
         font-display: swap;
-        src: url('/fonts/fa-solid-900.woff2') format('woff2');
-    }
-    /* 2. Font Brands (Logo: Facebook, Zalo, Tiktok...) */
-    @font-face {
-        font-family: 'Font Awesome 6 Brands';
+        src: url("/fonts/fa-solid-900.woff2") format("woff2");
+      }
+      /* 2. Font Brands (Logo: Facebook, Zalo, Tiktok...) */
+      @font-face {
+        font-family: "Font Awesome 6 Brands";
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        src: url('/fonts/fa-brands-400.woff2') format('woff2');
-    }
-    /* 3. Font Chính (Be Vietnam Pro) - Load từ file local trong public/fonts */
-    @font-face {
-        font-family: 'Be Vietnam Pro';
+        src: url("/fonts/fa-brands-400.woff2") format("woff2");
+      }
+      /* 3. Font Chính (Be Vietnam Pro) - Load từ file local trong public/fonts */
+      @font-face {
+        font-family: "Be Vietnam Pro";
         font-style: normal;
         font-weight: 400;
         font-display: swap;
         /* Trỏ đúng vào file 400 trong thư mục public */
-        src: url('/fonts/be-vietnam-pro-v12-latin_vietnamese-regular.woff2') format('woff2');
-    }
+        src: url("/fonts/be-vietnam-pro-v12-latin_vietnamese-regular.woff2")
+          format("woff2");
+      }
 
-    @font-face {
-        font-family: 'Be Vietnam Pro';
+      @font-face {
+        font-family: "Be Vietnam Pro";
         font-style: normal;
         font-weight: 700;
         font-display: swap;
         /* Trỏ đúng vào file 900 trong thư mục public */
-        src: url('/fonts/be-vietnam-pro-v12-latin_vietnamese-700.woff2') format('woff2');
-    }
-    
-    
-    /* Class bắt buộc để icon hiển thị */
-    .fa, .fas { font-family: "Font Awesome 6 Free"; font-weight: 900; }
-    .fab { font-family: "Font Awesome 6 Brands"; font-weight: 400; }
-    .fa, .fas, .fab { 
-        -moz-osx-font-smoothing: grayscale; 
-        -webkit-font-smoothing: antialiased; 
-        display: inline-block; 
-        font-style: normal; 
-        font-variant: normal; 
-        text-rendering: auto; 
-        line-height: 1; 
-    }
-    /* --- BỔ SUNG: ĐỊNH NGHĨA MÃ HEX CHO CÁC ICON --- */
-    
-    /* 1. Icon Ngôi nhà (Trên bản đồ) */
-    .fa-home::before { content: "\f015"; }
+        src: url("/fonts/be-vietnam-pro-v12-latin_vietnamese-700.woff2")
+          format("woff2");
+      }
 
-    /* 2. Các icon Mạng xã hội (Brands) */
-    .fa-facebook-f::before { content: "\f39e"; }
-    .fa-tiktok::before { content: "\e07b"; }
-    .fa-youtube::before { content: "\f167"; }
-    .fa-zalo::before { content: "\f086"; } /* Zalo thường dùng icon comment thay thế hoặc icon riêng */
-    /* --- BỔ SUNG ICON CAM KẾT (FOOTER & SIDEBAR) --- */
-    .fa-hand-holding-usd::before { content: "\f4c0"; } /* Icon tay cầm tiền (Miễn phí xem nhà) */
-    .fa-tag::before { content: "\f02b"; }              /* Icon thẻ giá (Giá minh bạch) */
-    .fa-hands-helping::before { content: "\f4c4"; }    /* Icon bắt tay (Hỗ trợ tận tâm) */
-    .fa-sync-alt::before { content: "\f2f1"; }         /* Icon xoay vòng (Cập nhật liên tục) */
-    .fa-shield-alt::before { content: "\f3ed"; }       /* Icon cái khiên (An toàn pháp lý) */
-    .fa-star::before { content: "\f005"; }             /* Icon ngôi sao (Tiêu đề) */
-    
-    /* Lưu ý: Icon .fa-check-circle (Thông tin chính xác) bạn đã có ở code cũ rồi nên không cần thêm lại */
-    /* 3. Các icon chức năng khác (Solid) */
-    .fa-phone-alt::before { content: "\f879"; }
-    .fa-comment-dots::before { content: "\f4ad"; }
-    .fa-map-marker-alt::before { content: "\f3c5"; }
-    .fa-angle-right::before { content: "\f105"; }
-    .fa-list-ul::before { content: "\f0ca"; }
-    .fa-redo-alt::before { content: "\f2f9"; }
-    .fa-chevron-down::before { content: "\f078"; }
-    .fa-gift::before { content: "\f06b"; }
-    .fa-share-alt::before { content: "\f1e0"; }
-    .fa-map-marked-alt::before { content: "\f5a0"; }
-    .fa-city::before { content: "\f64f"; }
-    .fa-building::before { content: "\f1ad"; }
-    .fa-landmark::before { content: "\f66f"; }
-    .fa-envelope::before { content: "\f0e0"; }
-    .fa-arrow-right::before { content: "\f061"; }
-    .fa-check-circle::before { content: "\f058"; }
-    .fa-check::before { content: "\f00c"; }
-</style>
-    <link rel="preconnect" href="https://img.thochothuetro.com">  
+      /* Class bắt buộc để icon hiển thị */
+      .fa,
+      .fas {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+      }
+      .fab {
+        font-family: "Font Awesome 6 Brands";
+        font-weight: 400;
+      }
+      .fa,
+      .fas,
+      .fab {
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased;
+        display: inline-block;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        line-height: 1;
+      }
+      /* --- BỔ SUNG: ĐỊNH NGHĨA MÃ HEX CHO CÁC ICON --- */
 
-    {preloadImage && (
-        <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
-    )}
-    
+      /* 1. Icon Ngôi nhà (Trên bản đồ) */
+      .fa-home::before {
+        content: "\f015";
+      }
+
+      /* 2. Các icon Mạng xã hội (Brands) */
+      .fa-facebook-f::before {
+        content: "\f39e";
+      }
+      .fa-tiktok::before {
+        content: "\e07b";
+      }
+      .fa-youtube::before {
+        content: "\f167";
+      }
+      .fa-zalo::before {
+        content: "\f086";
+      } /* Zalo thường dùng icon comment thay thế hoặc icon riêng */
+      /* --- BỔ SUNG ICON CAM KẾT (FOOTER & SIDEBAR) --- */
+      .fa-hand-holding-usd::before {
+        content: "\f4c0";
+      } /* Icon tay cầm tiền (Miễn phí xem nhà) */
+      .fa-tag::before {
+        content: "\f02b";
+      } /* Icon thẻ giá (Giá minh bạch) */
+      .fa-hands-helping::before {
+        content: "\f4c4";
+      } /* Icon bắt tay (Hỗ trợ tận tâm) */
+      .fa-sync-alt::before {
+        content: "\f2f1";
+      } /* Icon xoay vòng (Cập nhật liên tục) */
+      .fa-shield-alt::before {
+        content: "\f3ed";
+      } /* Icon cái khiên (An toàn pháp lý) */
+      .fa-star::before {
+        content: "\f005";
+      } /* Icon ngôi sao (Tiêu đề) */
+
+      /* Lưu ý: Icon .fa-check-circle (Thông tin chính xác) bạn đã có ở code cũ rồi nên không cần thêm lại */
+      /* 3. Các icon chức năng khác (Solid) */
+      .fa-phone-alt::before {
+        content: "\f879";
+      }
+      .fa-comment-dots::before {
+        content: "\f4ad";
+      }
+      .fa-map-marker-alt::before {
+        content: "\f3c5";
+      }
+      .fa-angle-right::before {
+        content: "\f105";
+      }
+      .fa-list-ul::before {
+        content: "\f0ca";
+      }
+      .fa-redo-alt::before {
+        content: "\f2f9";
+      }
+      .fa-chevron-down::before {
+        content: "\f078";
+      }
+      .fa-gift::before {
+        content: "\f06b";
+      }
+      .fa-share-alt::before {
+        content: "\f1e0";
+      }
+      .fa-map-marked-alt::before {
+        content: "\f5a0";
+      }
+      .fa-city::before {
+        content: "\f64f";
+      }
+      .fa-building::before {
+        content: "\f1ad";
+      }
+      .fa-landmark::before {
+        content: "\f66f";
+      }
+      .fa-envelope::before {
+        content: "\f0e0";
+      }
+      .fa-arrow-right::before {
+        content: "\f061";
+      }
+      .fa-check-circle::before {
+        content: "\f058";
+      }
+      .fa-check::before {
+        content: "\f00c";
+      }
+    </style>
+    <link rel="preconnect" href="https://img.thochothuetro.com" />
+
+    {
+      preloadImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={preloadImage}
+          fetchpriority="high"
+        />
+      )
+    }
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={fullURL} />
-    
+
     <meta property="og:type" content="website" />
     <meta property="og:url" content={fullURL} />
     <meta property="og:title" content={title} />
@@ -154,178 +238,256 @@ const isMapPage = currentPath.includes('/map-search');
     <meta property="og:image" content={`${siteURL}${image}`} />
     <meta property="og:locale" content="vi_VN" />
     <meta property="og:site_name" content="Thọ Cho Thuê Trọ" />
-    
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content={fullURL} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`${siteURL}${image}`} />
-    
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <meta name="googlebot" content="index, follow" />
     <meta name="author" content="Thọ Cho Thuê Trọ" />
     <meta name="geo.region" content="VN-SG" />
     <meta name="geo.placename" content="Ho Chi Minh City" />
-    
+
     <slot name="head" />
 
     <style is:global define:vars={{ isMapPage }}>
-        
-        /* --- CRITICAL CSS --- */
-        :root {
-            --bs-font-sans-serif: 'Be Vietnam Pro', sans-serif;
-            font-display: swap;
-            --primary-color: #d9b205;
-            --warning-color: #d9b205;
-        }
+      /* --- CRITICAL CSS --- */
+      :root {
+        --bs-font-sans-serif: "Be Vietnam Pro", sans-serif;
+        font-display: swap;
+        --primary-color: #d9b205;
+        --warning-color: #d9b205;
+      }
 
-        /* 1. CẤU HÌNH CƠ BẢN */
-        body { 
-            font-family: var(--bs-font-sans-serif);
-            background-color: #f8f9fa; 
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-            padding-bottom: 80px !important; /* Chừa chỗ cho menu dưới mobile */
-        }
+      /* 1. CẤU HÌNH CƠ BẢN */
+      body {
+        font-family: var(--bs-font-sans-serif);
+        background-color: #f8f9fa;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        padding-bottom: 80px !important; /* Chừa chỗ cho menu dưới mobile */
+      }
 
-        main { 
-            flex: 1 0 auto;
-            width: 100%;
-            overflow: visible !important; /* Đảm bảo nội dung không bị che */
-        }
+      main {
+        flex: 1 0 auto;
+        width: 100%;
+        overflow: visible !important; /* Đảm bảo nội dung không bị che */
+      }
 
-        /* Navbar Brand */
-        .navbar-brand img { 
-            height: 48px;
-            width: auto; 
-            box-shadow: none !important;
-        }
+      /* Navbar Brand */
+      .navbar-brand img {
+        height: 48px;
+        width: auto;
+        box-shadow: none !important;
+      }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #999; }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #999;
+      }
 
-        /* =========================================================
+      /* =========================================================
            [QUAN TRỌNG] FIX LỖI SCROLL MAP TRÊN MOBILE VÀ DESKTOP
            ========================================================= */
-        
-        /* MẶC ĐỊNH (Trang thường): Cho phép cuộn tự nhiên */
-        html:not(.is-map-page), body:not(.is-map-page) {
-            height: auto !important;
-            overflow-x: clip !important;
-            overflow-y: visible !important;
+
+      /* MẶC ĐỊNH (Trang thường): Cho phép cuộn tự nhiên */
+      html:not(.is-map-page),
+      body:not(.is-map-page) {
+        height: auto !important;
+        overflow-x: clip !important;
+        overflow-y: visible !important;
+      }
+
+      /* RIÊNG TRANG MAP - TRÊN DESKTOP (>= 992px) */
+      /* Khóa cuộn body để sidebar cuộn độc lập */
+      @media (min-width: 992px) {
+        html.is-map-page,
+        body.is-map-page {
+          height: 100vh !important;
+          overflow: hidden !important;
+        }
+      }
+
+      /* RIÊNG TRANG MAP - TRÊN MOBILE (< 992px) */
+      /* [FIX LỖI CỦA BẠN]: Phải cho phép cuộn để xem danh sách bên dưới map */
+      @media (max-width: 991px) {
+        html.is-map-page,
+        body.is-map-page {
+          height: auto !important;
+          overflow-x: clip !important;
+          overflow-y: auto !important; /* Mở khóa cuộn dọc */
+          touch-action: pan-y; /* Tối ưu cảm ứng */
+        }
+      }
+
+      /* --- DESKTOP STYLES (>= 992px) --- */
+      @media (min-width: 992px) {
+        .mobile-bottom-nav {
+          display: none !important;
+        }
+        .btn-call-mobile {
+          display: none !important;
         }
 
-        /* RIÊNG TRANG MAP - TRÊN DESKTOP (>= 992px) */
-        /* Khóa cuộn body để sidebar cuộn độc lập */
-        @media (min-width: 992px) {
-            html.is-map-page, body.is-map-page {
-                height: 100vh !important;
-                overflow: hidden !important;
-            }
+        .nav-link {
+          font-weight: 600;
+          color: #444 !important;
+          padding: 0.5rem 1rem !important;
+          transition: all 0.2s;
         }
-
-        /* RIÊNG TRANG MAP - TRÊN MOBILE (< 992px) */
-        /* [FIX LỖI CỦA BẠN]: Phải cho phép cuộn để xem danh sách bên dưới map */
-        @media (max-width: 991px) {
-            html.is-map-page, body.is-map-page {
-                height: auto !important;
-                overflow-x: clip !important;
-                overflow-y: auto !important; /* Mở khóa cuộn dọc */
-                touch-action: pan-y; /* Tối ưu cảm ứng */
-            }
+        .nav-link:hover,
+        .nav-link.active {
+          color: #d9b205 !important;
         }
+      }
 
-        
-
-        /* --- DESKTOP STYLES (>= 992px) --- */
-        @media (min-width: 992px) {
-            .mobile-bottom-nav { display: none !important; } 
-            .btn-call-mobile { display: none !important; }
-            
-            .nav-link { font-weight: 600; color: #444 !important; padding: 0.5rem 1rem !important; transition: all 0.2s; }
-            .nav-link:hover, .nav-link.active { color: #d9b205 !important; }
-        }
-
-        /* =========================================
+      /* =========================================
            MOBILE BOTTOM NAVIGATION
            ========================================= */
-        @media (max-width: 991px) {
-            body { background-color: #f8f9fa; }
-            
+      @media (max-width: 991px) {
+        body {
+          background-color: #f8f9fa;
         }
+      }
 
-        /* HEADER NAVIGATION */
-        
-        .brand-text { font-size: 1.1rem; color: #d9b205 !important; letter-spacing: -0.5px; }
-        .brand-slogan { font-size: 0.75rem; font-weight: 500; }
-        
-        .btn-header-cta { background: #d9b205 !important; border: none; color: #1a1a1a !important; padding: 8px 20px; transition: transform 0.2s; }
-        .btn-header-cta:active { transform: scale(0.96); }
-        
-        @keyframes ring {
-            0% { transform: rotate(0); } 10% { transform: rotate(30deg); } 30% { transform: rotate(-28deg); }
-            50% { transform: rotate(34deg); } 70% { transform: rotate(-32deg); } 90% { transform: rotate(30deg); } 100% { transform: rotate(0); }
+      /* HEADER NAVIGATION */
+
+      .brand-text {
+        font-size: 1.1rem;
+        color: #d9b205 !important;
+        letter-spacing: -0.5px;
+      }
+      .brand-slogan {
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .btn-header-cta {
+        background: #d9b205 !important;
+        border: none;
+        color: #1a1a1a !important;
+        padding: 8px 20px;
+        transition: transform 0.2s;
+      }
+      .btn-header-cta:active {
+        transform: scale(0.96);
+      }
+
+      @keyframes ring {
+        0% {
+          transform: rotate(0);
         }
-        .animate-ring { animation: ring 4s infinite ease-in-out; }
-
-        @media (min-width: 992px) {
-            .app-offcanvas {
-                visibility: visible !important;
-                display: flex !important; transform: none !important;
-                position: static !important; height: auto !important; width: auto !important;
-                background: transparent !important;
-                box-shadow: none !important;
-            }
-            .nav-link:hover { color: #d9b205 !important; background: rgba(217, 178, 5, 0.08); }
+        10% {
+          transform: rotate(30deg);
         }
-
-        
-
-        @media (min-width: 992px) {
-            .app-offcanvas { display: none !important; }
-            .navbar-nav .nav-link { color: #333 !important; }
-            .navbar-nav .nav-link:hover { color: #d9b205 !important; background: rgba(217, 178, 5, 0.1); }
+        30% {
+          transform: rotate(-28deg);
         }
-        
-        /* FIX STICKY */
-        .container, .row, .col-lg-3, aside { overflow: visible !important; }
-        .row { align-items: stretch !important; }
+        50% {
+          transform: rotate(34deg);
+        }
+        70% {
+          transform: rotate(-32deg);
+        }
+        90% {
+          transform: rotate(30deg);
+        }
+        100% {
+          transform: rotate(0);
+        }
+      }
+      .animate-ring {
+        animation: ring 4s infinite ease-in-out;
+      }
+
+      @media (min-width: 992px) {
+        .app-offcanvas {
+          visibility: visible !important;
+          display: flex !important;
+          transform: none !important;
+          position: static !important;
+          height: auto !important;
+          width: auto !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .nav-link:hover {
+          color: #d9b205 !important;
+          background: rgba(217, 178, 5, 0.08);
+        }
+      }
+
+      @media (min-width: 992px) {
+        .app-offcanvas {
+          display: none !important;
+        }
+        .navbar-nav .nav-link {
+          color: #333 !important;
+        }
+        .navbar-nav .nav-link:hover {
+          color: #d9b205 !important;
+          background: rgba(217, 178, 5, 0.1);
+        }
+      }
+
+      /* FIX STICKY */
+      .container,
+      .row,
+      .col-lg-3,
+      aside {
+        overflow: visible !important;
+      }
+      .row {
+        align-items: stretch !important;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <Header currentCity={currentCity} />
-    
+
     <main>
-        <slot />
+      <slot />
     </main>
 
-{ !isMapPage && (
-    <Footer /> 
-)}
+    {!isMapPage && <Footer currentCity={currentCity} />}
 
-{ !isMapPage && <MobileBottomNav /> }
+    {!isMapPage && <MobileBottomNav />}
     <script>
-        import "../scripts/bootstrap-custom.js";
+      import "../scripts/bootstrap-custom.js";
     </script>
 
     <script is:inline>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('SW registered:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('SW registration failed:', error);
-                    });
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              console.log("SW registered:", registration.scope);
+            })
+            .catch((error) => {
+              console.log("SW registration failed:", error);
             });
-        }
-    </script>  
-</body>
+        });
+      }
+    </script>
+  </body>
 </html>

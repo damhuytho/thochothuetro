@@ -1,3 +1,25 @@
+---
+import { createSlug } from "../utils/helpers.js";
+
+const { currentCity = "hochiminh" } = Astro.props;
+
+// Cấu hình quận mặc định cho từng khu vực hiển thị ở Footer
+const locationData = {
+  hochiminh: {
+    citySlug: "ho-chi-minh",
+    cityName: "TP.Hồ Chí Minh",
+    districts: ["Tân Bình", "Phú Nhuận"],
+  },
+  hanoi: {
+    citySlug: "ha-noi",
+    cityName: "Hà Nội",
+    districts: ["Cầu Giấy", "Đống Đa"], // Bạn có thể tự đổi tên 2 quận Hà Nội tại đây
+  },
+};
+
+const currentLoc = locationData[currentCity] || locationData["hochiminh"];
+---
+
 <footer id="footer-contact" class="pt-5 pb-4">
   <div class="container">
     <div class="row g-4">
@@ -82,18 +104,16 @@
           KHU VỰC
         </h6>
         <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="/ho-chi-minh/tan-binh"
-              ><i class="fas fa-angle-right me-2 text-warning small"></i>Căn hộ
-              tại Tân Bình</a
-            >
-          </li>
-          <li class="mb-2">
-            <a href="/ho-chi-minh/phu-nhuan"
-              ><i class="fas fa-angle-right me-2 text-warning small"></i>Căn hộ
-              tại Phú Nhuận</a
-            >
-          </li>
+          {
+            currentLoc.districts.map((dist) => (
+              <li class="mb-2">
+                <a href={`/${currentLoc.citySlug}/${createSlug(dist)}`}>
+                  <i class="fas fa-angle-right me-2 text-warning small" />
+                  Phòng trọ {dist}
+                </a>
+              </li>
+            ))
+          }
           <li class="mb-2">
             <a href="/map-search"
               ><i class="fas fa-angle-right me-2 text-warning small"></i>Tìm
@@ -101,7 +121,7 @@
             >
           </li>
           <li class="mb-2">
-            <a href="/"
+            <a href={`/${currentLoc.citySlug}`}
               ><i class="fas fa-angle-right me-2 text-warning small"></i>Tất cả
               phòng</a
             >
@@ -119,7 +139,9 @@
           <li class="mb-3 d-flex">
             <i class="fas fa-map-marker-alt text-warning mt-1 me-3"></i>
             <span class="text-white"
-              >Hoạt động tại: Quận Tân Bình & Phú Nhuận, TP.Hồ Chí Minh</span
+              >Hoạt động tại: Quận {currentLoc.districts.join(" & ")}, {
+                currentLoc.cityName
+              }</span
             >
           </li>
           <li class="mb-3 d-flex">
