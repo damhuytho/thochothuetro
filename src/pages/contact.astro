@@ -184,12 +184,14 @@ const schemaLocalBusiness = {
                 width="120"
                 height="120"
                 decoding="async"
+                loading="lazy"
               />
             </div>
             <div class="d-grid gap-2">
               <a
                 href="https://zalo.me/0925996992"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="btn btn-primary fw-bold rounded-pill shadow-sm border-0 btn-pulse-blue"
                 style="background-color: #0068ff;"
               >
@@ -383,11 +385,11 @@ const schemaLocalBusiness = {
       // Tải thư viện động
       if (typeof L === "undefined") {
         const script = document.createElement("script");
-        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.src = "/libs/leaflet/leaflet.js";
         script.onload = () => {
           const link = document.createElement("link");
           link.rel = "stylesheet";
-          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          link.href = "/libs/leaflet/leaflet.css";
           document.head.appendChild(link);
           setTimeout(startLoad, 50);
         };
